@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Subtask extends Model
+{
+    protected $fillable = ['main_task_id', 'title', 'description', 'work_date', 'time_logged', 'user_id'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function mainTask()
+    {
+        return $this->belongsTo(MainTask::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(SubTaskComment::class, 'sub_task_id');
+    }
+}
