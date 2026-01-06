@@ -352,21 +352,10 @@
                                     <textarea id="main-task-description" rows="4" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe the main task"></textarea>
                                 </div>
                                 
+                                <!-- Status section removed as per request -->
                                 <div class="mb-6">
                                     <div class="flex items-center justify-between">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Task Status</label>
                                         <span id="main-task-id-display" class="text-xs text-gray-500 dark:text-gray-400">New Task</span>
-                                    </div>
-                                    <div class="mt-2 grid grid-cols-3 gap-3">
-                                        <button class="task-status-btn py-2 px-3 rounded-lg text-center border border-gray-300 dark:border-gray-600 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300" data-status="active">
-                                            <i class="fas fa-play-circle mr-1"></i> Active
-                                        </button>
-                                        <button class="task-status-btn py-2 px-3 rounded-lg text-center border border-gray-300 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300" data-status="pending">
-                                            <i class="fas fa-pause-circle mr-1"></i> Pending
-                                        </button>
-                                        <button class="task-status-btn py-2 px-3 rounded-lg text-center border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300" data-status="completed">
-                                            <i class="fas fa-check-circle mr-1"></i> Completed
-                                        </button>
                                     </div>
                                 </div>
                                 
@@ -887,18 +876,7 @@
             saveMainTaskBtn.addEventListener('click', saveMainTask);
             updateMainTaskBtn.addEventListener('click', updateMainTask);
             
-            // Task status buttons
-            taskStatusButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    taskStatusButtons.forEach(btn => {
-                        btn.classList.remove('border-blue-500', 'dark:border-blue-400', 'bg-blue-50', 'dark:bg-blue-900/30', 'text-blue-700', 'dark:text-blue-300');
-                        btn.classList.add('border-gray-300', 'dark:border-gray-600');
-                    });
-                    
-                    button.classList.remove('border-gray-300', 'dark:border-gray-600');
-                    button.classList.add('border-blue-500', 'dark:border-blue-400', 'bg-blue-50', 'dark:bg-blue-900/30', 'text-blue-700', 'dark:text-blue-300');
-                });
-            });
+            // Task status buttons logic removed
             
             // Main task list event delegation
             document.getElementById('main-tasks-list').addEventListener('click', (e) => {
@@ -1355,6 +1333,14 @@
             subtaskCommentsSection.classList.add('hidden');
             currentMainTaskId = null;
             currentSubtaskId = null;
+            
+            // Clear lists to prevent stale data
+            document.getElementById('subtasks-container').innerHTML = `
+                <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-arrow-left mb-2"></i>
+                    <p>Select a main task to view its subtasks.</p>
+                </div>`;
+            document.getElementById('comments-list').innerHTML = '';
         }
         
         async function deleteMainTask(taskId) {
