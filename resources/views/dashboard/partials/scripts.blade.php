@@ -201,10 +201,22 @@
             addFirstClientBtn.addEventListener('click', () => openClientModal('add'));
             
             // View all clients
-            viewAllClientsBtn.addEventListener('click', () => {
-                clientSearch.value = '';
-                filterClients();
-            });
+            if (viewAllClientsBtn) {
+                viewAllClientsBtn.addEventListener('click', () => {
+                    clientSearch.value = '';
+                    filterClients();
+                    clientSearch.focus();
+                    
+                    // On mobile, open sidebar to show clients
+                    if (window.innerWidth < 768) {
+                        toggleMobileMenu();
+                    } else {
+                        // On desktop, maybe pulse the sidebar or just clear
+                        sidebar.classList.add('ring-2', 'ring-blue-500', 'ring-inset');
+                        setTimeout(() => sidebar.classList.remove('ring-2', 'ring-blue-500', 'ring-inset'), 1000);
+                    }
+                });
+            }
             
             // Client modal
             closeClientModal.addEventListener('click', () => closeClientModalFunc());
@@ -820,13 +832,25 @@
             }
         }
         
+        function updateSubtaskDetailHeader(subtask) {
+            detailSubtaskTitle.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <span>${subtask.title}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                        <i class="fas fa-clock mr-1 text-[10px]"></i>
+                        ${parseFloat(subtask.total_time_logged || 0).toFixed(2)}h total
+                    </span>
+                </div>
+            `;
+        }
+
         function selectSubtask(subtaskItem) {
             const subtaskId = subtaskItem.getAttribute('data-subtask-id');
             const subtask = findSubtask(subtaskId);
             if (!subtask) return;
 
             currentSubtaskId = subtaskId;
-            detailSubtaskTitle.textContent = subtask.title;
+            updateSubtaskDetailHeader(subtask);
             
             renderComments(subtask.comments || []);
             renderTimeLogs(subtask.time_logs || []);
@@ -904,6 +928,7 @@
                 
                 subtask.total_time_logged = (parseFloat(subtask.total_time_logged) || 0) + parseFloat(val);
                 
+                updateSubtaskDetailHeader(subtask);
                 renderTimeLogs(subtask.time_logs);
                 renderSubtasks(findMainTask(currentMainTaskId).subtasks);
                 timeLogValue.value = '';
@@ -927,6 +952,7 @@
                     subtask.total_time_logged = (parseFloat(subtask.total_time_logged) || 0) - parseFloat(log.time);
                     
                     subtask.time_logs = subtask.time_logs.filter(l => l.id != id);
+                    updateSubtaskDetailHeader(subtask);
                     renderTimeLogs(subtask.time_logs);
                     renderSubtasks(findMainTask(currentMainTaskId).subtasks);
                     showSuccessNotification(result.message);
