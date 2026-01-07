@@ -144,9 +144,9 @@
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <div class="flex items-center space-x-3">
-                        <div class="bg-blue-600 dark:bg-blue-500 text-white p-2 rounded-lg">
+                        <!-- <div class="bg-blue-600 dark:bg-blue-500 text-white p-2 rounded-lg">
                             <i class="fas fa-tasks text-xl"></i>
-                        </div>
+                        </div> -->
                         <h1 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">Task Manager</h1>
                     </div>
                 </div>
