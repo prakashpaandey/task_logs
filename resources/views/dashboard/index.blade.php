@@ -36,7 +36,7 @@
             --secondary-color: #10b981;
             --danger-color: #ef4444;
             --warning-color: #f59e0b;
-            --sidebar-width: 320px;
+            --sidebar-width: 256px;
         }
         
         * {
@@ -207,7 +207,7 @@
             <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
 
             <!-- Left Sidebar: Clients List -->
-            <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 md:w-80 lg:w-96 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-all duration-300 z-50 transform -translate-x-full md:translate-x-0 md:static md:z-auto">
+            <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 md:w-64 lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-all duration-300 z-50 transform -translate-x-full md:translate-x-0 md:static md:z-auto">
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-6 md:hidden">
                         <h2 class="text-lg font-bold text-gray-800 dark:text-white">Navigation</h2>
@@ -218,9 +218,11 @@
 
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-xl font-bold text-gray-800 dark:text-white">Clients</h2>
-                        <button id="add-client-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Client</span>
+                        <button id="add-client-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 hover:w-36 rounded-lg transition-all duration-300 overflow-hidden shadow-md" title="Add New Client">
+                            <div class="flex items-center justify-center min-w-[2.5rem] h-10">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Client</span>
                         </button>
                     </div>
                     
@@ -245,24 +247,20 @@
                                 </div>
                                 <span class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Active</span>
                             </div>
-                            <div class="mt-2 flex items-center justify-between flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                <div class="flex items-center">
-                                    <i class="fas fa-tasks mr-2"></i>
-                                    <span>{{ $client->mainTasks->count() }} main tasks</span>
-                                </div>
-                                <span class="text-xs italic bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded truncate max-w-[150px]">By: {{ $client->user->name }}</span>
-                            </div>
+
                         </div>
                         @endforeach
                     </div>
                     
                     <!-- No clients message (hidden by default) -->
                     <div id="no-clients-message" class="hidden mt-8 text-center p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-                        <i class="fas fa-users text-4xl text-gray-400 mb-4"></i>
+                        <div class="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-users text-3xl text-gray-400"></i>
+                        </div>
                         <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No clients found</h3>
-                        <p class="text-gray-500 dark:text-gray-400 mb-4">Add your first client to get started</p>
-                        <button id="add-first-client-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                            Add Client
+                        <p class="text-gray-500 dark:text-gray-400 mb-4 text-sm">Add your first client to get started</p>
+                        <button id="add-first-client-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                            <i class="fas fa-plus mr-2"></i>Add Client
                         </button>
                     </div>
                 </div>
@@ -292,10 +290,23 @@
                     </div>
                 </div>
 
+                <!-- Breadcrumb Navigation -->
+                <nav id="breadcrumb-nav" class="mb-6 hidden">
+                    <ol class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                        <li>
+                            <a href="#" onclick="showClientSelectionPrompt()" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                <i class="fas fa-home mr-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li><i class="fas fa-chevron-right text-xs"></i></li>
+                        <li class="font-medium text-gray-800 dark:text-gray-200" id="breadcrumb-client-name">Select Client</li>
+                    </ol>
+                </nav>
+
                 <!-- Client content (hidden by default) -->
                 <div id="client-content" class="hidden">
                     <!-- Client header -->
-                    <div class="mb-8">
+                    <div class="mb-6">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-4">
                                 <div>
@@ -379,9 +390,11 @@
                                 <h4 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Select a Main Task to Manage</h4>
                                 <div id="main-tasks-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
                                     <!-- Main tasks will be loaded here dynamically -->
-                                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                                        <i class="fas fa-info-circle mb-2"></i>
-                                        <p>No main tasks found for this client.</p>
+                                    <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                                        <div class="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3">
+                                            <i class="fas fa-clipboard-list text-xl text-gray-400 dark:text-gray-500"></i>
+                                        </div>
+                                        <p class="text-sm">No main tasks found for this client.</p>
                                     </div>
                                 </div>
                             </div>
@@ -500,8 +513,11 @@
                                 <h4 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Select a Subtask to Manage</h4>
                                 <div id="subtasks-container" class="space-y-3 max-h-80 overflow-y-auto pr-2">
                                     <!-- Subtasks will be loaded here dynamically -->
-                                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                                        <p>No subtasks found.</p>
+                                    <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                                        <div class="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3">
+                                            <i class="fas fa-list-ul text-xl text-gray-400 dark:text-gray-500"></i>
+                                        </div>
+                                        <p class="text-sm">Select a main task to view its subtasks.</p>
                                     </div>
                                 </div>
                             </div>
@@ -1053,9 +1069,17 @@
                     const joinDate = new Date(client.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     document.getElementById('client-join-date').textContent = joinDate;
                     
+                    // Update breadcrumb
+                    document.getElementById('breadcrumb-client-name').textContent = client.name;
+                    
                     showClientContent();
                     resetMainTaskForm();
                     resetMainTaskSelection();
+
+                    // Mobile: Scroll to content
+                    if (window.innerWidth < 768) {
+                        document.getElementById('client-content').scrollIntoView({ behavior: 'smooth' });
+                    }
                 }
             } catch (error) {
                 showErrorNotification("Failed to load client details");
@@ -1125,11 +1149,13 @@
         function showClientSelectionPrompt() {
             clientSelectionPrompt.classList.remove('hidden');
             clientContent.classList.add('hidden');
+            document.getElementById('breadcrumb-nav').classList.add('hidden');
         }
         
         function showClientContent() {
             clientSelectionPrompt.classList.add('hidden');
             clientContent.classList.remove('hidden');
+            document.getElementById('breadcrumb-nav').classList.remove('hidden');
         }
         
         function openClientModal(mode, clientId = null, clientName = '') {
@@ -1209,13 +1235,7 @@
                         </div>
                         <span class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Active</span>
                     </div>
-                    <div class="mt-2 flex items-center justify-between flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <div class="flex items-center">
-                            <i class="fas fa-tasks mr-2"></i>
-                            <span>${client.main_tasks ? client.main_tasks.length : 0} main tasks</span>
-                        </div>
-                        <span class="text-xs italic bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded truncate max-w-[150px]">By: ${client.user ? client.user.name : 'Unknown'}</span>
-                    </div>
+
                 </div>
             `).join('');
         }
@@ -1321,6 +1341,17 @@
             currentMainTaskId = taskId;
             
             renderSubtasks(task.subtasks || []);
+
+            // Mobile: Scroll to subtasks section
+            if (window.innerWidth < 1024) {
+                document.getElementById('subtasks-list').scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Update breadcrumb
+            const breadcrumbEl = document.getElementById('breadcrumb-client-name');
+            const clientName = breadcrumbEl.textContent.split(' > ')[0];
+            breadcrumbEl.textContent = `${clientName} > ${task.title}`;
+
             subtasksList.classList.remove('hidden');
             subtaskForm.classList.add('hidden');
             subtaskCommentsSection.classList.add('hidden');
@@ -1329,7 +1360,13 @@
         function renderSubtasks(subtasks) {
             const container = document.getElementById('subtasks-container');
             if (subtasks.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 text-gray-500 dark:text-gray-400"><p>No subtasks found.</p></div>`;
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                        <div class="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-list-ul text-xl text-gray-400 dark:text-gray-500"></i>
+                        </div>
+                        <p class="text-sm">No subtasks found.</p>
+                    </div>`;
                 return;
             }
             
@@ -1368,12 +1405,22 @@
             currentSubtaskId = null;
             
             // Clear lists to prevent stale data
+            // Clear lists to prevent stale data
             document.getElementById('subtasks-container').innerHTML = `
-                <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <i class="fas fa-arrow-left mb-2"></i>
-                    <p>Select a main task to view its subtasks.</p>
+                <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <div class="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3">
+                        <i class="fas fa-list-ul text-xl text-gray-400 dark:text-gray-500"></i>
+                    </div>
+                    <p class="text-sm">Select a main task to view its subtasks.</p>
                 </div>`;
             document.getElementById('comments-list').innerHTML = '';
+            
+            // Reset breadcrumb (if element exists to avoid errors on init)
+            const breadcrumbEl = document.getElementById('breadcrumb-client-name');
+            if (breadcrumbEl && breadcrumbEl.textContent.includes(' > ')) {
+                const clientName = breadcrumbEl.textContent.split(' > ')[0];
+                breadcrumbEl.textContent = clientName;
+            }
         }
         
         async function deleteMainTask(taskId) {
