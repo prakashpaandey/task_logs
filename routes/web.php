@@ -29,7 +29,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         'destroy' => 'subtask.destroy',
     ]);
     Route::resource('comments', CommentController::class)->only(['store', 'update', 'destroy']);
-    Route::resource('time-logs', TimeLogController::class)->only(['store', 'destroy']);
+    Route::resource('time-logs', TimeLogController::class)->only(['store', 'update', 'destroy']);
 });
 
 Route::middleware('auth')->group(function () {

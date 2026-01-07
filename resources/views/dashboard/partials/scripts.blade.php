@@ -84,6 +84,7 @@
         const addTimeLogBtn = document.getElementById('add-time-log-btn');
         const timeLogForm = document.getElementById('time-log-form');
         const saveTimeLogBtn = document.getElementById('save-time-log-btn');
+        const updateTimeLogBtn = document.getElementById('update-time-log-btn');
         const cancelTimeLogBtn = document.getElementById('cancel-time-log-btn');
         const timeLogValue = document.getElementById('time-log-value');
         const timeLogsList = document.getElementById('time-logs-list');
@@ -96,6 +97,7 @@
         let currentMainTaskId = null;
         let currentSubtaskId = null;
         let currentCommentId = null;
+        let editingTimeLogId = null;
         let deleteCallback = null;
         let currentDeleteType = null;
         
@@ -237,7 +239,13 @@
             cancelConfirmationBtn.addEventListener('click', () => closeConfirmationModal());
             
             // Main task buttons
-            addMainTaskBtn.addEventListener('click', () => openMainTaskForm('add'));
+            addMainTaskBtn.addEventListener('click', () => {
+                if (mainTaskForm.classList.contains('hidden')) {
+                    openMainTaskForm('add');
+                } else {
+                    resetMainTaskForm();
+                }
+            });
             cancelMainTaskBtn.addEventListener('click', resetMainTaskForm);
             saveMainTaskBtn.addEventListener('click', saveMainTask);
             updateMainTaskBtn.addEventListener('click', updateMainTask);
@@ -265,11 +273,20 @@
             });
             
             // Subtask buttons
-            addSubtaskBtn.addEventListener('click', () => openSubtaskForm('add'));
+            addSubtaskBtn.addEventListener('click', () => {
+                if (subtaskForm.classList.contains('hidden')) {
+                    openSubtaskForm('add');
+                } else {
+                    resetSubtaskForm();
+                }
+            });
             
             // Profile & Security listeners
             if (profileBtn) profileBtn.addEventListener('click', openProfileModal);
             if (closeProfileModal) closeProfileModal.addEventListener('click', closeProfileModalFunc);
+            if (document.getElementById('close-profile-modal-sidebar')) {
+                document.getElementById('close-profile-modal-sidebar').addEventListener('click', closeProfileModalFunc);
+            }
             if (cancelProfileBtn) cancelProfileBtn.addEventListener('click', closeProfileModalFunc);
             if (profileForm) profileForm.addEventListener('submit', handleProfileUpdate);
             if (passwordForm) passwordForm.addEventListener('submit', handlePasswordUpdate);
@@ -326,15 +343,76 @@
             });
 
             // Time Log Events
-            addTimeLogBtn.addEventListener('click', () => {
-                timeLogForm.classList.remove('hidden');
-                timeLogValue.focus();
-            });
-            cancelTimeLogBtn.addEventListener('click', () => {
-                timeLogForm.classList.add('hidden');
-                timeLogValue.value = '';
-            });
+            addTimeLogBtn.addEventListener('click', () => openTimeLogForm('add'));
+            cancelTimeLogBtn.addEventListener('click', resetTimeLogForm);
             saveTimeLogBtn.addEventListener('click', saveTimeLog);
+            updateTimeLogBtn.addEventListener('click', updateTimeLog);
+
+            setupKeyboardShortcuts();
+        }
+
+        function setupKeyboardShortcuts() {
+            // Main Task Form
+            mainTaskTitle.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    mainTaskDescription.focus();
+                }
+            });
+            mainTaskDescription.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    if (!updateMainTaskBtn.classList.contains('hidden')) {
+                        updateMainTask();
+                    } else {
+                        saveMainTask();
+                    }
+                }
+            });
+
+            // Subtask Form
+            subtaskTitle.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    subtaskWorkDate.focus();
+                }
+            });
+            subtaskWorkDate.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    subtaskDescription.focus();
+                }
+            });
+            subtaskDescription.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    if (!updateSubtaskBtn.classList.contains('hidden')) {
+                        updateSubtask();
+                    } else {
+                        saveSubtask();
+                    }
+                }
+            });
+
+            // Comment Form
+            commentText.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    saveComment();
+                }
+            });
+
+            // Time Log Form
+            timeLogValue.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!updateTimeLogBtn.classList.contains('hidden')) {
+                        updateTimeLog();
+                    } else {
+                        saveTimeLog();
+                    }
+                }
+            });
         }
         
         // Theme functionality
@@ -592,12 +670,16 @@
                 currentMainTaskId = taskId;
             }
             mainTaskForm.classList.remove('hidden');
+            addMainTaskBtn.innerHTML = '<div class="flex items-center justify-center min-w-[2.5rem] h-10"><i class="fas fa-eye-slash"></i></div><span class="whitespace-nowrap opacity-100 pr-3 font-medium text-sm">Hide</span>';
+            addMainTaskBtn.classList.add('w-32');
         }
         
         function resetMainTaskForm() {
             mainTaskForm.classList.add('hidden');
             mainTaskTitle.value = '';
             mainTaskDescription.value = '';
+            addMainTaskBtn.innerHTML = '<div class="flex items-center justify-center min-w-[2.5rem] h-10"><i class="fas fa-plus"></i></div><span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Task</span>';
+            addMainTaskBtn.classList.remove('w-32');
         }
         
         async function saveMainTask() {
@@ -775,12 +857,16 @@
             subtaskForm.classList.remove('hidden');
             subtasksList.classList.add('hidden');
             subtaskDetailView.classList.add('hidden');
+            addSubtaskBtn.innerHTML = '<div class="flex items-center justify-center min-w-[2.5rem] h-10"><i class="fas fa-eye-slash"></i></div><span class="whitespace-nowrap opacity-100 pr-3 font-medium text-sm">Hide Form</span>';
+            addSubtaskBtn.classList.add('w-40');
         }
         
         function resetSubtaskForm() {
             subtaskForm.classList.add('hidden');
             subtasksList.classList.remove('hidden');
             currentSubtaskId = null;
+            addSubtaskBtn.innerHTML = '<div class="flex items-center justify-center min-w-[2.5rem] h-10"><i class="fas fa-plus"></i></div><span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Subtask</span>';
+            addSubtaskBtn.classList.remove('w-40');
         }
         
         async function saveSubtask() {
@@ -886,6 +972,51 @@
         }
         window.switchSubtaskTab = switchSubtaskTab;
 
+        function switchProfileTab(tabName) {
+            const tabs = document.querySelectorAll('.profile-nav-item');
+            const sections = document.querySelectorAll('.profile-section');
+
+            // Reset all styles
+            tabs.forEach(tab => {
+                tab.classList.remove('bg-blue-50', 'dark:bg-blue-900/40', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+                tab.classList.add('text-gray-500', 'dark:text-gray-400', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
+            });
+
+            // Hide all sections
+            sections.forEach(sec => sec.classList.add('hidden'));
+
+            // Set active tab
+            const activeTab = document.getElementById(`profile-tab-${tabName}`);
+            activeTab.classList.add('bg-blue-50', 'dark:bg-blue-900/40', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+            activeTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
+
+            // Show active section
+            document.getElementById(`profile-section-${tabName}`).classList.remove('hidden');
+        }
+        window.switchProfileTab = switchProfileTab;
+
+        function openTimeLogForm(mode, logId = null, time = '') {
+            if (mode === 'add') {
+                timeLogValue.value = '';
+                editingTimeLogId = null;
+                saveTimeLogBtn.classList.remove('hidden');
+                updateTimeLogBtn.classList.add('hidden');
+            } else if (mode === 'edit') {
+                timeLogValue.value = time;
+                editingTimeLogId = logId;
+                saveTimeLogBtn.classList.add('hidden');
+                updateTimeLogBtn.classList.remove('hidden');
+            }
+            timeLogForm.classList.remove('hidden');
+            timeLogValue.focus();
+        }
+
+        function resetTimeLogForm() {
+            timeLogForm.classList.add('hidden');
+            timeLogValue.value = '';
+            editingTimeLogId = null;
+        }
+
         function renderTimeLogs(timeLogs) {
             if (timeLogs.length === 0) {
                 timeLogsList.innerHTML = `
@@ -905,9 +1036,14 @@
                         <span class="font-bold text-blue-600 dark:text-blue-400">${log.time}h</span>
                         <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(log.created_at).toLocaleDateString()} by ${log.user ? log.user.name : 'User'}</span>
                     </div>
-                    <button onclick="deleteTimeLog(${log.id})" class="text-red-500 hover:text-red-700 p-1">
-                        <i class="fas fa-trash-alt text-xs"></i>
-                    </button>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openTimeLogForm('edit', ${log.id}, ${log.time})" class="text-blue-500 hover:text-blue-700 p-1">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button onclick="deleteTimeLog(${log.id})" class="text-red-500 hover:text-red-700 p-1">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -931,11 +1067,38 @@
                 updateSubtaskDetailHeader(subtask);
                 renderTimeLogs(subtask.time_logs);
                 renderSubtasks(findMainTask(currentMainTaskId).subtasks);
-                timeLogValue.value = '';
-                timeLogForm.classList.add('hidden');
+                resetTimeLogForm();
                 showSuccessNotification(result.message);
             } catch (error) {
                 console.error('Save time log error:', error);
+            }
+        }
+
+        async function updateTimeLog() {
+            const val = timeLogValue.value;
+            if (!val || val <= 0) return showErrorNotification('Please enter a valid amount of time');
+            
+            try {
+                const result = await apiCall(`/dashboard/time-logs/${editingTimeLogId}`, 'PUT', {
+                    sub_task_id: currentSubtaskId,
+                    time: val
+                });
+                
+                const subtask = findSubtask(currentSubtaskId);
+                const logIndex = subtask.time_logs.findIndex(l => l.id == editingTimeLogId);
+                if (logIndex !== -1) {
+                    const oldTime = parseFloat(subtask.time_logs[logIndex].time);
+                    subtask.time_logs[logIndex] = { ...subtask.time_logs[logIndex], ...result.time_log };
+                    subtask.total_time_logged = (parseFloat(subtask.total_time_logged) || 0) - oldTime + parseFloat(val);
+                }
+                
+                updateSubtaskDetailHeader(subtask);
+                renderTimeLogs(subtask.time_logs);
+                renderSubtasks(findMainTask(currentMainTaskId).subtasks);
+                resetTimeLogForm();
+                showSuccessNotification(result.message);
+            } catch (error) {
+                console.error('Update time log error:', error);
             }
         }
 
@@ -1065,6 +1228,7 @@
             userDropdown.classList.add('hidden');
             document.body.classList.add('overflow-hidden');
             passwordForm.reset();
+            switchProfileTab('info');
         }
 
         function closeProfileModalFunc() {
@@ -1080,11 +1244,8 @@
             try {
                 const result = await apiCall('/profile', 'PATCH', { name, email });
                 
-                document.querySelectorAll('.font-medium.text-gray-800.dark\\:text-white').forEach(el => {
-                    if (el.textContent === window.App.user.name) {
-                        el.textContent = name;
-                    }
-                });
+                document.getElementById('user-display-name').textContent = name;
+                document.getElementById('user-email-display').textContent = email;
                 
                 const initials = name.substring(0, 2).toUpperCase();
                 document.getElementById('user-initials').textContent = initials;

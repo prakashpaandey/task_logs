@@ -34,4 +34,11 @@ class Subtask extends Model
     {
         return $this->timeLogs()->sum('time');
     }
+
+    public function syncTimeLogged()
+    {
+        $this->time_logged = $this->getTotalTimeLoggedAttribute();
+        $this->save();
+        return $this->time_logged;
+    }
 }

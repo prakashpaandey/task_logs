@@ -82,7 +82,7 @@
                             </div>
                             
                             <!-- Main Task Form -->
-                            <div id="main-task-form" class="fade-in">
+                            <div id="main-task-form" class="fade-in hidden">
                                 <div class="mb-6">
                                     <label for="main-task-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
                                     <input type="text" id="main-task-title" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter main task title">
@@ -263,6 +263,7 @@
                                                 </div>
                                                 <div class="flex space-x-2">
                                                     <button id="save-time-log-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Log</button>
+                                                    <button id="update-time-log-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors hidden">Update</button>
                                                     <button id="cancel-time-log-btn" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Cancel</button>
                                                 </div>
                                             </div>

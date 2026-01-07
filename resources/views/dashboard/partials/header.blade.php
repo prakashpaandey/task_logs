@@ -20,8 +20,8 @@
                                 {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                             </div>
                             <div class="text-left hidden md:block">
-                                <p class="font-medium text-gray-800 dark:text-white">{{ auth()->user()->name }}</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Admin</p>
+                                <p id="user-display-name" class="font-medium text-gray-800 dark:text-white">{{ auth()->user()->name }}</p>
+                                <p id="user-email-display" class="text-sm text-gray-500 dark:text-gray-400">{{ auth()->user()->email }}</p>
                             </div>
                             <i class="fas fa-chevron-down text-gray-500 dark:text-gray-400"></i>
                         </button>

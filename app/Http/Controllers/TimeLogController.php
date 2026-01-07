@@ -14,9 +14,6 @@ class TimeLogController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -30,8 +27,34 @@ class TimeLogController extends Controller
             'time' => $validated['time'],
         ]);
 
+        // Sync total time in subtask table
+        $timeLog->subtask->syncTimeLogged();
+
         return response()->json([
             'message' => 'Time logged successfully',
+            'time_log' => $timeLog->load('user'),
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'time' => 'required|numeric|min:0.01',
+        ]);
+
+        $timeLog = \App\Models\TimeLog::findOrFail($id);
+        $timeLog->update([
+            'time' => $validated['time'],
+        ]);
+
+        // Sync total time in subtask table
+        $timeLog->subtask->syncTimeLogged();
+
+        return response()->json([
+            'message' => 'Time log updated successfully',
             'time_log' => $timeLog->load('user'),
         ]);
     }
@@ -42,7 +65,11 @@ class TimeLogController extends Controller
     public function destroy(string $id)
     {
         $timeLog = \App\Models\TimeLog::findOrFail($id);
+        $subtask = $timeLog->subtask;
         $timeLog->delete();
+
+        // Sync total time in subtask table
+        $subtask->syncTimeLogged();
 
         return response()->json(['message' => 'Time log deleted successfully']);
     }
