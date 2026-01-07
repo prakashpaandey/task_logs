@@ -459,7 +459,12 @@
                             <!-- Subtask Comments Section -->
                             <div id="subtask-comments-section" class="mt-8 hidden">
                                 <div class="flex items-center justify-between mb-4">
-                                    <h4 class="text-lg font-medium text-gray-700 dark:text-gray-300">Comments</h4>
+                                    <div class="flex items-center">
+                                        <button id="back-to-subtasks-btn" class="mr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" title="Back to Subtasks">
+                                            <i class="fas fa-arrow-left"></i>
+                                        </button>
+                                        <h4 class="text-lg font-medium text-gray-700 dark:text-gray-300">Comments</h4>
+                                    </div>
                                     <button id="add-comment-btn" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm">
                                         <i class="fas fa-plus mr-1"></i> Add Comment
                                     </button>
@@ -541,7 +546,7 @@
                         <button type="submit" id="save-client-btn" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                             Save Client
                         </button>
-                        <button type="button" id="update-client-btn" class="px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors hidden">
+                        <button type="submit" id="update-client-btn" class="px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors hidden">
                             Update Client
                         </button>
                     </div>
@@ -739,6 +744,7 @@
         
         // State variables
         let currentClientId = window.App.selectedClient ? window.App.selectedClient.id : null;
+        let editingClientId = null;
         let currentMainTaskId = null;
         let currentSubtaskId = null;
         let currentCommentId = null;
@@ -959,6 +965,13 @@
                     openConfirmationModal('comment', 'this comment', () => deleteComment(commentId));
                 }
             });
+
+            // Back to subtasks button
+            document.getElementById('back-to-subtasks-btn').addEventListener('click', () => {
+                subtaskCommentsSection.classList.add('hidden');
+                subtasksList.classList.remove('hidden');
+                currentSubtaskId = null;
+            });
         }
         
         // Theme functionality
@@ -1041,6 +1054,7 @@
                     document.getElementById('client-join-date').textContent = joinDate;
                     
                     showClientContent();
+                    resetMainTaskForm();
                     resetMainTaskSelection();
                 }
             } catch (error) {
@@ -1124,13 +1138,13 @@
                 saveClientBtn.classList.remove('hidden');
                 updateClientBtn.classList.add('hidden');
                 document.getElementById('client-name').value = '';
-                currentClientId = null;
+                editingClientId = null;
             } else if (mode === 'edit') {
                 clientModalTitle.textContent = 'Edit Client';
                 saveClientBtn.classList.add('hidden');
                 updateClientBtn.classList.remove('hidden');
                 document.getElementById('client-name').value = clientName;
-                currentClientId = clientId;
+                editingClientId = clientId;
             }
             clientModal.classList.remove('hidden');
         }
@@ -1144,24 +1158,43 @@
             const name = document.getElementById('client-name').value;
             
             try {
-                if (!currentClientId) {
+                if (!editingClientId) {
                     const result = await apiCall('/dashboard/clients', 'POST', { name });
                     window.App.clients.push(result.client);
                     showSuccessNotification(result.message);
                     renderClientsList();
                 } else {
-                    const result = await apiCall(`/dashboard/clients/${currentClientId}`, 'PUT', { name });
-                    const index = window.App.clients.findIndex(c => c.id == currentClientId);
+                    const result = await apiCall(`/dashboard/clients/${editingClientId}`, 'PUT', { name });
+                    const index = window.App.clients.findIndex(c => c.id == editingClientId);
                     if (index !== -1) {
                         window.App.clients[index] = { ...window.App.clients[index], ...result.client };
                     }
                     showSuccessNotification(result.message);
                     renderClientsList();
-                    if (selectedClientName && currentClientId == window.App.selectedClient?.id) {
+                    if (selectedClientName && currentClientId == editingClientId) {
                         selectedClientName.textContent = name;
                     }
                 }
                 closeClientModalFunc();
+            } catch (error) {}
+        }
+
+        async function deleteCurrentClient() {
+            if (!currentClientId) return;
+            
+            try {
+                const result = await apiCall(`/dashboard/clients/${currentClientId}`, 'DELETE');
+                window.App.clients = window.App.clients.filter(c => c.id != currentClientId);
+                
+                showSuccessNotification(result.message);
+                renderClientsList();
+                
+                // Reset selection
+                currentClientId = null;
+                showClientSelectionPrompt();
+                
+                // Close modal
+                closeConfirmationModal();
             } catch (error) {}
         }
         

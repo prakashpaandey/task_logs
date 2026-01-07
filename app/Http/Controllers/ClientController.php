@@ -38,7 +38,7 @@ class ClientController extends Controller
         $this->authorizeUser($client);
         $client->delete();
 
-        if ($request->expectsJson()) {
+        if (request()->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Client deleted successfully.']);
         }
         return redirect()->route('dashboard')->with('success', 'Client deleted successfully.');
