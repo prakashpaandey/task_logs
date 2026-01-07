@@ -22,4 +22,16 @@ class Subtask extends Model
     {
         return $this->hasMany(SubTaskComment::class, 'sub_task_id');
     }
+
+    public function timeLogs()
+    {
+        return $this->hasMany(TimeLog::class, 'sub_task_id');
+    }
+
+    protected $appends = ['total_time_logged'];
+
+    public function getTotalTimeLoggedAttribute()
+    {
+        return $this->timeLogs()->sum('time');
+    }
 }

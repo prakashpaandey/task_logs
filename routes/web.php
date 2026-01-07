@@ -12,6 +12,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\MainTaskController;
 use App\Http\Controllers\SubTaskController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\TimeLogController;
 
 Route::get('/dashboard', [TaskController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         'destroy' => 'subtask.destroy',
     ]);
     Route::resource('comments', CommentController::class)->only(['store', 'update', 'destroy']);
+    Route::resource('time-logs', TimeLogController::class)->only(['store', 'destroy']);
 });
 
 Route::middleware('auth')->group(function () {

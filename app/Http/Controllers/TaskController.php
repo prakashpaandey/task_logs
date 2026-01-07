@@ -11,7 +11,7 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        $clients = Client::with(['user', 'mainTasks.user', 'mainTasks.subtasks.user', 'mainTasks.subtasks.comments.user'])
+        $clients = Client::with(['user', 'mainTasks.user', 'mainTasks.subtasks.user', 'mainTasks.subtasks.comments.user', 'mainTasks.subtasks.timeLogs.user'])
             ->get();
             
         $selectedClient = null;

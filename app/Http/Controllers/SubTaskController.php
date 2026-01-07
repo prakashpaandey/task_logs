@@ -14,7 +14,6 @@ class SubTaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'work_date' => 'required|date',
-            'time_logged' => 'required|string',
         ]);
         $subtask = Subtask::create($request->all() + ['user_id' => auth()->id()]);
 
@@ -31,9 +30,8 @@ class SubTaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'work_date' => 'required|date',
-            'time_logged' => 'required|string',
         ]);
-        $subtask->update($request->only('title', 'description', 'work_date', 'time_logged'));
+        $subtask->update($request->only('title', 'description', 'work_date'));
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Subtask updated successfully.', 'subtask' => $subtask->load('user')]);

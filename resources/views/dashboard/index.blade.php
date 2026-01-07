@@ -78,6 +78,31 @@
         .dark ::-webkit-scrollbar-thumb:hover {
             background: #9ca3af;
         }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+        
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #d1d5db;
+        }
+        
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #6a7280;
+        }
         
         /* Smooth transitions */
         .transition-all {
@@ -449,14 +474,7 @@
                                     <textarea id="subtask-description" rows="3" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe the subtask"></textarea>
                                 </div>
                                 
-                                <div class="mb-6">
-                                    <label for="subtask-time-logged" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Logged (hours)</label>
-                                    <div class="flex items-center">
-                                        <input type="range" id="subtask-time-logged-range" min="0" max="40" step="0.5" value="2" class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                                        <input type="number" id="subtask-time-logged" min="0" max="40" step="0.5" value="2" class="ml-4 w-24 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        <span class="ml-2 text-gray-600 dark:text-gray-400">hours</span>
-                                    </div>
-                                </div>
+
                                 
                                 <div class="flex space-x-3">
                                     <button id="save-subtask-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors">
@@ -473,41 +491,87 @@
                                 </div>
                             </div>
                             
-                            <!-- Subtask Comments Section -->
-                            <div id="subtask-comments-section" class="mt-8 hidden">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center">
-                                        <button id="back-to-subtasks-btn" class="mr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" title="Back to Subtasks">
-                                            <i class="fas fa-arrow-left"></i>
-                                        </button>
-                                        <h4 class="text-lg font-medium text-gray-700 dark:text-gray-300">Comments</h4>
-                                    </div>
-                                    <button id="add-comment-btn" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm">
-                                        <i class="fas fa-plus mr-1"></i> Add Comment
+                            <!-- Subtask Detail View (Tabs) -->
+                            <div id="subtask-detail-view" class="mt-8 hidden">
+                                <div class="flex items-center mb-6">
+                                    <button id="back-to-subtasks-btn" class="mr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" title="Back to Subtasks">
+                                        <i class="fas fa-arrow-left text-lg"></i>
+                                    </button>
+                                    <h4 id="detail-subtask-title" class="text-xl font-bold text-gray-800 dark:text-white truncate">Subtask Detail</h4>
+                                </div>
+
+                                <!-- Tab Navigation -->
+                                <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+                                    <button id="tab-comments" onclick="switchSubtaskTab('comments')" class="subtask-tab px-6 py-3 border-b-2 font-medium text-sm transition-colors border-blue-600 text-blue-600 dark:text-blue-400">
+                                        <i class="fas fa-comments mr-2"></i>Comments
+                                    </button>
+                                    <button id="tab-time-logs" onclick="switchSubtaskTab('time-logs')" class="subtask-tab px-6 py-3 border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                        <i class="fas fa-clock mr-2"></i>Time Logs
                                     </button>
                                 </div>
-                                
-                                <!-- Comment Form -->
-                                <div id="comment-form" class="mb-6 hidden">
-                                    <div class="mb-4">
-                                        <label for="comment-text" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Comment</label>
-                                        <textarea id="comment-text" rows="3" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your comment"></textarea>
+
+                                <!-- Tab Content -->
+                                <div id="subtask-detail-content">
+                                    <!-- Comments Section -->
+                                    <div id="subtask-comments-section" class="">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <h5 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Conversation</h5>
+                                            <button id="add-comment-btn" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium">
+                                                <i class="fas fa-plus mr-1"></i> Add Comment
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Comment Form -->
+                                        <div id="comment-form" class="mb-6 hidden bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+                                            <div class="mb-4">
+                                                <textarea id="comment-text" rows="3" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter your comment"></textarea>
+                                            </div>
+                                            <div class="flex justify-end space-x-3">
+                                                <button id="save-comment-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                                                    Post Comment
+                                                </button>
+                                                <button id="cancel-comment-btn" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Comments List -->
+                                        <div id="comments-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                            <!-- Comments dynamically loaded -->
+                                        </div>
                                     </div>
-                                    <div class="flex justify-end space-x-3">
-                                        <button id="save-comment-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                                            Save Comment
-                                        </button>
-                                        <button id="cancel-comment-btn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-4 py-2 rounded-lg transition-colors">
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Comments List -->
-                                <div id="comments-list" class="space-y-4 max-h-60 overflow-y-auto pr-2">
-                                    <!-- Comments will be loaded here dynamically -->
-                                    <div class="text-center py-6 text-gray-500 dark:text-gray-400">
-                                        <p>No comments for this subtask.</p>
+
+                                    <!-- Time Logs Section -->
+                                    <div id="subtask-time-logs-section" class="hidden">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <h5 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Time History</h5>
+                                            <button id="add-time-log-btn" class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 text-sm font-medium">
+                                                <i class="fas fa-plus mr-1"></i> Add Time
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Time Log Form -->
+                                        <div id="time-log-form" class="mb-6 hidden bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+                                            <div class="flex items-end space-x-3">
+                                                <div class="flex-1">
+                                                    <label for="time-log-value" class="block text-xs font-medium text-gray-500 mb-1">Hours Spent</label>
+                                                    <div class="relative">
+                                                        <input type="number" id="time-log-value" step="0.5" min="0" class="w-full pl-4 pr-10 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="e.g. 1.5">
+                                                        <span class="absolute right-3 top-2 text-gray-400 text-sm">hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex space-x-2">
+                                                    <button id="save-time-log-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Log</button>
+                                                    <button id="cancel-time-log-btn" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Time Logs List -->
+                                        <div id="time-logs-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                            <!-- Time logs dynamically loaded -->
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -751,8 +815,6 @@
         const subtaskTitle = document.getElementById('subtask-title');
         const subtaskDescription = document.getElementById('subtask-description');
         const subtaskWorkDate = document.getElementById('subtask-work-date');
-        const subtaskTimeLogged = document.getElementById('subtask-time-logged');
-        const subtaskTimeLoggedRange = document.getElementById('subtask-time-logged-range');
         const subtaskItems = document.querySelectorAll('.subtask-item');
         const subtasksList = document.getElementById('subtasks-list');
         const subtaskCommentsSection = document.getElementById('subtask-comments-section');
@@ -761,6 +823,17 @@
         const saveCommentBtn = document.getElementById('save-comment-btn');
         const cancelCommentBtn = document.getElementById('cancel-comment-btn');
         const commentText = document.getElementById('comment-text');
+        
+        // Time Log Elements
+        const subtaskTimeLogsSection = document.getElementById('subtask-time-logs-section');
+        const addTimeLogBtn = document.getElementById('add-time-log-btn');
+        const timeLogForm = document.getElementById('time-log-form');
+        const saveTimeLogBtn = document.getElementById('save-time-log-btn');
+        const cancelTimeLogBtn = document.getElementById('cancel-time-log-btn');
+        const timeLogValue = document.getElementById('time-log-value');
+        const timeLogsList = document.getElementById('time-logs-list');
+        const subtaskDetailView = document.getElementById('subtask-detail-view');
+        const detailSubtaskTitle = document.getElementById('detail-subtask-title');
         
         // State variables
         let currentClientId = window.App.selectedClient ? window.App.selectedClient.id : null;
@@ -938,13 +1011,7 @@
             updateSubtaskBtn.addEventListener('click', updateSubtask);
             changeMainTaskBtn.addEventListener('click', () => resetMainTaskSelection());
             
-            // Time logged sync
-            subtaskTimeLoggedRange.addEventListener('input', () => {
-                subtaskTimeLogged.value = subtaskTimeLoggedRange.value;
-            });
-            subtaskTimeLogged.addEventListener('input', () => {
-                subtaskTimeLoggedRange.value = subtaskTimeLogged.value;
-            });
+
             
             // Subtasks list event delegation
             document.getElementById('subtasks-container').addEventListener('click', (e) => {
@@ -955,7 +1022,7 @@
                     e.stopPropagation();
                     const subtaskId = item.getAttribute('data-subtask-id');
                     const subtask = findSubtask(subtaskId);
-                    if (subtask) openSubtaskForm('edit', subtask.id, subtask.title, subtask.time_logged, subtask.work_date, subtask.description);
+                    if (subtask) openSubtaskForm('edit', subtask.id, subtask.title, subtask.work_date, subtask.description);
                 } else if (e.target.closest('.delete-subtask-btn')) {
                     e.stopPropagation();
                     const subtaskId = item.getAttribute('data-subtask-id');
@@ -988,10 +1055,21 @@
 
             // Back to subtasks button
             document.getElementById('back-to-subtasks-btn').addEventListener('click', () => {
-                subtaskCommentsSection.classList.add('hidden');
+                subtaskDetailView.classList.add('hidden');
                 subtasksList.classList.remove('hidden');
                 currentSubtaskId = null;
             });
+
+            // Time Log Events
+            addTimeLogBtn.addEventListener('click', () => {
+                timeLogForm.classList.remove('hidden');
+                timeLogValue.focus();
+            });
+            cancelTimeLogBtn.addEventListener('click', () => {
+                timeLogForm.classList.add('hidden');
+                timeLogValue.value = '';
+            });
+            saveTimeLogBtn.addEventListener('click', saveTimeLog);
         }
         
         // Theme functionality
@@ -1384,7 +1462,7 @@
                             <div>
                                 <h5 class="font-medium text-gray-800 dark:text-white">${s.title}</h5>
                                 <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <i class="fas fa-clock mr-1"></i><span>${s.time_logged} hours logged</span>
+                                    <i class="fas fa-clock mr-1"></i><span>${s.total_time_logged || 0} hours total</span>
                                     <i class="fas fa-calendar-alt mx-2"></i><span>${s.work_date}</span>
                                     <span class="ml-2 hidden lg:inline-block text-xs italic bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">By: ${s.user ? s.user.name : 'Unknown'}</span>
                                 </div>
@@ -1404,7 +1482,7 @@
             addSubtaskBtn.disabled = true;
             subtaskForm.classList.add('hidden');
             subtasksList.classList.remove('hidden');
-            subtaskCommentsSection.classList.add('hidden');
+            subtaskDetailView.classList.add('hidden');
             currentMainTaskId = null;
             currentSubtaskId = null;
             
@@ -1441,12 +1519,10 @@
         }
         
         // Subtask functionality
-        function openSubtaskForm(mode, subtaskId = null, title = '', timeLogged = 2, workDate = '', description = '') {
+        function openSubtaskForm(mode, subtaskId = null, title = '', workDate = '', description = '') {
             if (mode === 'add') {
                 subtaskTitle.value = '';
                 subtaskDescription.value = '';
-                subtaskTimeLogged.value = '2';
-                subtaskTimeLoggedRange.value = '2';
                 subtaskWorkDate.value = new Date().toISOString().split('T')[0];
                 saveSubtaskBtn.classList.remove('hidden');
                 updateSubtaskBtn.classList.add('hidden');
@@ -1454,8 +1530,6 @@
             } else if (mode === 'edit') {
                 subtaskTitle.value = title;
                 subtaskDescription.value = description;
-                subtaskTimeLogged.value = timeLogged;
-                subtaskTimeLoggedRange.value = timeLogged;
                 subtaskWorkDate.value = workDate;
                 saveSubtaskBtn.classList.add('hidden');
                 updateSubtaskBtn.classList.remove('hidden');
@@ -1463,7 +1537,7 @@
             }
             subtaskForm.classList.remove('hidden');
             subtasksList.classList.add('hidden');
-            subtaskCommentsSection.classList.add('hidden');
+            subtaskDetailView.classList.add('hidden');
         }
         
         function resetSubtaskForm() {
@@ -1476,7 +1550,6 @@
             const title = subtaskTitle.value;
             const description = subtaskDescription.value;
             const work_date = subtaskWorkDate.value;
-            const time_logged = subtaskTimeLogged.value;
             if (!title.trim()) return showErrorNotification('Please enter a subtask title');
             
             try {
@@ -1484,8 +1557,7 @@
                     main_task_id: currentMainTaskId,
                     title,
                     description,
-                    work_date,
-                    time_logged
+                    work_date
                 });
                 const task = findMainTask(currentMainTaskId);
                 if (!task.subtasks) task.subtasks = [];
@@ -1493,22 +1565,22 @@
                 renderSubtasks(task.subtasks);
                 showSuccessNotification(result.message);
                 resetSubtaskForm();
-            } catch (error) {}
+            } catch (error) {
+                console.error('Save subtask error:', error);
+            }
         }
         
         async function updateSubtask() {
             const title = subtaskTitle.value;
             const description = subtaskDescription.value;
             const work_date = subtaskWorkDate.value;
-            const time_logged = subtaskTimeLogged.value;
             if (!title.trim()) return showErrorNotification('Please enter a subtask title');
             
             try {
                 const result = await apiCall(`/dashboard/subtasks/${currentSubtaskId}`, 'PUT', {
                     title,
                     description,
-                    work_date,
-                    time_logged
+                    work_date
                 });
                 const task = findMainTask(currentMainTaskId);
                 const idx = task.subtasks.findIndex(s => s.id == currentSubtaskId);
@@ -1518,7 +1590,9 @@
                 renderSubtasks(task.subtasks);
                 showSuccessNotification(result.message);
                 resetSubtaskForm();
-            } catch (error) {}
+            } catch (error) {
+                console.error('Update subtask error:', error);
+            }
         }
         
         function selectSubtask(subtaskItem) {
@@ -1527,16 +1601,134 @@
             if (!subtask) return;
 
             currentSubtaskId = subtaskId;
+            detailSubtaskTitle.textContent = subtask.title;
+            
             renderComments(subtask.comments || []);
-            subtaskCommentsSection.classList.remove('hidden');
+            renderTimeLogs(subtask.time_logs || []);
+            
+            switchSubtaskTab('comments'); // Default tab
+            
+            subtaskDetailView.classList.remove('hidden');
             subtasksList.classList.add('hidden');
             subtaskForm.classList.add('hidden');
         }
+
+        function switchSubtaskTab(tabName) {
+            const tabs = document.querySelectorAll('.subtask-tab');
+            const commentsSection = document.getElementById('subtask-comments-section');
+            const timeLogsSection = document.getElementById('subtask-time-logs-section');
+
+            // Reset tabs
+            tabs.forEach(tab => {
+                tab.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
+                tab.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            });
+
+            // Activate chosen tab
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            activeTab.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
+            activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+
+            // Show section
+            if (tabName === 'comments') {
+                commentsSection.classList.remove('hidden');
+                timeLogsSection.classList.add('hidden');
+            } else {
+                commentsSection.classList.add('hidden');
+                timeLogsSection.classList.remove('hidden');
+            }
+        }
+        window.switchSubtaskTab = switchSubtaskTab;
+
+        function renderTimeLogs(timeLogs) {
+            if (timeLogs.length === 0) {
+                timeLogsList.innerHTML = `
+                    <div class="text-center py-10 opacity-60">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">No time entries</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Keep track of your work hours.</p>
+                    </div>`;
+                return;
+            }
+            
+            timeLogsList.innerHTML = timeLogs.map(log => `
+                <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded border border-gray-100 dark:border-gray-600">
+                    <div class="flex items-center space-x-3">
+                        <span class="font-bold text-blue-600 dark:text-blue-400">${log.time}h</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(log.created_at).toLocaleDateString()} by ${log.user ? log.user.name : 'User'}</span>
+                    </div>
+                    <button onclick="deleteTimeLog(${log.id})" class="text-red-500 hover:text-red-700 p-1">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function saveTimeLog() {
+            const val = timeLogValue.value;
+            if (!val || val <= 0) return showErrorNotification('Please enter a valid amount of time');
+            
+            try {
+                const result = await apiCall('/dashboard/time-logs', 'POST', {
+                    sub_task_id: currentSubtaskId,
+                    time: val
+                });
+                
+                const subtask = findSubtask(currentSubtaskId);
+                if (!subtask.time_logs) subtask.time_logs = [];
+                subtask.time_logs.push(result.time_log);
+                
+                // Update total on the subtask object
+                subtask.total_time_logged = (parseFloat(subtask.total_time_logged) || 0) + parseFloat(val);
+                
+                renderTimeLogs(subtask.time_logs);
+                renderSubtasks(findMainTask(currentMainTaskId).subtasks);
+                timeLogValue.value = '';
+                timeLogForm.classList.add('hidden');
+                showSuccessNotification(result.message);
+            } catch (error) {
+                console.error('Save time log error:', error);
+            }
+        }
+
+        function deleteTimeLog(id) {
+            const subtask = findSubtask(currentSubtaskId);
+            if (!subtask) return;
+            const log = subtask.time_logs.find(l => l.id == id);
+            if (!log) return;
+
+            openConfirmationModal('time log', `${log.time} hours`, async () => {
+                try {
+                    const result = await apiCall(`/dashboard/time-logs/${id}`, 'DELETE');
+                    
+                    // Find log to subtract its time from total
+                    subtask.total_time_logged = (parseFloat(subtask.total_time_logged) || 0) - parseFloat(log.time);
+                    
+                    subtask.time_logs = subtask.time_logs.filter(l => l.id != id);
+                    renderTimeLogs(subtask.time_logs);
+                    renderSubtasks(findMainTask(currentMainTaskId).subtasks);
+                    showSuccessNotification(result.message);
+                    closeConfirmationModal();
+                } catch (error) {
+                    console.error('Delete time log error:', error);
+                }
+            });
+        }
+        window.deleteTimeLog = deleteTimeLog;
         
         function renderComments(comments) {
             const container = document.getElementById('comments-list');
             if (comments.length === 0) {
-                container.innerHTML = `<div class="text-center py-6 text-gray-500 dark:text-gray-400"><p>No comments for this subtask.</p></div>`;
+                container.innerHTML = `
+                    <div class="text-center py-10 opacity-60">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">No comments yet</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Start the conversation below.</p>
+                    </div>`;
                 return;
             }
             
