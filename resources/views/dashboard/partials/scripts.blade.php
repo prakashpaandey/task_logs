@@ -659,7 +659,9 @@
             const breadcrumbEl = document.getElementById('breadcrumb-client-name');
             const clientName = breadcrumbEl.textContent.split(' > ')[0];
             breadcrumbEl.textContent = `${clientName} > ${task.title}`;
-
+            
+            currentSubtaskId = null;
+            subtaskDetailView.classList.add('hidden');
             subtasksList.classList.remove('hidden');
             subtaskForm.classList.add('hidden');
             subtaskCommentsSection.classList.add('hidden');
