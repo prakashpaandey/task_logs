@@ -15,15 +15,15 @@
                     </button>
                     
                     <div class="relative">
-                        <button id="user-menu-button" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <div id="user-initials" class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        <button id="user-menu-button" class="flex items-center space-x-2 md:space-x-3 p-1 md:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <div id="user-initials" class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs md:text-base">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                             </div>
-                            <div class="text-left hidden md:block">
-                                <p id="user-display-name" class="font-medium text-gray-800 dark:text-white">{{ auth()->user()->name }}</p>
-                                <p id="user-email-display" class="text-sm text-gray-500 dark:text-gray-400">{{ auth()->user()->email }}</p>
+                            <div class="text-left hidden lg:block">
+                                <p id="user-display-name" class="font-medium text-gray-800 dark:text-white text-sm">{{ auth()->user()->name }}</p>
+                                <p id="user-email-display" class="text-xs text-gray-500 dark:text-gray-400">{{ auth()->user()->email }}</p>
                             </div>
-                            <i class="fas fa-chevron-down text-gray-500 dark:text-gray-400"></i>
+                            <i class="fas fa-chevron-down text-xs text-gray-500 dark:text-gray-400"></i>
                         </button>
                         
                         <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 hidden">

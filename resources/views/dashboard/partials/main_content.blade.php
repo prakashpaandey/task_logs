@@ -1,11 +1,11 @@
             <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
-                <div id="client-selection-prompt" class="h-full flex flex-col items-center justify-center p-8">
+                <div id="client-selection-prompt" class="h-full flex flex-col items-center justify-center p-4 sm:p-8">
                     <div class="max-w-md text-center">
-                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i class="fas fa-users text-4xl text-white"></i>
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-users text-3xl md:text-4xl text-white"></i>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-3">Select a Client</h2>
-                        <p class="text-gray-600 dark:text-gray-400 mb-8">
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white mb-3">Select a Client</h2>
+                        <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm md:text-base">
                             Choose a client from the sidebar to start managing their tasks and subtasks. You can create, update, and delete tasks for the selected client.
                         </p>
                         <div class="flex space-x-4 justify-center">
@@ -35,28 +35,29 @@
                 <div id="client-content" class="hidden">
                     <!-- Client header -->
                     <div class="mb-6">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div class="flex items-center space-x-4">
                                 <div>
-                                    <h2 id="selected-client-name" class="text-2xl font-bold text-gray-800 dark:text-white">Acme Corporation</h2>
-                                    <div class="flex items-center mt-1 space-x-4">
-                                        <span id="selected-client-status" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                    <h2 id="selected-client-name" class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">Acme Corporation</h2>
+                                    <div class="flex flex-wrap items-center mt-1 gap-3">
+                                        <span id="selected-client-status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
                                             <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                                             Active
                                         </span>
-                                        <span class="text-gray-600 dark:text-gray-400 text-sm">
+                                        <span class="text-gray-600 dark:text-gray-400 text-xs md:text-sm">
                                             <i class="fas fa-calendar-alt mr-1"></i>
                                             Joined: <span id="client-join-date">Jan 15, 2023</span>
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex space-x-3">
-                                <button id="edit-client-btn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                            <div class="flex space-x-2 sm:space-x-3">
+                                <button id="edit-client-btn" class="flex-1 md:flex-none justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-3 md:px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm">
                                     <i class="fas fa-edit"></i>
-                                    <span>Edit Client</span>
+                                    <span class="hidden sm:inline">Edit Client</span>
+                                    <span class="inline sm:hidden">Edit</span>
                                 </button>
-                                <button id="delete-client-btn" class="bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                                <button id="delete-client-btn" class="flex-1 md:flex-none justify-center bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 px-3 md:px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm">
                                     <i class="fas fa-trash-alt"></i>
                                     <span>Delete</span>
                                 </button>
@@ -65,19 +66,17 @@
                     </div>
                     
                     <!-- Two-panel layout for tasks -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                         <!-- Left Panel: Main Task Management -->
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
                             <div class="flex items-center justify-between mb-6">
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Main Tasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Create and manage main tasks for this client</p>
                                 </div>
-                                <button id="add-main-task-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 hover:w-32 rounded-lg transition-all duration-300 overflow-hidden shadow-md" title="Add New Main Task">
-                                    <div class="flex items-center justify-center min-w-[2.5rem] h-10">
-                                        <i class="fas fa-plus"></i>
-                                    </div>
-                                    <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Task</span>
+                                <button id="add-main-task-btn" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg transition-all shadow-md group" title="Add New Main Task">
+                                    <i class="fas fa-plus text-sm"></i>
+                                    <span class="font-medium text-xs md:text-sm">Add Task</span>
                                 </button>
                             </div>
                             
@@ -102,13 +101,14 @@
                                 <div class="flex space-x-3">
                                     <button id="save-main-task-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors">
                                         <i class="fas fa-save mr-2"></i>
-                                        Save Main Task
+                                        Save Task
                                     </button>
                                     <button id="update-main-task-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors hidden">
                                         <i class="fas fa-sync-alt mr-2"></i>
                                         Update Task
                                     </button>
-                                    <button id="cancel-main-task-btn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-4 py-3 rounded-lg transition-colors">
+                                    <button id="cancel-main-task-btn" class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-4 py-3 rounded-lg transition-colors flex items-center justify-center">
+                                        <i class="fas fa-times mr-2"></i>
                                         Cancel
                                     </button>
                                 </div>
@@ -130,17 +130,15 @@
                         </div>
                         
                         <!-- Right Panel: Subtask Management -->
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
                             <div class="flex items-center justify-between mb-6">
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Subtasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Manage subtasks for the selected main task</p>
                                 </div>
-                                <button id="add-subtask-btn" class="group flex items-center bg-green-600 hover:bg-green-700 text-white w-10 h-10 hover:w-40 rounded-lg transition-all duration-300 overflow-hidden shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:w-10" disabled title="Add New Subtask">
-                                    <div class="flex items-center justify-center min-w-[2.5rem] h-10">
-                                        <i class="fas fa-plus"></i>
-                                    </div>
-                                    <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Subtask</span>
+                                <button id="add-subtask-btn" class="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed group" disabled title="Add New Subtask">
+                                    <i class="fas fa-plus text-sm"></i>
+                                    <span class="font-medium text-xs md:text-sm">Add Subtask</span>
                                 </button>
                             </div>
                             
@@ -177,15 +175,16 @@
                                 </div>
                                 
                                 <div class="flex space-x-3">
-                                    <button id="save-subtask-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors">
-                                        <i class="fas fa-save mr-2"></i>
-                                        Save Subtask
+                                    <button id="save-subtask-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                                        <i class="fas fa-save mr-1 sm:mr-2"></i>
+                                        Save
                                     </button>
-                                    <button id="update-subtask-btn" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium transition-colors hidden">
-                                        <i class="fas fa-sync-alt mr-2"></i>
-                                        Update Subtask
+                                    <button id="update-subtask-btn" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium transition-colors hidden text-sm sm:text-base">
+                                        <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>
+                                        Update
                                     </button>
-                                    <button id="cancel-subtask-btn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-4 py-3 rounded-lg transition-colors">
+                                    <button id="cancel-subtask-btn" class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-4 py-3 rounded-lg transition-colors flex items-center justify-center text-sm sm:text-base">
+                                        <i class="fas fa-times mr-1 sm:mr-2"></i>
                                         Cancel
                                     </button>
                                 </div>

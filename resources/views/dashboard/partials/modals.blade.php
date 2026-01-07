@@ -19,20 +19,21 @@
                         <label for="client-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
                         <select id="client-status" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="active">Active</option>
-                            <option value="pending">Pending</option>
                             <option value="inactive">Inactive</option>
-                            <option value="archived">Archived</option>
                         </select>
                     </div>
                     
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" id="cancel-client-btn" class="px-5 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors">
+                    <div class="flex flex-row space-x-3 w-full">
+                        <button type="button" id="cancel-client-btn" class="flex-1 px-5 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors flex items-center justify-center">
+                            <i class="fas fa-times mr-2"></i>
                             Cancel
                         </button>
-                        <button type="submit" id="save-client-btn" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <button type="submit" id="save-client-btn" class="flex-1 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center">
+                            <i class="fas fa-save mr-2"></i>
                             Save Client
                         </button>
-                        <button type="submit" id="update-client-btn" class="px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors hidden">
+                        <button type="submit" id="update-client-btn" class="flex-1 px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors hidden items-center justify-center">
+                            <i class="fas fa-sync-alt mr-2"></i>
                             Update Client
                         </button>
                     </div>
@@ -56,11 +57,13 @@
                     Are you sure you want to delete this item? This action cannot be undone.
                 </p>
                 
-                <div class="flex justify-center space-x-4">
-                    <button id="cancel-confirmation-btn" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors">
+                <div class="flex justify-center space-x-3 w-full">
+                    <button id="cancel-confirmation-btn" class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors flex items-center justify-center">
+                        <i class="fas fa-times mr-2"></i>
                         Cancel
                     </button>
-                    <button id="confirm-delete-btn" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                    <button id="confirm-delete-btn" class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center">
+                        <i class="fas fa-trash-alt mr-2"></i>
                         Delete
                     </button>
                 </div>

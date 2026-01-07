@@ -670,16 +670,18 @@
                 currentMainTaskId = taskId;
             }
             mainTaskForm.classList.remove('hidden');
-            addMainTaskBtn.innerHTML = '<div class="flex items-center justify-center min-w-[2.5rem] h-10"><i class="fas fa-eye-slash"></i></div><span class="whitespace-nowrap opacity-100 pr-3 font-medium text-sm">Hide</span>';
-            addMainTaskBtn.classList.add('w-32');
+            addMainTaskBtn.innerHTML = '<i class="fas fa-eye-slash text-sm"></i><span class="font-medium text-xs md:text-sm">Hide</span>';
+            addMainTaskBtn.classList.replace('bg-blue-600', 'bg-gray-500');
+            addMainTaskBtn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-600');
         }
         
         function resetMainTaskForm() {
             mainTaskForm.classList.add('hidden');
             mainTaskTitle.value = '';
             mainTaskDescription.value = '';
-            addMainTaskBtn.innerHTML = '<div class="flex items-center justify-center min-w-[2.5rem] h-10"><i class="fas fa-plus"></i></div><span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Task</span>';
-            addMainTaskBtn.classList.remove('w-32');
+            addMainTaskBtn.innerHTML = '<i class="fas fa-plus text-sm"></i><span class="font-medium text-xs md:text-sm">Add Task</span>';
+            addMainTaskBtn.classList.replace('bg-gray-500', 'bg-blue-600');
+            addMainTaskBtn.classList.replace('hover:bg-gray-600', 'hover:bg-blue-700');
         }
         
         async function saveMainTask() {
@@ -857,16 +859,18 @@
             subtaskForm.classList.remove('hidden');
             subtasksList.classList.add('hidden');
             subtaskDetailView.classList.add('hidden');
-            addSubtaskBtn.innerHTML = '<div class="flex items-center justify-center min-w-[2.5rem] h-10"><i class="fas fa-eye-slash"></i></div><span class="whitespace-nowrap opacity-100 pr-3 font-medium text-sm">Hide Form</span>';
-            addSubtaskBtn.classList.add('w-40');
+            addSubtaskBtn.innerHTML = '<i class="fas fa-eye-slash text-sm"></i><span class="font-medium text-xs md:text-sm">Hide Form</span>';
+            addSubtaskBtn.classList.replace('bg-green-600', 'bg-gray-500');
+            addSubtaskBtn.classList.replace('hover:bg-green-700', 'hover:bg-gray-600');
         }
         
         function resetSubtaskForm() {
             subtaskForm.classList.add('hidden');
             subtasksList.classList.remove('hidden');
             currentSubtaskId = null;
-            addSubtaskBtn.innerHTML = '<div class="flex items-center justify-center min-w-[2.5rem] h-10"><i class="fas fa-plus"></i></div><span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Subtask</span>';
-            addSubtaskBtn.classList.remove('w-40');
+            addSubtaskBtn.innerHTML = '<i class="fas fa-plus text-sm"></i><span class="font-medium text-xs md:text-sm">Add Subtask</span>';
+            addSubtaskBtn.classList.replace('bg-gray-500', 'bg-green-600');
+            addSubtaskBtn.classList.replace('hover:bg-gray-600', 'hover:bg-green-700');
         }
         
         async function saveSubtask() {
