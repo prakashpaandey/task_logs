@@ -345,9 +345,11 @@
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Main Tasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Create and manage main tasks for this client</p>
                                 </div>
-                                <button id="add-main-task-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-                                    <i class="fas fa-plus"></i>
-                                    <span>Add Task</span>
+                                <button id="add-main-task-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 hover:w-32 rounded-lg transition-all duration-300 overflow-hidden shadow-md" title="Add New Main Task">
+                                    <div class="flex items-center justify-center min-w-[2.5rem] h-10">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Task</span>
                                 </button>
                             </div>
                             
@@ -407,9 +409,11 @@
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Subtasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Manage subtasks for the selected main task</p>
                                 </div>
-                                <button id="add-subtask-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                                    <i class="fas fa-plus"></i>
-                                    <span>Add Subtask</span>
+                                <button id="add-subtask-btn" class="group flex items-center bg-green-600 hover:bg-green-700 text-white w-10 h-10 hover:w-40 rounded-lg transition-all duration-300 overflow-hidden shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:w-10" disabled title="Add New Subtask">
+                                    <div class="flex items-center justify-center min-w-[2.5rem] h-10">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Subtask</span>
                                 </button>
                             </div>
                             
