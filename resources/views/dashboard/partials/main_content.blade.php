@@ -126,7 +126,7 @@
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Main Tasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Create and manage main tasks for this client</p>
                                 </div>
-                                <button id="add-main-task-btn" class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-all shadow-md group">
+                                <button id="add-main-task-btn" class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-all shadow-md group" title="Add Task (T)">
                                     <i class="fas fa-plus text-sm"></i>
                                     <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Add Task</span>
                                 </button>
@@ -195,10 +195,23 @@
                                 <div id="main-tasks-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
                                     <!-- Main tasks loaded dynamically -->
                                     <div class="text-center py-12 text-gray-500 dark:text-gray-400">
-                                        <div class="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3">
-                                            <i class="fas fa-clipboard-list text-xl text-gray-400 dark:text-gray-500"></i>
+                                        <!-- Icon with animated background -->
+                                        <div class="relative mx-auto w-24 h-24 mb-6">
+                                            <div class="absolute inset-0 bg-blue-100 dark:bg-blue-900/20 rounded-full animate-pulse"></div>
+                                            <div class="relative w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-800 shadow-lg">
+                                                <i class="fas fa-clipboard-list text-4xl text-blue-500 dark:text-blue-400"></i>
+                                            </div>
                                         </div>
-                                        <p class="text-sm">No main tasks found for this client.</p>
+                                        
+                                        <!-- Helpful guidance text -->
+                                        <h5 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">No Tasks Yet</h5>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 max-w-md mx-auto">Click on a task from the list above to view and manage its subtasks</p>
+                                        
+                                        <!-- Visual hint with arrow/pointer -->
+                                        <div class="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-6">
+                                            <i class="fas fa-hand-pointer text-blue-500 dark:text-blue-400 animate-bounce"></i>
+                                            <span>Select a task to get started</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -211,7 +224,7 @@
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Subtasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Manage subtasks for the selected main task</p>
                                 </div>
-                                <button id="add-subtask-btn" class="flex items-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed group" disabled title="Add New Subtask">
+                                <button id="add-subtask-btn" class="flex items-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed group" disabled title="Add Subtask (S)">
                                     <i class="fas fa-plus text-sm"></i>
                                     <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Add Subtask</span>
                                 </button>
@@ -274,11 +287,11 @@
                                     <h4 id="detail-subtask-title" class="text-xl font-bold text-gray-800 dark:text-white truncate">Subtask Detail</h4>
                                 </div>
                                 <div id="detail-subtask-description-container" class="mb-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-gray-100 dark:border-gray-600 transition-all hidden">
-                                    <div class="flex items-center space-x-2 mb-2 text-gray-500 dark:text-gray-400">
+                                    <div class="flex items-center space-x-2 mb-2 text-gray-500 dark:text-gray-300">
                                         <i class="fas fa-align-left text-[10px]"></i>
                                         <span class="text-[9px] font-bold uppercase tracking-widest">Description</span>
                                     </div>
-                                    <p id="detail-subtask-description" class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line break-words max-h-32 overflow-y-auto custom-scrollbar pr-1"></p>
+                                    <p id="detail-subtask-description" class="text-gray-700 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-line break-words max-h-32 overflow-y-auto custom-scrollbar pr-1"></p>
                                 </div>
 
                                 <!-- Tab Navigation -->

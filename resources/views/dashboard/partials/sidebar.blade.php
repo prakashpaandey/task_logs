@@ -34,7 +34,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-search text-gray-400"></i>
                             </div>
-                            <input type="text" id="client-search" placeholder="Search clients..." class="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <input type="text" id="client-search" placeholder="Search clients... (/)" class="w-full px-3 py-2 pl-10 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm focus:border-transparent">
                         </div>
                     </div>
                     
@@ -62,8 +62,9 @@
                         </div>
                         <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No clients found</h3>
                         <p class="text-gray-500 dark:text-gray-400 mb-4 text-sm">Add your first client to get started</p>
-                        <button id="add-first-client-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
-                            <i class="fas fa-plus mr-2"></i>Add Client
+                        <button id="add-client-btn" class="group flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md hover:shadow-lg" title="Add New Client (N)">
+                            <i class="fas fa-plus text-sm"></i>
+                            <span class="sidebar-text font-medium text-sm">New Client</span>
                         </button>
                     </div>
                 </div>

@@ -442,6 +442,7 @@
             if (updateTimeLogBtn) updateTimeLogBtn.addEventListener('click', updateTimeLog);
 
             setupKeyboardShortcuts();
+            setupGlobalKeyboardShortcuts();
         }
 
         function setupKeyboardShortcuts() {
@@ -519,6 +520,102 @@
                         }
                     }
                 });
+            }
+        }
+        
+        // Setup global keyboard shortcuts for quick actions
+        function setupGlobalKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ignore if user is typing in input/textarea (except for Escape key)
+                if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) && e.key !== 'Escape') {
+                    return;
+                }
+                
+                // Single key shortcuts (when not in input)
+                if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+                    switch(e.key.toLowerCase()) {
+                        case 'n':
+                            // N - New Client
+                            e.preventDefault();
+                            if (addClientBtn) addClientBtn.click();
+                            break;
+                        case 't':
+                            // T - Add Main Task (when client selected)
+                            if (selectedClientId) {
+                                e.preventDefault();
+                                const addMainTaskBtn = document.getElementById('add-main-task-btn');
+                                if (addMainTaskBtn) addMainTaskBtn.click();
+                            }
+                            break;
+                        case 's':
+                            // S - Add Subtask (when main task selected)
+                            if (currentMainTaskId) {
+                                e.preventDefault();
+                                const addSubtaskBtn = document.getElementById('add-subtask-btn');
+                                if (addSubtaskBtn && !addSubtaskBtn.disabled) addSubtaskBtn.click();
+                            }
+                            break;
+                        case 'escape':
+                            // Escape - Close active forms/modals
+                            e.preventDefault();
+                            closeActiveModals();
+                            break;
+                        case '/':
+                            // / - Focus search
+                            e.preventDefault();
+                            if (clientSearch) {
+                                clientSearch.focus();
+                                clientSearch.select();
+                            }
+                            break;
+                    }
+                }
+                
+                // Ctrl/Cmd + key shortcuts
+                if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+                    switch(e.key.toLowerCase()) {
+                        case 'b':
+                            // Ctrl+B - Toggle Sidebar
+                            e.preventDefault();
+                            if (toggleSidebarBtn) toggleSidebarBtn.click();
+                            break;
+                        case 'd':
+                            // Ctrl+D - Toggle Dark Mode
+                            e.preventDefault();
+                            toggleDarkMode();
+                            break;
+                    }
+                }
+            });
+        }
+        
+        // Helper function to close active modals/forms
+        function closeActiveModals() {
+            // Close client modal
+            if (clientModal && !clientModal.classList.contains('hidden')) {
+                resetClientForm();
+            }
+            // Close profile modal
+            if (profileModal && !profileModal.classList.contains('hidden')) {
+                if (closeProfileModal) closeProfileModal.click();
+            }
+            // Close confirmation modal
+            if (confirmationModal && !confirmationModal.classList.contains('hidden')) {
+                if (cancelConfirmationBtn) cancelConfirmationBtn.click();
+            }
+            // Close main task form
+            const mainTaskForm = document.getElementById('main-task-form');
+            if (mainTaskForm && !mainTaskForm.classList.contains('hidden')) {
+                resetMainTaskForm();
+            }
+            // Close subtask form
+            const subtaskForm = document.getElementById('subtask-form');
+            if (subtaskForm && !subtaskForm.classList.contains('hidden')) {
+                resetSubtaskForm();
+            }
+            // Close user dropdown
+            if (userDropdown && !userDropdown.classList.contains('hidden')) {
+                userDropdown.classList.add('hidden');
             }
         }
         
@@ -637,7 +734,7 @@
                                     <span class="break-words">${task.title}</span>
                                     ${task.category ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">${task.category.name}</span>` : ''}
                                 </h5>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">${task.description || 'No description'}</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-200 line-clamp-1">${task.description || 'No description'}</p>
                                 <div class="mt-1.5 flex items-center text-xs text-blue-600 dark:text-blue-400">
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
                                     <span>Created by: ${task.user_id == window.App.user.id ? 'You' : (task.user ? task.user.name : 'Unknown')}</span>
@@ -943,7 +1040,7 @@
                             </div>
                             <div>
                                 <h5 class="font-medium text-gray-800 dark:text-white">${s.title}</h5>
-                                <div class="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400 gap-x-3 gap-y-1 mt-0.5">
+                                <div class="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-200 gap-x-3 gap-y-1 mt-0.5">
                                     <div class="flex items-center"><i class="fas fa-clock mr-1.5"></i><span>${s.total_time_logged || 0}h total</span></div>
                                     <div class="flex items-center"><i class="fas fa-calendar-alt mr-1.5"></i><span>${s.work_date}</span></div>
                                 </div>
@@ -1343,7 +1440,7 @@
                             ` : ''}
                         </div>
                     </div>
-                    <p class="mt-3 text-gray-700 dark:text-gray-300">${c.comment}</p>
+                    <p class="mt-3 text-gray-700 dark:text-gray-200">${c.comment}</p>
                 </div>
             `).join('');
         }

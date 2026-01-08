@@ -19,6 +19,25 @@
             color-scheme: dark;
         }
         
+        
+        /* Smooth theme transitions */
+        *,
+        *::before,
+        *::after {
+            transition-property: background-color, border-color, color, fill, stroke !important;
+            transition-duration: 150ms !important;
+            transition-timing-function: ease-in-out !important;
+        }
+        
+        /* Exclude elements that shouldn't transition */
+        input,
+        textarea,
+        select,
+        button:active,
+        .no-transition {
+            transition-duration: 0ms !important;
+        }
+        
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;

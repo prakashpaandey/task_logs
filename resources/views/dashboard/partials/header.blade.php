@@ -10,7 +10,7 @@
                 </div>
                 
                 <div class="flex items-center space-x-4">
-                    <button id="theme-toggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <button id="theme-toggle" class="p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Toggle Theme (Ctrl+D)">
                         <i id="theme-icon" class="fas fa-moon"></i>
                     </button>
                     
