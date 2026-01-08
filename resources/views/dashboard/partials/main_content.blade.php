@@ -126,9 +126,9 @@
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Main Tasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Create and manage main tasks for this client</p>
                                 </div>
-                                <button id="add-main-task-btn" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg transition-all shadow-md group" title="Add New Main Task">
+                                <button id="add-main-task-btn" class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-all shadow-md group">
                                     <i class="fas fa-plus text-sm"></i>
-                                    <span class="font-medium text-xs md:text-sm">Add Task</span>
+                                    <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Add Task</span>
                                 </button>
                             </div>
                             
@@ -211,9 +211,9 @@
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Subtasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Manage subtasks for the selected main task</p>
                                 </div>
-                                <button id="add-subtask-btn" class="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed group" disabled title="Add New Subtask">
+                                <button id="add-subtask-btn" class="flex items-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed group" disabled title="Add New Subtask">
                                     <i class="fas fa-plus text-sm"></i>
-                                    <span class="font-medium text-xs md:text-sm">Add Subtask</span>
+                                    <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Add Subtask</span>
                                 </button>
                             </div>
                             

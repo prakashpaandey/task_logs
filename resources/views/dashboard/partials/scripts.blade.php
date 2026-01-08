@@ -819,7 +819,7 @@
                 currentMainTaskId = taskId;
             }
             mainTaskForm.classList.remove('hidden');
-            addMainTaskBtn.innerHTML = '<i class="fas fa-eye-slash text-sm"></i><span class="font-medium text-xs md:text-sm">Hide</span>';
+            addMainTaskBtn.innerHTML = '<i class="fas fa-eye-slash text-sm"></i><span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Hide</span>';
             addMainTaskBtn.classList.replace('bg-blue-600', 'bg-gray-500');
             addMainTaskBtn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-600');
         }
@@ -828,7 +828,7 @@
             mainTaskForm.classList.add('hidden');
             mainTaskTitle.value = '';
             mainTaskDescription.value = '';
-            addMainTaskBtn.innerHTML = '<i class="fas fa-plus text-sm"></i><span class="font-medium text-xs md:text-sm">Add Task</span>';
+            addMainTaskBtn.innerHTML = '<i class="fas fa-plus text-sm"></i><span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Add Task</span>';
             addMainTaskBtn.classList.replace('bg-gray-500', 'bg-blue-600');
             addMainTaskBtn.classList.replace('hover:bg-gray-600', 'hover:bg-blue-700');
         }
@@ -1023,7 +1023,7 @@
             subtaskForm.classList.remove('hidden');
             subtasksList.classList.add('hidden');
             subtaskDetailView.classList.add('hidden');
-            addSubtaskBtn.innerHTML = '<i class="fas fa-eye-slash text-sm"></i><span class="font-medium text-xs md:text-sm">Hide Form</span>';
+            addSubtaskBtn.innerHTML = '<i class="fas fa-eye-slash text-sm"></i><span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Hide Form</span>';
             addSubtaskBtn.classList.replace('bg-green-600', 'bg-gray-500');
             addSubtaskBtn.classList.replace('hover:bg-green-700', 'hover:bg-gray-600');
         }
@@ -1032,7 +1032,7 @@
             subtaskForm.classList.add('hidden');
             subtasksList.classList.remove('hidden');
             currentSubtaskId = null;
-            addSubtaskBtn.innerHTML = '<i class="fas fa-plus text-sm"></i><span class="font-medium text-xs md:text-sm">Add Subtask</span>';
+            addSubtaskBtn.innerHTML = '<i class="fas fa-plus text-sm"></i><span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Add Subtask</span>';
             addSubtaskBtn.classList.replace('bg-gray-500', 'bg-green-600');
             addSubtaskBtn.classList.replace('hover:bg-gray-600', 'hover:bg-green-700');
         }
