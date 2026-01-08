@@ -551,16 +551,19 @@
                 <div class="main-task-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" data-task-id="${task.id}">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
+                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0">
                                 <i class="fas fa-project-diagram"></i>
                             </div>
                             <div>
                                 <h5 class="font-medium text-gray-800 dark:text-white">${task.title}</h5>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">${task.description || 'No description'}</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">${task.description || 'No description'}</p>
+                                <div class="mt-1.5 flex items-center text-xs text-blue-600 dark:text-blue-400">
+                                    <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
+                                    <span>Created by: ${task.user ? task.user.name : 'Unknown'}</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="hidden md:block text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">By: ${task.user ? task.user.name : 'Unknown'}</span>
+                        <div class="flex items-center space-x-2 shrink-0 ml-4">
                             <button class="edit-main-task-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -813,7 +816,7 @@
                 <div class="subtask-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" data-subtask-id="${s.id}">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
+                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0">
                                 <i class="fas fa-pencil-alt"></i>
                             </div>
                             <div>
@@ -821,11 +824,14 @@
                                 <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
                                     <i class="fas fa-clock mr-1"></i><span>${s.total_time_logged || 0} hours total</span>
                                     <i class="fas fa-calendar-alt mx-2"></i><span>${s.work_date}</span>
-                                    <span class="ml-2 hidden lg:inline-block text-xs italic bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">By: ${s.user ? s.user.name : 'Unknown'}</span>
+                                </div>
+                                <div class="mt-1.5 flex items-center text-xs text-blue-600 dark:text-blue-400">
+                                    <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
+                                    <span>Created by: ${s.user ? s.user.name : 'Unknown'}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
+                        <div class="flex items-center space-x-2 shrink-0 ml-4">
                             <button class="edit-subtask-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1"><i class="fas fa-edit"></i></button>
                             <button class="delete-subtask-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"><i class="fas fa-trash-alt"></i></button>
                         </div>
