@@ -20,16 +20,30 @@
             }
         }
     </script>
+    <script>
+        // Apply dark mode immediately to prevent flash
+        (function() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
 </head>
-<body class="h-full bg-slate-50 font-sans text-slate-900 antialiased flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
-        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 md:p-10 border border-slate-100">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 mb-6 shadow-lg shadow-indigo-200">
-                    <i class="fas fa-user-plus text-white text-2xl"></i>
+<body class="h-full bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 antialiased flex items-center justify-center p-4 transition-colors duration-300">
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 p-3 rounded-xl bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all">
+        <i class="fas fa-moon text-slate-700 dark:text-slate-300 text-lg"></i>
+    </button>
+    
+    <div class="w-full max-w-md mt-12 sm:mt-0">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 p-6 sm:p-8 md:p-10 border border-slate-100 dark:border-slate-700 transition-colors duration-300">
+            <div class="text-center mb-6 sm:mb-8">
+                <div class="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 dark:bg-indigo-500 mb-4 sm:mb-6 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30">
+                    <i class="fas fa-user-plus text-white text-xl sm:text-2xl"></i>
                 </div>
-                <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Create Account</h2>
-                <p class="mt-2 text-sm text-slate-600">
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Create Account</h2>
+                <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
                     Already have an account? 
                     <a href="{{ route('login') }}" class="font-semibold text-primary-600 hover:text-primary-500 transition-colors">
                         Sign in instead
@@ -42,13 +56,13 @@
 
                 <!-- Name -->
                 <div>
-                    <label for="name" class="block text-sm font-medium text-slate-700">Full Name</label>
+                    <label for="name" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
                     <div class="mt-1 relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fas fa-user text-sm"></i>
                         </div>
                         <input id="name" name="name" type="text" autocomplete="name" required value="{{ old('name') }}"
-                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all sm:text-sm"
+                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-700 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all sm:text-sm"
                             placeholder="Enter yout full name">
                     </div>
                     <x-input-error :messages="$errors->get('name')" class="mt-2" />
@@ -56,13 +70,13 @@
 
 
                 <div>
-                    <label for="email" class="block text-sm font-medium text-slate-700">Email Address</label>
+                    <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
                     <div class="mt-1 relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fas fa-envelope text-sm"></i>
                         </div>
                         <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}"
-                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all sm:text-sm"
+                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-700 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all sm:text-sm"
                             placeholder="Enter the Email">
                     </div>
                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
@@ -70,35 +84,41 @@
 
                 <!-- Password -->
                 <div>
-                    <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
+                    <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
                     <div class="mt-1 relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fas fa-lock text-sm"></i>
                         </div>
                         <input id="password" name="password" type="password" autocomplete="new-password" required
-                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all sm:text-sm"
+                            class="block w-full pl-10 pr-12 py-3 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-700 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all sm:text-sm"
                             placeholder="••••••••">
+                        <button type="button" onclick="togglePassword('password', 'toggle-password-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors">
+                            <i id="toggle-password-icon" class="fas fa-eye text-sm"></i>
+                        </button>
                     </div>
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
                 </div>
 
                 <!-- Confirm Password -->
                 <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-slate-700">Confirm Password</label>
+                    <label for="password_confirmation" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Confirm Password</label>
                     <div class="mt-1 relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fas fa-check-double text-sm"></i>
                         </div>
                         <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required
-                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all sm:text-sm"
+                            class="block w-full pl-10 pr-12 py-3 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-700 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all sm:text-sm"
                             placeholder="••••••••">
+                        <button type="button" onclick="togglePassword('password_confirmation', 'toggle-password-confirm-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors">
+                            <i id="toggle-password-confirm-icon" class="fas fa-eye text-sm"></i>
+                        </button>
                     </div>
                     <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                 </div>
 
                 <div class="pt-2">
                     <button type="submit"
-                        class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform active:scale-[0.98]">
+                        class="w-full flex justify-center py-3 sm:py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform active:scale-[0.98]">
                         Create Account
                     </button>
                 </div>
@@ -107,5 +127,50 @@
             </form>
         </div>
     </div>
+    
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        const themeIcon = themeToggle.querySelector('i');
+        
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            html.classList.add('dark');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            
+            if (html.classList.contains('dark')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Password visibility toggle
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 </html>
