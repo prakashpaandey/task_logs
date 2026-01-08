@@ -90,6 +90,8 @@
         const timeLogsList = document.getElementById('time-logs-list');
         const subtaskDetailView = document.getElementById('subtask-detail-view');
         const detailSubtaskTitle = document.getElementById('detail-subtask-title');
+        const detailSubtaskDescription = document.getElementById('detail-subtask-description');
+        const detailSubtaskDescriptionContainer = document.getElementById('detail-subtask-description-container');
         
         // State variables
         let currentClientId = window.App.selectedClient ? window.App.selectedClient.id : null;
@@ -941,6 +943,16 @@
 
             currentSubtaskId = subtaskId;
             updateSubtaskDetailHeader(subtask);
+            
+            // Set subtask description and container visibility
+            if (detailSubtaskDescription && detailSubtaskDescriptionContainer) {
+                if (subtask.description && subtask.description.trim() !== '') {
+                    detailSubtaskDescription.textContent = subtask.description;
+                    detailSubtaskDescriptionContainer.classList.remove('hidden');
+                } else {
+                    detailSubtaskDescriptionContainer.classList.add('hidden');
+                }
+            }
             
             renderComments(subtask.comments || []);
             renderTimeLogs(subtask.time_logs || []);

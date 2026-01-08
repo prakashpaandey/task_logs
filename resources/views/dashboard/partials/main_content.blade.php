@@ -198,6 +198,13 @@
                                     </button>
                                     <h4 id="detail-subtask-title" class="text-xl font-bold text-gray-800 dark:text-white truncate">Subtask Detail</h4>
                                 </div>
+                                <div id="detail-subtask-description-container" class="mb-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-gray-100 dark:border-gray-600 transition-all hidden">
+                                    <div class="flex items-center space-x-2 mb-2 text-gray-500 dark:text-gray-400">
+                                        <i class="fas fa-align-left text-[10px]"></i>
+                                        <span class="text-[9px] font-bold uppercase tracking-widest">Description</span>
+                                    </div>
+                                    <p id="detail-subtask-description" class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line break-words max-h-32 overflow-y-auto custom-scrollbar pr-1"></p>
+                                </div>
 
                                 <!-- Tab Navigation -->
                                 <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
