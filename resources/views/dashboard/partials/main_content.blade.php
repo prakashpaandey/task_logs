@@ -96,10 +96,6 @@
                                 <div>
                                     <h2 id="selected-client-name" class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">Acme Corporation</h2>
                                     <div class="flex flex-wrap items-center mt-1 gap-3">
-                                        <span id="selected-client-status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                                            <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                                            Active
-                                        </span>
                                         <span class="text-gray-600 dark:text-gray-400 text-xs md:text-sm">
                                             <i class="fas fa-calendar-alt mr-1"></i>
                                             Joined: <span id="client-join-date">Jan 15, 2023</span>

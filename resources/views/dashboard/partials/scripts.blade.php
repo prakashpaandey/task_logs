@@ -591,7 +591,6 @@
                 const client = window.App.clients.find(c => c.id == clientId);
                 if (client) {
                     selectedClientName.textContent = client.name;
-                    selectedClientStatus.innerHTML = `<span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Active`;
                     
                     renderMainTasks(client.main_tasks || []);
                     
@@ -716,7 +715,7 @@
         async function handleClientFormSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('client-name').value;
-            const status = document.getElementById('client-status') ? document.getElementById('client-status').value : 'active';
+            const status = 'active';
             
             try {
                 if (!editingClientId) {
@@ -771,7 +770,6 @@
                         <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
                         <h3 class="font-semibold text-gray-800 dark:text-white sidebar-hide-content truncate max-w-[120px] lg:max-w-[160px]">${client.name}</h3>
                     </div>
-                    <span class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded sidebar-hide-content shrink-0 ml-auto">Active</span>
                 </div>
             `).join('');
         }
