@@ -1089,9 +1089,9 @@
         
         function updateSubtaskDetailHeader(subtask) {
             detailSubtaskTitle.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <span>${subtask.title}</span>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 items-start">
+                    <span class="text-lg md:text-xl font-bold text-gray-800 dark:text-white break-words leading-tight">${subtask.title}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 shrink-0 mt-1 md:mt-0">
                         <i class="fas fa-clock mr-1 text-[10px]"></i>
                         ${parseFloat(subtask.total_time_logged || 0).toFixed(2)}h total
                     </span>

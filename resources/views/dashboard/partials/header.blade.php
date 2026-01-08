@@ -26,17 +26,17 @@
                             <i class="fas fa-chevron-down text-xs text-gray-500 dark:text-gray-400"></i>
                         </button>
                         
-                        <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 hidden">
-                            <button id="profile-btn" class="w-full flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <i class="fas fa-user-circle mr-3"></i>
+                        <div id="user-dropdown" class="absolute right-0 mt-2 w-56 sm:w-56 lg:w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 hidden z-50">
+                            <button id="profile-btn" class="w-full flex items-center px-4 py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <i class="fas fa-user-circle mr-3 text-base lg:text-lg"></i>
                                 <span>Profile & Security</span>
                             </button>
                             <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
                             <form method="POST" action="{{ route('logout') }}" id="logout-form" class="hidden">
                                 @csrf
                             </form>
-                            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <i class="fas fa-sign-out-alt mr-3"></i>
+                            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center px-4 py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-3 text-base lg:text-lg"></i>
                                 <span>Logout</span>
                             </a>
                         </div>

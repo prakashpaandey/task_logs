@@ -121,7 +121,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                         <!-- Left Panel: Main Task Management -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-start justify-between mb-6">
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Main Tasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Create and manage main tasks for this client</p>
@@ -206,7 +206,7 @@
                         
                         <!-- Right Panel: Subtask Management -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-start justify-between mb-6">
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white">Subtasks</h3>
                                     <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Manage subtasks for the selected main task</p>
