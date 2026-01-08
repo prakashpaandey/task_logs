@@ -1,23 +1,79 @@
             <main id="main-content" class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 transition-all duration-300">
-                <div id="client-selection-prompt" class="h-full flex flex-col items-center justify-center p-4 sm:p-8">
-                    <div class="max-w-md text-center">
-                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i class="fas fa-users text-3xl md:text-4xl text-white"></i>
+                <!-- Statistics Dashboard -->
+                <div id="statistics-dashboard" class="h-full flex flex-col p-4 md:p-8 animate-fadeIn">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+                                <i class="fas fa-chart-line mr-3 text-blue-600"></i>
+                                Personal Productivity Overview
+                            </h2>
+                            <p class="text-gray-500 dark:text-gray-400 mt-1">Activity summary for {{ auth()->user()->name }}</p>
                         </div>
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white mb-3">Select a Client</h2>
-                        <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm md:text-base">
-                            Choose a client from the sidebar to start managing their tasks and subtasks. You can create, update, and delete tasks for the selected client.
-                        </p>
-                        <div class="flex space-x-4 justify-center">
-                            <button id="quick-add-client-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors">
-                                <i class="fas fa-plus"></i>
-                                <span>Add New Client</span>
-                            </button>
-                            <button id="view-all-clients-btn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-6 py-3 rounded-lg transition-colors">
-                                View All Clients
-                            </button>
+                        <button onclick="document.getElementById('add-client-btn').click()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center whitespace-nowrap">
+                            <i class="fas fa-user-plus mr-2"></i> New Client
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <!-- Time Logs Section -->
+                        <div class="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-gray-800 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Today</span>
+                                <i class="fas fa-clock text-blue-500"></i>
+                            </div>
+                            <h3 id="stat-time-today" class="text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Logged today</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-gray-800 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">This Week</span>
+                                <i class="fas fa-calendar-week text-indigo-500"></i>
+                            </div>
+                            <h3 id="stat-time-week" class="text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Weekly total</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-800 p-6 rounded-2xl border border-purple-100 dark:border-purple-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">This Month</span>
+                                <i class="fas fa-calendar-alt text-purple-500"></i>
+                            </div>
+                            <h3 id="stat-time-month" class="text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Monthly total</p>
                         </div>
                     </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Comments Section -->
+                        <div class="bg-gradient-to-br from-green-50 to-white dark:from-green-900/10 dark:to-gray-800 p-6 rounded-2xl border border-green-100 dark:border-green-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Today</span>
+                                <i class="fas fa-comment-dots text-green-500"></i>
+                            </div>
+                            <h3 id="stat-comments-today" class="text-3xl font-bold text-gray-800 dark:text-white">0</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Comments posted</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-teal-50 to-white dark:from-teal-900/10 dark:to-gray-800 p-6 rounded-2xl border border-teal-100 dark:border-teal-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">This Week</span>
+                                <i class="fas fa-comments text-teal-500"></i>
+                            </div>
+                            <h3 id="stat-comments-week" class="text-3xl font-bold text-gray-800 dark:text-white">0</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Weekly discussion</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/10 dark:to-gray-800 p-6 rounded-2xl border border-cyan-100 dark:border-cyan-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">This Month</span>
+                                <i class="fas fa-comment-medical text-cyan-500"></i>
+                            </div>
+                            <h3 id="stat-comments-month" class="text-3xl font-bold text-gray-800 dark:text-white">0</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Monthly total</p>
+                        </div>
+                    </div>
+                    
                 </div>
 
                 <nav id="breadcrumb-nav" class="mb-6 hidden">

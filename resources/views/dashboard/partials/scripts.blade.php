@@ -17,7 +17,7 @@
         const quickAddClientBtn = document.getElementById('quick-add-client-btn');
         const addFirstClientBtn = document.getElementById('add-first-client-btn');
         const viewAllClientsBtn = document.getElementById('view-all-clients-btn');
-        const clientSelectionPrompt = document.getElementById('client-selection-prompt');
+        const clientSelectionPrompt = document.getElementById('statistics-dashboard');
         const clientContent = document.getElementById('client-content');
         const selectedClientName = document.getElementById('selected-client-name');
         const selectedClientStatus = document.getElementById('selected-client-status');
@@ -168,6 +168,33 @@
                 document.getElementById('client-join-date').textContent = joinDate;
             } else {
                 showClientSelectionPrompt();
+                loadStatistics();
+            }
+        }
+
+        // Load Statistics
+        async function loadStatistics() {
+            try {
+                const response = await apiCall('{{ route('dashboard.statistics') }}');
+                if (response.success) {
+                    // Update Time Logs
+                    if (document.getElementById('stat-time-today'))
+                        document.getElementById('stat-time-today').textContent = parseFloat(response.time_logs.today || 0).toFixed(1) + 'h';
+                    if (document.getElementById('stat-time-week'))
+                        document.getElementById('stat-time-week').textContent = parseFloat(response.time_logs.week || 0).toFixed(1) + 'h';
+                    if (document.getElementById('stat-time-month'))
+                        document.getElementById('stat-time-month').textContent = parseFloat(response.time_logs.month || 0).toFixed(1) + 'h';
+                    
+                    // Update Comments
+                    if (document.getElementById('stat-comments-today'))
+                        document.getElementById('stat-comments-today').textContent = response.comments.today || 0;
+                    if (document.getElementById('stat-comments-week'))
+                        document.getElementById('stat-comments-week').textContent = response.comments.week || 0;
+                    if (document.getElementById('stat-comments-month'))
+                        document.getElementById('stat-comments-month').textContent = response.comments.month || 0;
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
             }
         }
 
@@ -191,10 +218,10 @@
         // Set up all event listeners
         function setupEventListeners() {
             // Theme toggle
-            themeToggle.addEventListener('click', toggleDarkMode);
+            if (themeToggle) themeToggle.addEventListener('click', toggleDarkMode);
             
             // User dropdown
-            userMenuButton.addEventListener('click', toggleUserDropdown);
+            if (userMenuButton) userMenuButton.addEventListener('click', toggleUserDropdown);
             
             // Mobile menu toggle
             if (mobileMenuToggle) {
@@ -215,32 +242,41 @@
                 });
             }
 
-            document.addEventListener('click', (e) => {
-                if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
-                    userDropdown.classList.add('hidden');
-                }
-            });
+            if (userMenuButton && userDropdown) {
+                document.addEventListener('click', (e) => {
+                    if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+            }
             
             // Client selection (Delegation)
-            document.getElementById('clients-list-container').addEventListener('click', (e) => {
-                const item = e.target.closest('.client-item');
-                if (item) selectClient(item);
-            });
+            const clientsListContainer = document.getElementById('clients-list-container');
+            if (clientsListContainer) {
+                clientsListContainer.addEventListener('click', (e) => {
+                    const item = e.target.closest('.client-item');
+                    if (item) selectClient(item);
+                });
+            }
             
             // Client search
-            clientSearch.addEventListener('input', filterClients);
+            if (clientSearch) {
+                clientSearch.addEventListener('input', filterClients);
+            }
             
             // Add client buttons
-            addClientBtn.addEventListener('click', () => openClientModal('add'));
-            quickAddClientBtn.addEventListener('click', () => openClientModal('add'));
-            addFirstClientBtn.addEventListener('click', () => openClientModal('add'));
+            if (addClientBtn) addClientBtn.addEventListener('click', () => openClientModal('add'));
+            if (quickAddClientBtn) quickAddClientBtn.addEventListener('click', () => openClientModal('add'));
+            if (addFirstClientBtn) addFirstClientBtn.addEventListener('click', () => openClientModal('add'));
             
             // View all clients
             if (viewAllClientsBtn) {
                 viewAllClientsBtn.addEventListener('click', () => {
-                    clientSearch.value = '';
-                    filterClients();
-                    clientSearch.focus();
+                    if (clientSearch) {
+                        clientSearch.value = '';
+                        filterClients();
+                        clientSearch.focus();
+                    }
                     
                     // On mobile, open sidebar to show clients
                     if (window.innerWidth < 768) {
@@ -254,65 +290,80 @@
             }
             
             // Client modal
-            closeClientModal.addEventListener('click', () => closeClientModalFunc());
-            cancelClientBtn.addEventListener('click', () => closeClientModalFunc());
-            clientForm.addEventListener('submit', handleClientFormSubmit);
+            if (closeClientModal) closeClientModal.addEventListener('click', () => closeClientModalFunc());
+            if (cancelClientBtn) cancelClientBtn.addEventListener('click', () => closeClientModalFunc());
+            if (clientForm) clientForm.addEventListener('submit', handleClientFormSubmit);
             
             // Edit and delete client buttons
-            editClientBtn.addEventListener('click', () => {
-                const client = window.App.clients.find(c => c.id == currentClientId);
-                if (client) openClientModal('edit', client.id, client.name);
-            });
-            deleteClientBtn.addEventListener('click', () => {
-                const client = window.App.clients.find(c => c.id == currentClientId);
-                if (client) openConfirmationModal('client', client.name, deleteCurrentClient);
-            });
+            if (editClientBtn) {
+                editClientBtn.addEventListener('click', () => {
+                    const client = window.App.clients.find(c => c.id == currentClientId);
+                    if (client) openClientModal('edit', client.id, client.name);
+                });
+            }
+            if (deleteClientBtn) {
+                deleteClientBtn.addEventListener('click', () => {
+                    const client = window.App.clients.find(c => c.id == currentClientId);
+                    if (client) openConfirmationModal('client', client.name, deleteCurrentClient);
+                });
+            }
             
             // Confirmation modal
-            cancelConfirmationBtn.addEventListener('click', () => closeConfirmationModal());
+            if (cancelConfirmationBtn) cancelConfirmationBtn.addEventListener('click', () => closeConfirmationModal());
             
             // Main task buttons
-            addMainTaskBtn.addEventListener('click', () => {
-                if (mainTaskForm.classList.contains('hidden')) {
-                    openMainTaskForm('add');
-                } else {
-                    resetMainTaskForm();
-                }
-            });
-            cancelMainTaskBtn.addEventListener('click', resetMainTaskForm);
-            saveMainTaskBtn.addEventListener('click', saveMainTask);
-            updateMainTaskBtn.addEventListener('click', updateMainTask);
+            if (addMainTaskBtn) {
+                addMainTaskBtn.addEventListener('click', () => {
+                    if (mainTaskForm) {
+                        if (mainTaskForm.classList.contains('hidden')) {
+                            openMainTaskForm('add');
+                        } else {
+                            resetMainTaskForm();
+                        }
+                    }
+                });
+            }
+            if (cancelMainTaskBtn) cancelMainTaskBtn.addEventListener('click', resetMainTaskForm);
+            if (saveMainTaskBtn) saveMainTaskBtn.addEventListener('click', saveMainTask);
+            if (updateMainTaskBtn) updateMainTaskBtn.addEventListener('click', updateMainTask);
             
             // Task status buttons logic removed
             
             // Main task list event delegation
-            document.getElementById('main-tasks-list').addEventListener('click', (e) => {
-                const item = e.target.closest('.main-task-item');
-                if (!item) return;
+            const mainTasksList = document.getElementById('main-tasks-list');
+            if (mainTasksList) {
+                mainTasksList.addEventListener('click', (e) => {
+                    const item = e.target.closest('.main-task-item');
+                    if (!item) return;
 
-                if (e.target.closest('.edit-main-task-btn')) {
-                    e.stopPropagation();
-                    const taskId = item.getAttribute('data-task-id');
-                    const task = findMainTask(taskId);
-                    if (task) openMainTaskForm('edit', task.id, task.title, task.description);
-                } else if (e.target.closest('.delete-main-task-btn')) {
-                    e.stopPropagation();
-                    const taskId = item.getAttribute('data-task-id');
-                    const task = findMainTask(taskId);
-                    if (task) openConfirmationModal('main task', task.title, () => deleteMainTask(taskId));
-                } else {
-                    selectMainTask(item);
-                }
-            });
+                    if (e.target.closest('.edit-main-task-btn')) {
+                        e.stopPropagation();
+                        const taskId = item.getAttribute('data-task-id');
+                        const task = findMainTask(taskId);
+                        if (task) openMainTaskForm('edit', task.id, task.title, task.description);
+                    } else if (e.target.closest('.delete-main-task-btn')) {
+                        e.stopPropagation();
+                        const taskId = item.getAttribute('data-task-id');
+                        const task = findMainTask(taskId);
+                        if (task) openConfirmationModal('main task', task.title, () => deleteMainTask(taskId));
+                    } else {
+                        selectMainTask(item);
+                    }
+                });
+            }
             
             // Subtask buttons
-            addSubtaskBtn.addEventListener('click', () => {
-                if (subtaskForm.classList.contains('hidden')) {
-                    openSubtaskForm('add');
-                } else {
-                    resetSubtaskForm();
-                }
-            });
+            if (addSubtaskBtn) {
+                addSubtaskBtn.addEventListener('click', () => {
+                    if (subtaskForm) {
+                        if (subtaskForm.classList.contains('hidden')) {
+                            openSubtaskForm('add');
+                        } else {
+                            resetSubtaskForm();
+                        }
+                    }
+                });
+            }
             
             // Profile & Security listeners
             if (profileBtn) profileBtn.addEventListener('click', openProfileModal);
@@ -323,129 +374,152 @@
             if (cancelProfileBtn) cancelProfileBtn.addEventListener('click', closeProfileModalFunc);
             if (profileForm) profileForm.addEventListener('submit', handleProfileUpdate);
             if (passwordForm) passwordForm.addEventListener('submit', handlePasswordUpdate);
-            cancelSubtaskBtn.addEventListener('click', resetSubtaskForm);
-            saveSubtaskBtn.addEventListener('click', saveSubtask);
-            updateSubtaskBtn.addEventListener('click', updateSubtask);
-            changeMainTaskBtn.addEventListener('click', () => resetMainTaskSelection());
+            if (cancelSubtaskBtn) cancelSubtaskBtn.addEventListener('click', resetSubtaskForm);
+            if (saveSubtaskBtn) saveSubtaskBtn.addEventListener('click', saveSubtask);
+            if (updateSubtaskBtn) updateSubtaskBtn.addEventListener('click', updateSubtask);
+            if (changeMainTaskBtn) changeMainTaskBtn.addEventListener('click', () => resetMainTaskSelection());
             
             // Subtasks list event delegation
-            document.getElementById('subtasks-container').addEventListener('click', (e) => {
-                const item = e.target.closest('.subtask-item');
-                if (!item) return;
+            const subtasksContainer = document.getElementById('subtasks-container');
+            if (subtasksContainer) {
+                subtasksContainer.addEventListener('click', (e) => {
+                    const item = e.target.closest('.subtask-item');
+                    if (!item) return;
 
-                if (e.target.closest('.edit-subtask-btn')) {
-                    e.stopPropagation();
-                    const subtaskId = item.getAttribute('data-subtask-id');
-                    const subtask = findSubtask(subtaskId);
-                    if (subtask) openSubtaskForm('edit', subtask.id, subtask.title, subtask.work_date, subtask.description);
-                } else if (e.target.closest('.delete-subtask-btn')) {
-                    e.stopPropagation();
-                    const subtaskId = item.getAttribute('data-subtask-id');
-                    const subtask = findSubtask(subtaskId);
-                    if (subtask) openConfirmationModal('subtask', subtask.title, () => deleteSubtask(subtaskId));
-                } else {
-                    selectSubtask(item);
-                }
-            });
+                    if (e.target.closest('.edit-subtask-btn')) {
+                        e.stopPropagation();
+                        const subtaskId = item.getAttribute('data-subtask-id');
+                        const subtask = findSubtask(subtaskId);
+                        if (subtask) openSubtaskForm('edit', subtask.id, subtask.title, subtask.work_date, subtask.description);
+                    } else if (e.target.closest('.delete-subtask-btn')) {
+                        e.stopPropagation();
+                        const subtaskId = item.getAttribute('data-subtask-id');
+                        const subtask = findSubtask(subtaskId);
+                        if (subtask) openConfirmationModal('subtask', subtask.title, () => deleteSubtask(subtaskId));
+                    } else {
+                        selectSubtask(item);
+                    }
+                });
+            }
             
             // Comment buttons
-            addCommentBtn.addEventListener('click', () => openCommentForm('add'));
-            cancelCommentBtn.addEventListener('click', resetCommentForm);
-            saveCommentBtn.addEventListener('click', saveComment);
+            if (addCommentBtn) addCommentBtn.addEventListener('click', () => openCommentForm('add'));
+            if (cancelCommentBtn) cancelCommentBtn.addEventListener('click', resetCommentForm);
+            if (saveCommentBtn) saveCommentBtn.addEventListener('click', saveComment);
             
             // Comments list event delegation
-            document.getElementById('comments-list').addEventListener('click', (e) => {
-                const item = e.target.closest('.comment-item');
-                if (!item) return;
+            const commentsList = document.getElementById('comments-list');
+            if (commentsList) {
+                commentsList.addEventListener('click', (e) => {
+                    const item = e.target.closest('.comment-item');
+                    if (!item) return;
 
-                if (e.target.closest('.edit-comment-btn')) {
-                    const commentId = item.getAttribute('data-comment-id');
-                    const comment = findComment(commentId);
-                    if (comment) openCommentForm('edit', comment.id, comment.comment);
-                } else if (e.target.closest('.delete-comment-btn')) {
-                    const commentId = item.getAttribute('data-comment-id');
-                    openConfirmationModal('comment', 'this comment', () => deleteComment(commentId));
-                }
-            });
+                    if (e.target.closest('.edit-comment-btn')) {
+                        const commentId = item.getAttribute('data-comment-id');
+                        const comment = findComment(commentId);
+                        if (comment) openCommentForm('edit', comment.id, comment.comment);
+                    } else if (e.target.closest('.delete-comment-btn')) {
+                        const commentId = item.getAttribute('data-comment-id');
+                        openConfirmationModal('comment', 'this comment', () => deleteComment(commentId));
+                    }
+                });
+            }
 
             // Back to subtasks button
-            document.getElementById('back-to-subtasks-btn').addEventListener('click', () => {
-                subtaskDetailView.classList.add('hidden');
-                subtasksList.classList.remove('hidden');
-                currentSubtaskId = null;
-            });
+            const backToSubtasksBtnEl = document.getElementById('back-to-subtasks-btn');
+            if (backToSubtasksBtnEl) {
+                backToSubtasksBtnEl.addEventListener('click', () => {
+                    if (subtaskDetailView) subtaskDetailView.classList.add('hidden');
+                    if (subtasksList) subtasksList.classList.remove('hidden');
+                    currentSubtaskId = null;
+                });
+            }
 
             // Time Log Events
-            addTimeLogBtn.addEventListener('click', () => openTimeLogForm('add'));
-            cancelTimeLogBtn.addEventListener('click', resetTimeLogForm);
-            saveTimeLogBtn.addEventListener('click', saveTimeLog);
-            updateTimeLogBtn.addEventListener('click', updateTimeLog);
+            if (addTimeLogBtn) addTimeLogBtn.addEventListener('click', () => openTimeLogForm('add'));
+            if (cancelTimeLogBtn) cancelTimeLogBtn.addEventListener('click', resetTimeLogForm);
+            if (saveTimeLogBtn) saveTimeLogBtn.addEventListener('click', saveTimeLog);
+            if (updateTimeLogBtn) updateTimeLogBtn.addEventListener('click', updateTimeLog);
 
             setupKeyboardShortcuts();
         }
 
         function setupKeyboardShortcuts() {
             // Main Task Form
-            mainTaskTitle.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    mainTaskDescription.focus();
-                }
-            });
-            mainTaskDescription.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    e.preventDefault();
-                    if (!updateMainTaskBtn.classList.contains('hidden')) {
-                        updateMainTask();
-                    } else {
-                        saveMainTask();
+            if (mainTaskTitle) {
+                mainTaskTitle.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (mainTaskDescription) mainTaskDescription.focus();
                     }
-                }
-            });
+                });
+            }
+            if (mainTaskDescription) {
+                mainTaskDescription.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        if (updateMainTaskBtn && !updateMainTaskBtn.classList.contains('hidden')) {
+                            updateMainTask();
+                        } else {
+                            saveMainTask();
+                        }
+                    }
+                });
+            }
 
             // Subtask Form
-            subtaskTitle.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    subtaskWorkDate.focus();
-                }
-            });
-            subtaskWorkDate.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    subtaskDescription.focus();
-                }
-            });
-            subtaskDescription.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    e.preventDefault();
-                    if (!updateSubtaskBtn.classList.contains('hidden')) {
-                        updateSubtask();
-                    } else {
-                        saveSubtask();
+            if (subtaskTitle) {
+                subtaskTitle.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (subtaskWorkDate) subtaskWorkDate.focus();
                     }
-                }
-            });
+                });
+            }
+            if (subtaskWorkDate) {
+                subtaskWorkDate.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (subtaskDescription) subtaskDescription.focus();
+                    }
+                });
+            }
+            if (subtaskDescription) {
+                subtaskDescription.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        if (updateSubtaskBtn && !updateSubtaskBtn.classList.contains('hidden')) {
+                            updateSubtask();
+                        } else {
+                            saveSubtask();
+                        }
+                    }
+                });
+            }
 
             // Comment Form
-            commentText.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    e.preventDefault();
-                    saveComment();
-                }
-            });
+            if (commentText) {
+                commentText.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        saveComment();
+                    }
+                });
+            }
 
             // Time Log Form
-            timeLogValue.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (!updateTimeLogBtn.classList.contains('hidden')) {
-                        updateTimeLog();
-                    } else {
-                        saveTimeLog();
+            if (timeLogValue) {
+                timeLogValue.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (updateTimeLogBtn && !updateTimeLogBtn.classList.contains('hidden')) {
+                            updateTimeLog();
+                        } else {
+                            saveTimeLog();
+                        }
                     }
-                }
-            });
+                });
+            }
         }
         
         // Theme functionality
@@ -491,7 +565,10 @@
         // Client functionality
         async function selectClient(clientItem) {
             const clientId = clientItem.getAttribute('data-client-id');
-            if (clientId == currentClientId) return;
+            if (clientId == currentClientId) {
+                showClientContent();
+                return;
+            }
 
             // Update UI instantly for feedback
             const items = document.querySelectorAll('.client-item');
@@ -521,7 +598,9 @@
                     const joinDate = new Date(client.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     document.getElementById('client-join-date').textContent = joinDate;
                     
-                    document.getElementById('breadcrumb-client-name').textContent = client.name;
+                    document.getElementById('breadcrumb-client-name').innerHTML = `
+                        <a href="#" onclick="showClientContent()" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">${client.name}</a>
+                    `;
                     
                     showClientContent();
                     resetMainTaskForm();
@@ -600,9 +679,11 @@
         }
         
         function showClientSelectionPrompt() {
-            clientSelectionPrompt.classList.remove('hidden');
-            clientContent.classList.add('hidden');
-            document.getElementById('breadcrumb-nav').classList.add('hidden');
+            if (clientSelectionPrompt) clientSelectionPrompt.classList.remove('hidden');
+            if (clientContent) clientContent.classList.add('hidden');
+            const breadcrumb = document.getElementById('breadcrumb-nav');
+            if (breadcrumb) breadcrumb.classList.add('hidden');
+            loadStatistics();
         }
         
         function showClientContent() {
@@ -635,15 +716,19 @@
         async function handleClientFormSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('client-name').value;
+            const status = document.getElementById('client-status') ? document.getElementById('client-status').value : 'active';
             
             try {
                 if (!editingClientId) {
-                    const result = await apiCall('/dashboard/clients', 'POST', { name });
-                    window.App.clients.push(result.client);
-                    showSuccessNotification(result.message);
-                    renderClientsList();
+                    const result = await apiCall('{{ route('dashboard.clients.store') }}', 'POST', { name, status });
+                    if (result.client) {
+                        window.App.clients.push(result.client);
+                        showSuccessNotification(result.message);
+                        renderClientsList();
+                    }
                 } else {
-                    const result = await apiCall(`/dashboard/clients/${editingClientId}`, 'PUT', { name });
+                    const url = '{{ route('dashboard.clients.update', ['client' => ':id']) }}'.replace(':id', editingClientId);
+                    const result = await apiCall(url, 'PUT', { name, status });
                     const index = window.App.clients.findIndex(c => c.id == editingClientId);
                     if (index !== -1) {
                         window.App.clients[index] = { ...window.App.clients[index], ...result.client };
@@ -655,14 +740,17 @@
                     }
                 }
                 closeClientModalFunc();
-            } catch (error) {}
+            } catch (error) {
+                console.error('Client form submit error:', error);
+            }
         }
 
         async function deleteCurrentClient() {
             if (!currentClientId) return;
             
             try {
-                const result = await apiCall(`/dashboard/clients/${currentClientId}`, 'DELETE');
+                const url = '{{ route('dashboard.clients.destroy', ['client' => ':id']) }}'.replace(':id', currentClientId);
+                const result = await apiCall(url, 'DELETE');
                 window.App.clients = window.App.clients.filter(c => c.id != currentClientId);
                 
                 showSuccessNotification(result.message);
@@ -676,15 +764,14 @@
         
         function renderClientsList() {
             const container = document.getElementById('clients-list-container');
+            if (!container) return;
             container.innerHTML = window.App.clients.map(client => `
-                <div class="client-item p-4 ${currentClientId == client.id ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border rounded-lg cursor-pointer transition-all hover:shadow-md" data-client-id="${client.id}">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-                            <h3 class="font-semibold text-gray-800 dark:text-white">${client.name}</h3>
-                        </div>
-                        <span class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Active</span>
+                <div class="client-item p-4 ${currentClientId == client.id ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border rounded-lg cursor-pointer transition-all hover:shadow-md flex items-center justify-between md:justify-start overflow-hidden" data-client-id="${client.id}" title="${client.name}">
+                    <div class="flex items-center space-x-3 shrink-0">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <h3 class="font-semibold text-gray-800 dark:text-white sidebar-hide-content truncate max-w-[120px] lg:max-w-[160px]">${client.name}</h3>
                     </div>
+                    <span class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded sidebar-hide-content shrink-0 ml-auto">Active</span>
                 </div>
             `).join('');
         }
@@ -726,7 +813,7 @@
             if (!title.trim()) return showErrorNotification('Please enter a task title');
             
             try {
-                const result = await apiCall('/dashboard/main-tasks', 'POST', {
+                const result = await apiCall('{{ route('main-task.store') }}', 'POST', {
                     client_id: currentClientId,
                     title,
                     description
@@ -749,7 +836,8 @@
             if (!title.trim()) return showErrorNotification('Please enter a task title');
             
             try {
-                const result = await apiCall(`/dashboard/main-tasks/${currentMainTaskId}`, 'PUT', {
+                const url = '{{ route('main-task.update', ['main_task' => ':id']) }}'.replace(':id', currentMainTaskId);
+                const result = await apiCall(url, 'PUT', {
                     title,
                     description
                 });
@@ -867,7 +955,8 @@
         
         async function deleteMainTask(taskId) {
             try {
-                const result = await apiCall(`/dashboard/main-tasks/${taskId}`, 'DELETE');
+                const url = '{{ route('main-task.destroy', ['main_task' => ':id']) }}'.replace(':id', taskId);
+                const result = await apiCall(url, 'DELETE');
                 const client = findClient(currentClientId);
                 client.main_tasks = client.main_tasks.filter(t => t.id != taskId);
                 renderMainTasks(client.main_tasks);
@@ -919,7 +1008,7 @@
             if (!title.trim()) return showErrorNotification('Please enter a subtask title');
             
             try {
-                const result = await apiCall('/dashboard/subtasks', 'POST', {
+                const result = await apiCall('{{ route('subtask.store') }}', 'POST', {
                     main_task_id: currentMainTaskId,
                     title,
                     description,
@@ -943,7 +1032,8 @@
             if (!title.trim()) return showErrorNotification('Please enter a subtask title');
             
             try {
-                const result = await apiCall(`/dashboard/subtasks/${currentSubtaskId}`, 'PUT', {
+                const url = '{{ route('subtask.update', ['subtask' => ':id']) }}'.replace(':id', currentSubtaskId);
+                const result = await apiCall(url, 'PUT', {
                     title,
                     description,
                     work_date
@@ -1106,7 +1196,7 @@
             if (!val || val <= 0) return showErrorNotification('Please enter a valid amount of time');
             
             try {
-                const result = await apiCall('/dashboard/time-logs', 'POST', {
+                const result = await apiCall('{{ route('dashboard.time-logs.store') }}', 'POST', {
                     sub_task_id: currentSubtaskId,
                     time: val
                 });
@@ -1132,7 +1222,8 @@
             if (!val || val <= 0) return showErrorNotification('Please enter a valid amount of time');
             
             try {
-                const result = await apiCall(`/dashboard/time-logs/${editingTimeLogId}`, 'PUT', {
+                const url = '{{ route('dashboard.time-logs.update', ['time_log' => ':id']) }}'.replace(':id', editingTimeLogId);
+                const result = await apiCall(url, 'PUT', {
                     sub_task_id: currentSubtaskId,
                     time: val
                 });
@@ -1163,7 +1254,8 @@
 
             openConfirmationModal('time log', `${log.time} hours`, async () => {
                 try {
-                    const result = await apiCall(`/dashboard/time-logs/${id}`, 'DELETE');
+                    const url = '{{ route('dashboard.time-logs.destroy', ['time_log' => ':id']) }}'.replace(':id', id);
+                    const result = await apiCall(url, 'DELETE');
                     
                     subtask.total_time_logged = (parseFloat(subtask.total_time_logged) || 0) - parseFloat(log.time);
                     
@@ -1218,7 +1310,8 @@
 
         async function deleteSubtask(subtaskId) {
             try {
-                const result = await apiCall(`/dashboard/subtasks/${subtaskId}`, 'DELETE');
+                const url = '{{ route('subtask.destroy', ['subtask' => ':id']) }}'.replace(':id', subtaskId);
+                const result = await apiCall(url, 'DELETE');
                 const task = findMainTask(currentMainTaskId);
                 task.subtasks = task.subtasks.filter(s => s.id != subtaskId);
                 renderSubtasks(task.subtasks);
@@ -1254,7 +1347,7 @@
             
             try {
                 if (!currentCommentId) {
-                    const result = await apiCall('/dashboard/comments', 'POST', {
+                    const result = await apiCall('{{ route('dashboard.comments.store') }}', 'POST', {
                         sub_task_id: currentSubtaskId,
                         comment
                     });
@@ -1264,7 +1357,8 @@
                     renderComments(subtask.comments);
                     showSuccessNotification(result.message);
                 } else {
-                    const result = await apiCall(`/dashboard/comments/${currentCommentId}`, 'PUT', { comment });
+                    const url = '{{ route('dashboard.comments.update', ['comment' => ':id']) }}'.replace(':id', currentCommentId);
+                    const result = await apiCall(url, 'PUT', { comment });
                     const subtask = findSubtask(currentSubtaskId);
                     const idx = subtask.comments.findIndex(c => c.id == currentCommentId);
                     if (idx !== -1) subtask.comments[idx] = result.comment;
@@ -1295,7 +1389,7 @@
             const email = document.getElementById('profile-email').value;
 
             try {
-                const result = await apiCall('/profile', 'PATCH', { name, email });
+                const result = await apiCall('{{ route('profile.update') }}', 'PATCH', { name, email });
                 
                 document.getElementById('user-display-name').textContent = name;
                 document.getElementById('user-email-display').textContent = email;
@@ -1317,7 +1411,7 @@
             const password_confirmation = document.getElementById('new-password-confirmation').value;
 
             try {
-                const result = await apiCall('/password', 'PUT', { 
+                const result = await apiCall('{{ route('password.update') }}', 'PUT', { 
                     current_password, 
                     password, 
                     password_confirmation 
@@ -1330,7 +1424,8 @@
         
         async function deleteComment(commentId) {
             try {
-                const result = await apiCall(`/dashboard/comments/${commentId}`, 'DELETE');
+                const url = '{{ route('dashboard.comments.destroy', ['comment' => ':id']) }}'.replace(':id', commentId);
+                const result = await apiCall(url, 'DELETE');
                 const subtask = findSubtask(currentSubtaskId);
                 subtask.comments = subtask.comments.filter(c => c.id != commentId);
                 renderComments(subtask.comments);
