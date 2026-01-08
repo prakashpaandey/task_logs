@@ -41,10 +41,15 @@
                     <!-- Clients list -->
                     <div id="clients-list-container" class="space-y-3">
                         @foreach($clients as $client)
-                        <div class="client-item p-4 {{ (isset($selectedClient) && $selectedClient->id == $client->id) ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' }} border rounded-lg cursor-pointer transition-all hover:shadow-md flex items-center justify-between md:justify-start overflow-hidden" data-client-id="{{ $client->id }}" title="{{ $client->name }}">
-                            <div class="flex items-center space-x-3 shrink-0">
-                                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                <h3 class="font-semibold text-gray-800 dark:text-white sidebar-hide-content truncate max-w-[120px] lg:max-w-[160px]">{{ $client->name }}</h3>
+                        @php
+                            $initials = collect(explode(' ', $client->name))->map(fn($word) => strtoupper(substr($word, 0, 1)))->take(2)->implode('');
+                        @endphp
+                        <div class="client-item p-3 {{ (isset($selectedClient) && $selectedClient->id == $client->id) ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' }} border rounded-xl cursor-pointer transition-all hover:shadow-md flex items-center space-x-3 overflow-hidden" data-client-id="{{ $client->id }}" title="{{ $client->name }}">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm shadow-emerald-500/20">
+                                {{ $initials }}
+                            </div>
+                            <div class="sidebar-hide-content truncate">
+                                <h3 class="font-bold text-gray-800 dark:text-white text-sm truncate">{{ $client->name }}</h3>
                             </div>
                         </div>
                         @endforeach

@@ -136,6 +136,12 @@
     #sidebar.sidebar-collapsed .client-item {
         padding: 0.75rem !important;
         justify-content: center !important;
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+    }
+
+    #sidebar.sidebar-collapsed .client-item div:first-child {
+        margin-right: 0 !important;
     }
 
     #sidebar {
