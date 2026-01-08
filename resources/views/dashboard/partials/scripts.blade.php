@@ -9,6 +9,8 @@
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const closeSidebarBtn = document.getElementById('close-sidebar');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        const toggleIcon = document.getElementById('toggle-icon');
         const clientItems = document.querySelectorAll('.client-item');
         const clientSearch = document.getElementById('client-search');
         const addClientBtn = document.getElementById('add-client-btn');
@@ -102,6 +104,7 @@
         let editingTimeLogId = null;
         let deleteCallback = null;
         let currentDeleteType = null;
+        let sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         
         // Helper for API calls
         async function apiCall(url, method = 'GET', data = null) {
@@ -150,6 +153,9 @@
             
             // Set up event listeners
             setupEventListeners();
+
+            // Initialize sidebar state
+            updateSidebarState();
             
             // Show initial state
             if (window.App.selectedClient) {
@@ -162,6 +168,23 @@
                 document.getElementById('client-join-date').textContent = joinDate;
             } else {
                 showClientSelectionPrompt();
+            }
+        }
+
+        // Sidebar Collapse Logic
+        function updateSidebarState() {
+            if (!sidebar || !toggleIcon || !toggleSidebarBtn) return;
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.add('sidebar-collapsed');
+                toggleIcon.classList.remove('fa-angles-left');
+                toggleIcon.classList.add('fa-angles-right');
+                toggleSidebarBtn.title = "Expand Sidebar";
+            } else {
+                sidebar.classList.remove('sidebar-collapsed');
+                toggleIcon.classList.remove('fa-angles-right');
+                toggleIcon.classList.add('fa-angles-left');
+                toggleSidebarBtn.title = "Collapse Sidebar";
             }
         }
         
@@ -182,6 +205,14 @@
             }
             if (closeSidebarBtn) {
                 closeSidebarBtn.addEventListener('click', closeMobileMenu);
+            }
+            
+            if (toggleSidebarBtn) {
+                toggleSidebarBtn.addEventListener('click', () => {
+                    sidebarCollapsed = !sidebarCollapsed;
+                    localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
+                    updateSidebarState();
+                });
             }
 
             document.addEventListener('click', (e) => {

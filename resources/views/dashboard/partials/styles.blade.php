@@ -124,4 +124,27 @@
         .status-inactive {
             background-color: #9ca3af;
         }
-    </style>
+        /* Sidebar Collapse Styles */
+    #sidebar.sidebar-collapsed {
+        width: 80px !important;
+    }
+
+    #sidebar.sidebar-collapsed .sidebar-hide-content {
+        display: none !important;
+    }
+
+    #sidebar.sidebar-collapsed .client-item {
+        padding: 0.75rem !important;
+        justify-content: center !important;
+    }
+
+    #sidebar {
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    @media (min-width: 768px) {
+        #sidebar.sidebar-collapsed + #main-content {
+            width: calc(100% - 80px);
+        }
+    }
+</style>

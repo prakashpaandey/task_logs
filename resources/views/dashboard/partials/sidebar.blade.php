@@ -12,17 +12,24 @@
                     </div>
 
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Clients</h2>
-                        <button id="add-client-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 hover:w-36 rounded-lg transition-all duration-300 overflow-hidden shadow-md" title="Add New Client">
-                            <div class="flex items-center justify-center min-w-[2.5rem] h-10">
-                                <i class="fas fa-plus"></i>
-                            </div>
-                            <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Client</span>
-                        </button>
+                        <div class="flex items-center space-x-2 sidebar-hide-content">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Clients</h2>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button id="add-client-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 hover:w-36 rounded-lg transition-all duration-300 overflow-hidden shadow-md sidebar-hide-content" title="Add New Client">
+                                <div class="flex items-center justify-center min-w-[2.5rem] h-10">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Client</span>
+                            </button>
+                            <button id="toggle-sidebar" class="hidden md:flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 dark:text-gray-500 rounded-lg transition-all duration-300" title="Collapse Sidebar">
+                                <i class="fas fa-angles-left text-xs transition-colors duration-300" id="toggle-icon"></i>
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Search clients -->
-                    <div class="mb-6">
+                    <div class="mb-6 sidebar-hide-content">
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-search text-gray-400"></i>
@@ -34,15 +41,12 @@
                     <!-- Clients list -->
                     <div id="clients-list-container" class="space-y-3">
                         @foreach($clients as $client)
-                        <div class="client-item p-4 {{ (isset($selectedClient) && $selectedClient->id == $client->id) ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' }} border rounded-lg cursor-pointer transition-all hover:shadow-md" data-client-id="{{ $client->id }}">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                    <h3 class="font-semibold text-gray-800 dark:text-white">{{ $client->name }}</h3>
-                                </div>
-                                <span class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Active</span>
+                        <div class="client-item p-4 {{ (isset($selectedClient) && $selectedClient->id == $client->id) ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' }} border rounded-lg cursor-pointer transition-all hover:shadow-md flex items-center justify-between md:justify-start overflow-hidden" data-client-id="{{ $client->id }}" title="{{ $client->name }}">
+                            <div class="flex items-center space-x-3 shrink-0">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                <h3 class="font-semibold text-gray-800 dark:text-white sidebar-hide-content truncate max-w-[120px] lg:max-w-[160px]">{{ $client->name }}</h3>
                             </div>
-
+                            <span class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded sidebar-hide-content shrink-0 ml-auto">Active</span>
                         </div>
                         @endforeach
                     </div>

@@ -1,4 +1,4 @@
-            <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+            <main id="main-content" class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 transition-all duration-300">
                 <div id="client-selection-prompt" class="h-full flex flex-col items-center justify-center p-4 sm:p-8">
                     <div class="max-w-md text-center">
                         <div class="bg-gradient-to-r from-blue-500 to-blue-600 w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-6">
