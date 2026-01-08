@@ -13,6 +13,7 @@ class MainTaskController extends Controller
             'client_id' => 'required|exists:clients,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
         $mainTask = MainTask::create($request->all() + ['user_id' => auth()->id()]);
         
@@ -28,8 +29,9 @@ class MainTaskController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
-        $main_task->update($request->only('title', 'description'));
+        $main_task->update($request->only('title', 'description', 'category_id'));
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Main Task updated successfully.', 'mainTask' => $main_task->load('user')]);

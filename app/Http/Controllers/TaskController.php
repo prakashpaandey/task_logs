@@ -11,14 +11,16 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        $clients = Client::with(['user', 'mainTasks.user', 'mainTasks.subtasks.user', 'mainTasks.subtasks.comments.user', 'mainTasks.subtasks.timeLogs.user'])
+        $clients = Client::with(['user', 'mainTasks.user', 'mainTasks.category', 'mainTasks.subtasks.user', 'mainTasks.subtasks.comments.user', 'mainTasks.subtasks.timeLogs.user'])
             ->get();
             
+        $categories = \App\Models\Category::all();
+
         $selectedClient = null;
         if ($request->has('client_id')) {
             $selectedClient = $clients->firstWhere('id', $request->client_id);
         }
         
-        return view('dashboard.index', compact('clients', 'selectedClient'));
+        return view('dashboard.index', compact('clients', 'categories', 'selectedClient'));
     }
 }

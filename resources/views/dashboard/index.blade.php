@@ -43,6 +43,7 @@
                 clients: @json($clients),
                 selectedClient: @json($selectedClient),
                 user: @json(auth()->user()),
+                categories: @json($categories),
                 csrfToken: '{{ csrf_token() }}'
             };
         </script>

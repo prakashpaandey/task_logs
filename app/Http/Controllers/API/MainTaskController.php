@@ -20,6 +20,7 @@ class MainTaskController extends Controller
             'client_id' => 'required|exists:clients,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -30,6 +31,7 @@ class MainTaskController extends Controller
             'client_id' => $request->client_id,
             'title' => $request->title,
             'description' => $request->description,
+            'category_id' => $request->category_id,
             'user_id' => auth()->id() ?? $request->user_id,
         ]);
 
@@ -50,7 +52,7 @@ class MainTaskController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $mainTask->update($request->only('title', 'description'));
+        $mainTask->update($request->only('title', 'description', 'category_id'));
         return response()->json($mainTask);
     }
 

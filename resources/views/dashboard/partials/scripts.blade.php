@@ -340,7 +340,7 @@
                         e.stopPropagation();
                         const taskId = item.getAttribute('data-task-id');
                         const task = findMainTask(taskId);
-                        if (task) openMainTaskForm('edit', task.id, task.title, task.description);
+                        if (task) openMainTaskForm('edit', task.id, task.title, task.description, task.category_id);
                     } else if (e.target.closest('.delete-main-task-btn')) {
                         e.stopPropagation();
                         const taskId = item.getAttribute('data-task-id');
@@ -633,7 +633,10 @@
                                 <i class="fas fa-project-diagram"></i>
                             </div>
                             <div>
-                                <h5 class="font-medium text-gray-800 dark:text-white">${task.title}</h5>
+                                <h5 class="font-medium text-gray-800 dark:text-white flex items-center gap-2">
+                                    ${task.title}
+                                    ${task.category ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">${task.category.name}</span>` : ''}
+                                </h5>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">${task.description || 'No description'}</p>
                                 <div class="mt-1.5 flex items-center text-xs text-blue-600 dark:text-blue-400">
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
@@ -779,17 +782,28 @@
             }).join('');
         }
         
-        // Main task functionality
-        function openMainTaskForm(mode, taskId = null, title = '', description = '') {
+        function openMainTaskForm(mode, taskId = null, title = '', description = '', categoryId = null) {
+            const categorySelect = document.getElementById('main-task-category');
+            
+            // Populate categories if not already populated
+            if (categorySelect && categorySelect.options.length <= 1) {
+                if (window.App.categories) {
+                    categorySelect.innerHTML = '<option value="">Select Category</option>' + 
+                        window.App.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                }
+            }
+
             if (mode === 'add') {
                 mainTaskTitle.value = '';
                 mainTaskDescription.value = '';
+                if (categorySelect) categorySelect.value = '';
                 saveMainTaskBtn.classList.remove('hidden');
                 updateMainTaskBtn.classList.add('hidden');
                 document.getElementById('main-task-id-display').textContent = 'New Task';
             } else if (mode === 'edit') {
                 mainTaskTitle.value = title;
                 mainTaskDescription.value = description;
+                if (categorySelect) categorySelect.value = categoryId || '';
                 saveMainTaskBtn.classList.add('hidden');
                 updateMainTaskBtn.classList.remove('hidden');
                 document.getElementById('main-task-id-display').textContent = `Task ID: ${taskId}`;
@@ -816,10 +830,14 @@
             if (!title.trim()) return showErrorNotification('Please enter a task title');
             
             try {
+                const categorySelect = document.getElementById('main-task-category');
+                const category_id = categorySelect ? categorySelect.value : null;
+
                 const result = await apiCall('{{ route('main-task.store') }}', 'POST', {
                     client_id: currentClientId,
                     title,
-                    description
+                    description,
+                    category_id
                 });
                 const client = findClient(currentClientId);
                 if (client) {
@@ -839,10 +857,14 @@
             if (!title.trim()) return showErrorNotification('Please enter a task title');
             
             try {
+                const categorySelect = document.getElementById('main-task-category');
+                const category_id = categorySelect ? categorySelect.value : null;
+
                 const url = '{{ route('main-task.update', ['main_task' => ':id']) }}'.replace(':id', currentMainTaskId);
                 const result = await apiCall(url, 'PUT', {
                     title,
-                    description
+                    description,
+                    category_id
                 });
                 const client = findClient(currentClientId);
                 const taskIndex = client.main_tasks.findIndex(t => t.id == currentMainTaskId);

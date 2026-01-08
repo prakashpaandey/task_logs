@@ -134,14 +134,23 @@
                             
                             <!-- Main Task Form -->
                             <div id="main-task-form" class="fade-in hidden">
-                                <div class="mb-6">
-                                    <label for="main-task-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
-                                    <input type="text" id="main-task-title" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter main task title">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label for="main-task-title" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Task Title</label>
+                                        <input type="text" id="main-task-title" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter title">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="main-task-category" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Category</label>
+                                        <select id="main-task-category" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                            <option value="">Select Category</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                
-                                <div class="mb-6">
-                                    <label for="main-task-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                                    <textarea id="main-task-description" rows="4" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe the main task"></textarea>
+
+                                <div class="mb-4">
+                                    <label for="main-task-description" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
+                                    <textarea id="main-task-description" rows="3" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Describe the main task"></textarea>
                                 </div>
                                 
                                 <div class="mb-6">
@@ -209,21 +218,21 @@
                             
                             <!-- Subtask Form -->
                             <div id="subtask-form" class="fade-in hidden">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
-                                        <label for="subtask-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subtask Title</label>
-                                        <input type="text" id="subtask-title" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter subtask title">
+                                        <label for="subtask-title" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Subtask Title</label>
+                                        <input type="text" id="subtask-title" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter title">
                                     </div>
                                     
                                     <div>
-                                        <label for="subtask-work-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Work Date</label>
-                                        <input type="date" id="subtask-work-date" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <label for="subtask-work-date" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Work Date</label>
+                                        <input type="date" id="subtask-work-date" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                                     </div>
                                 </div>
                                 
-                                <div class="mb-6">
-                                    <label for="subtask-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                                    <textarea id="subtask-description" rows="3" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe the subtask"></textarea>
+                                <div class="mb-4">
+                                    <label for="subtask-description" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
+                                    <textarea id="subtask-description" rows="3" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Describe the subtask"></textarea>
                                 </div>
                                 
                                 <div class="flex space-x-3">
