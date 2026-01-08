@@ -133,15 +133,51 @@
         width: 80px !important;
     }
 
+    /* Override padding for the main container when collapsed */
+    #sidebar.sidebar-collapsed > div {
+        padding: 1rem !important;
+    }
+
     #sidebar.sidebar-collapsed .sidebar-hide-content {
         display: none !important;
+    }
+
+    /* Header styling when collapsed (Center and Stack) */
+    #sidebar.sidebar-collapsed .flex.items-center.justify-between.mb-6:nth-child(2) {
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    #sidebar.sidebar-collapsed .flex.items-center.justify-between.mb-6:nth-child(2) > div:last-child {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    #sidebar.sidebar-collapsed .sidebar-text {
+        display: none !important;
+    }
+
+    #sidebar.sidebar-collapsed #add-client-btn {
+        width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+    }
+    
+    #sidebar.sidebar-collapsed #add-client-btn:hover {
+        width: 40px !important; /* Disable expansion on hover when collapsed */
     }
 
     #sidebar.sidebar-collapsed .client-item {
         padding: 0.75rem !important;
         justify-content: center !important;
-        margin-left: 0.5rem;
-        margin-right: 0.5rem;
+        margin-left: 0;
+        margin-right: 0;
     }
 
     #sidebar.sidebar-collapsed .client-item div:first-child {

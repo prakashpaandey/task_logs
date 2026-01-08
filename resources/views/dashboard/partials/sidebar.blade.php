@@ -16,11 +16,11 @@
                             <h2 class="text-xl font-bold text-gray-800 dark:text-white">Clients</h2>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button id="add-client-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 hover:w-36 rounded-lg transition-all duration-300 overflow-hidden shadow-md sidebar-hide-content" title="Add New Client">
+                            <button id="add-client-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 hover:w-36 rounded-lg transition-all duration-300 overflow-hidden shadow-md" title="Add New Client">
                                 <div class="flex items-center justify-center min-w-[2.5rem] h-10">
                                     <i class="fas fa-plus"></i>
                                 </div>
-                                <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm">Add Client</span>
+                                <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pr-3 font-medium text-sm sidebar-text">Add Client</span>
                             </button>
                             <button id="toggle-sidebar" class="hidden md:flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 dark:text-gray-500 rounded-lg transition-all duration-300" title="Collapse Sidebar">
                                 <i class="fas fa-angles-left text-xs transition-colors duration-300" id="toggle-icon"></i>
