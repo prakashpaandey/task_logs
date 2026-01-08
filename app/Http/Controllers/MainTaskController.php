@@ -52,9 +52,8 @@ class MainTaskController extends Controller
 
     protected function authorizeUser($model)
     {
-        // All users are admins and can manage all data
-        // if ($model->user_id !== auth()->id()) {
-        //     abort(403);
-        // }
+        if ($model->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
     }
 }

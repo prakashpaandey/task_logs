@@ -1,7 +1,7 @@
     <!-- Modal for Add/Edit Client -->
     <div id="client-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4">
-            <div class="p-6">
+            <div class="p-4 md:p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h3 id="client-modal-title" class="text-xl font-bold text-gray-800 dark:text-white">Add New Client</h3>
                     <button id="close-client-modal" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
@@ -16,16 +16,16 @@
                     </div>
                     
                     
-                    <div class="flex flex-row space-x-3 w-full">
-                        <button type="button" id="cancel-client-btn" class="flex-1 px-5 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors flex items-center justify-center">
+                    <div class="flex flex-row gap-3 w-full">
+                        <button type="button" id="cancel-client-btn" class="flex-1 px-3 py-2.5 md:px-5 md:py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
                             <i class="fas fa-times mr-2"></i>
                             Cancel
                         </button>
-                        <button type="submit" id="save-client-btn" class="flex-1 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center">
+                        <button type="submit" id="save-client-btn" class="flex-1 px-3 py-2.5 md:px-5 md:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
                             <i class="fas fa-save mr-2"></i>
                             Save Client
                         </button>
-                        <button type="submit" id="update-client-btn" class="flex-1 px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors hidden items-center justify-center">
+                        <button type="submit" id="update-client-btn" class="flex-1 px-3 py-2.5 md:px-5 md:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors hidden items-center justify-center text-sm md:text-base">
                             <i class="fas fa-sync-alt mr-2"></i>
                             Update Client
                         </button>
@@ -38,7 +38,7 @@
     <!-- Confirmation Modal -->
     <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4">
-            <div class="p-6">
+            <div class="p-4 md:p-6">
                 <div class="flex items-center justify-center mb-6">
                     <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                         <i class="fas fa-exclamation-triangle text-3xl text-red-600 dark:text-red-400"></i>
@@ -50,12 +50,12 @@
                     Are you sure you want to delete this item? This action cannot be undone.
                 </p>
                 
-                <div class="flex justify-center space-x-3 w-full">
-                    <button id="cancel-confirmation-btn" class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors flex items-center justify-center">
+                <div class="flex justify-center gap-3 w-full">
+                    <button id="cancel-confirmation-btn" class="flex-1 px-3 py-2.5 md:px-6 md:py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
                         <i class="fas fa-times mr-2"></i>
                         Cancel
                     </button>
-                    <button id="confirm-delete-btn" class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center">
+                    <button id="confirm-delete-btn" class="flex-1 px-3 py-2.5 md:px-6 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
                         <i class="fas fa-trash-alt mr-2"></i>
                         Delete
                     </button>

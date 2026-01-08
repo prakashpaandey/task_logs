@@ -627,30 +627,32 @@
             
             list.innerHTML = tasks.map(task => `
                 <div class="main-task-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" data-task-id="${task.id}">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
                                 <i class="fas fa-project-diagram"></i>
                             </div>
                             <div>
-                                <h5 class="font-medium text-gray-800 dark:text-white flex items-center gap-2">
-                                    ${task.title}
-                                    ${task.category ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">${task.category.name}</span>` : ''}
+                                <h5 class="font-medium text-gray-800 dark:text-white flex flex-wrap items-center gap-2 mb-0.5">
+                                    <span class="break-words">${task.title}</span>
+                                    ${task.category ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">${task.category.name}</span>` : ''}
                                 </h5>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">${task.description || 'No description'}</p>
                                 <div class="mt-1.5 flex items-center text-xs text-blue-600 dark:text-blue-400">
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
-                                    <span>Created by: ${task.user ? task.user.name : 'Unknown'}</span>
+                                    <span>Created by: ${task.user_id == window.App.user.id ? 'You' : (task.user ? task.user.name : 'Unknown')}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2 shrink-0 ml-4">
-                            <button class="edit-main-task-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="delete-main-task-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                        <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0 ml-2">
+                            ${task.user_id == window.App.user.id ? `
+                                <button class="edit-main-task-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="delete-main-task-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -783,27 +785,34 @@
         }
         
         function openMainTaskForm(mode, taskId = null, title = '', description = '', categoryId = null) {
-            const categorySelect = document.getElementById('main-task-category');
-            
-            // Populate categories if not already populated
-            if (categorySelect && categorySelect.options.length <= 1) {
-                if (window.App.categories) {
-                    categorySelect.innerHTML = '<option value="">Select Category</option>' + 
-                        window.App.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-                }
-            }
+            // Setup Custom Dropdown Logic
+            setupCategoryDropdown();
 
             if (mode === 'add') {
                 mainTaskTitle.value = '';
                 mainTaskDescription.value = '';
-                if (categorySelect) categorySelect.value = '';
+                if (document.getElementById('main-task-category')) document.getElementById('main-task-category').value = '';
+                if (document.getElementById('category-dropdown-text')) document.getElementById('category-dropdown-text').textContent = 'Select Category';
+                if (document.getElementById('category-dropdown-text')) document.getElementById('category-dropdown-text').classList.add('text-gray-500', 'dark:text-gray-400');
+                if (document.getElementById('category-dropdown-text')) document.getElementById('category-dropdown-text').classList.remove('text-gray-800', 'dark:text-white');
                 saveMainTaskBtn.classList.remove('hidden');
                 updateMainTaskBtn.classList.add('hidden');
                 document.getElementById('main-task-id-display').textContent = 'New Task';
             } else if (mode === 'edit') {
                 mainTaskTitle.value = title;
                 mainTaskDescription.value = description;
-                if (categorySelect) categorySelect.value = categoryId || '';
+                if (document.getElementById('main-task-category')) {
+                    document.getElementById('main-task-category').value = categoryId || '';
+                    if (categoryId && window.App.categories) {
+                        const cat = window.App.categories.find(c => c.id == categoryId);
+                        if (cat) {
+                            const textEl = document.getElementById('category-dropdown-text');
+                            textEl.textContent = cat.name;
+                            textEl.classList.remove('text-gray-500', 'dark:text-gray-400');
+                            textEl.classList.add('text-gray-800', 'dark:text-white');
+                        }
+                    }
+                }
                 saveMainTaskBtn.classList.add('hidden');
                 updateMainTaskBtn.classList.remove('hidden');
                 document.getElementById('main-task-id-display').textContent = `Task ID: ${taskId}`;
@@ -927,26 +936,28 @@
             
             container.innerHTML = subtasks.map(s => `
                 <div class="subtask-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" data-subtask-id="${s.id}">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
                                 <i class="fas fa-pencil-alt"></i>
                             </div>
                             <div>
                                 <h5 class="font-medium text-gray-800 dark:text-white">${s.title}</h5>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <i class="fas fa-clock mr-1"></i><span>${s.total_time_logged || 0} hours total</span>
-                                    <i class="fas fa-calendar-alt mx-2"></i><span>${s.work_date}</span>
+                                <div class="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400 gap-x-3 gap-y-1 mt-0.5">
+                                    <div class="flex items-center"><i class="fas fa-clock mr-1.5"></i><span>${s.total_time_logged || 0}h total</span></div>
+                                    <div class="flex items-center"><i class="fas fa-calendar-alt mr-1.5"></i><span>${s.work_date}</span></div>
                                 </div>
                                 <div class="mt-1.5 flex items-center text-xs text-blue-600 dark:text-blue-400">
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
-                                    <span>Created by: ${s.user ? s.user.name : 'Unknown'}</span>
+                                    <span>Created by: ${s.user_id == window.App.user.id ? 'You' : (s.user ? s.user.name : 'Unknown')}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2 shrink-0 ml-4">
-                            <button class="edit-subtask-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1"><i class="fas fa-edit"></i></button>
-                            <button class="delete-subtask-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"><i class="fas fa-trash-alt"></i></button>
+                        <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0 ml-2">
+                            ${s.user_id == window.App.user.id ? `
+                                <button class="edit-subtask-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1"><i class="fas fa-edit"></i></button>
+                                <button class="delete-subtask-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"><i class="fas fa-trash-alt"></i></button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -1202,15 +1213,17 @@
                 <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded border border-gray-100 dark:border-gray-600">
                     <div class="flex items-center space-x-3">
                         <span class="font-bold text-blue-600 dark:text-blue-400">${log.time}h</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(log.created_at).toLocaleDateString()} by ${log.user ? log.user.name : 'User'}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(log.created_at).toLocaleDateString()} by ${log.user_id == window.App.user.id ? 'You' : (log.user ? log.user.name : 'User')}</span>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="openTimeLogForm('edit', ${log.id}, ${log.time})" class="text-blue-500 hover:text-blue-700 p-1">
-                            <i class="fas fa-edit text-xs"></i>
-                        </button>
-                        <button onclick="deleteTimeLog(${log.id})" class="text-red-500 hover:text-red-700 p-1">
-                            <i class="fas fa-trash-alt text-xs"></i>
-                        </button>
+                        ${log.user_id == window.App.user.id ? `
+                            <button onclick="openTimeLogForm('edit', ${log.id}, ${log.time})" class="text-blue-500 hover:text-blue-700 p-1">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <button onclick="deleteTimeLog(${log.id})" class="text-red-500 hover:text-red-700 p-1">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
@@ -1319,13 +1332,15 @@
                                 <i class="fas fa-user text-purple-600 dark:text-purple-400"></i>
                             </div>
                             <div>
-                                <p class="font-medium text-gray-800 dark:text-white">${c.user ? c.user.name : 'Unknown User'}</p>
+                                <p class="font-medium text-gray-800 dark:text-white">${c.user_id == window.App.user.id ? 'You' : (c.user ? c.user.name : 'Unknown User')}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">${new Date(c.created_at).toLocaleString()}</p>
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            <button class="edit-comment-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"><i class="fas fa-edit"></i></button>
-                            <button class="delete-comment-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><i class="fas fa-trash-alt"></i></button>
+                            ${c.user_id == window.App.user.id ? `
+                                <button class="edit-comment-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"><i class="fas fa-edit"></i></button>
+                                <button class="delete-comment-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><i class="fas fa-trash-alt"></i></button>
+                            ` : ''}
                         </div>
                     </div>
                     <p class="mt-3 text-gray-700 dark:text-gray-300">${c.comment}</p>
@@ -1534,4 +1549,79 @@
         confirmDeleteBtn.addEventListener('click', () => {
             if (deleteCallback) deleteCallback();
         });
+
+        function setupCategoryDropdown() {
+            const btn = document.getElementById('category-dropdown-btn');
+            const menu = document.getElementById('category-dropdown-menu');
+            const search = document.getElementById('category-search');
+            const list = document.getElementById('category-options-list');
+            const input = document.getElementById('main-task-category');
+            const text = document.getElementById('category-dropdown-text');
+            
+            if (!btn || !menu || !list) return;
+
+            // Populate logic
+            if (list.children.length === 0 && window.App.categories) {
+                renderCategoryOptions(window.App.categories);
+            }
+
+            // Remove old listeners to prevent duplicates (simple approach: clone or check property)
+            // Ideally we just set this up once, but openMainTaskForm is called multiple times.
+            // Let's stick to a robust simple toggle.
+            
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+                if (!menu.classList.contains('hidden')) {
+                    search.focus();
+                }
+            };
+            
+            search.oninput = (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = window.App.categories.filter(c => c.name.toLowerCase().includes(term));
+                renderCategoryOptions(filtered);
+            };
+
+            // Close when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+        }
+
+        function renderCategoryOptions(categories) {
+            const list = document.getElementById('category-options-list');
+            const menu = document.getElementById('category-dropdown-menu');
+            const input = document.getElementById('main-task-category');
+            const text = document.getElementById('category-dropdown-text');
+
+            if (!list) return;
+            
+            if (categories.length === 0) {
+                list.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">No categories found</div>';
+                return;
+            }
+
+            list.innerHTML = categories.map(c => `
+                <div class="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm text-gray-700 dark:text-gray-200" onclick="selectCategory('${c.id}', '${c.name.replace(/'/g, "\\'")}')">
+                    ${c.name}
+                </div>
+            `).join('');
+        }
+
+        function selectCategory(id, name) {
+            const input = document.getElementById('main-task-category');
+            const text = document.getElementById('category-dropdown-text');
+            const menu = document.getElementById('category-dropdown-menu');
+            
+            if (input) input.value = id;
+            if (text) {
+                text.textContent = name;
+                text.classList.remove('text-gray-500', 'dark:text-gray-400');
+                text.classList.add('text-gray-800', 'dark:text-white');
+            }
+            if (menu) menu.classList.add('hidden');
+        }
     </script>

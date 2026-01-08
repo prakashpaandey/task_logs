@@ -46,6 +46,11 @@ class TimeLogController extends Controller
         ]);
 
         $timeLog = \App\Models\TimeLog::findOrFail($id);
+        
+        if ($timeLog->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $timeLog->update([
             'time' => $validated['time'],
         ]);
@@ -65,6 +70,11 @@ class TimeLogController extends Controller
     public function destroy(string $id)
     {
         $timeLog = \App\Models\TimeLog::findOrFail($id);
+        
+        if ($timeLog->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+        
         $subtask = $timeLog->subtask;
         $timeLog->delete();
 

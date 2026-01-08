@@ -1,76 +1,76 @@
             <main id="main-content" class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 transition-all duration-300">
                 <!-- Statistics Dashboard -->
                 <div id="statistics-dashboard" class="h-full flex flex-col p-4 md:p-8 animate-fadeIn">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-8 gap-4">
                         <div>
-                            <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+                            <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white flex items-center">
                                 <i class="fas fa-chart-line mr-3 text-blue-600"></i>
-                                Personal Productivity Overview
+                                Personal Productivity
                             </h2>
-                            <p class="text-gray-500 dark:text-gray-400 mt-1">Activity summary for {{ auth()->user()->name }}</p>
+                            <p class="text-xs md:text-base text-gray-500 dark:text-gray-400 mt-1">Activity summary for {{ auth()->user()->name }}</p>
                         </div>
-                        <button onclick="document.getElementById('add-client-btn').click()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center whitespace-nowrap">
+                        <button onclick="document.getElementById('add-client-btn').click()" class="self-start md:self-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center whitespace-nowrap text-sm md:text-base">
                             <i class="fas fa-user-plus mr-2"></i> New Client
                         </button>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
                         <!-- Time Logs Section -->
-                        <div class="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-gray-800 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/50 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Today</span>
-                                <i class="fas fa-clock text-blue-500"></i>
+                        <div class="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-blue-100 dark:border-blue-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-2 md:mb-4">
+                                <span class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">Today</span>
+                                <i class="fas fa-clock text-blue-500 text-sm md:text-base"></i>
                             </div>
-                            <h3 id="stat-time-today" class="text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Logged today</p>
+                            <h3 id="stat-time-today" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Logged today</p>
                         </div>
 
-                        <div class="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-gray-800 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">This Week</span>
-                                <i class="fas fa-calendar-week text-indigo-500"></i>
+                        <div class="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-2 md:mb-4">
+                                <span class="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">This Week</span>
+                                <i class="fas fa-calendar-week text-indigo-500 text-sm md:text-base"></i>
                             </div>
-                            <h3 id="stat-time-week" class="text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Weekly total</p>
+                            <h3 id="stat-time-week" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Weekly total</p>
                         </div>
 
-                        <div class="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-800 p-6 rounded-2xl border border-purple-100 dark:border-purple-800/50 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">This Month</span>
-                                <i class="fas fa-calendar-alt text-purple-500"></i>
+                        <div class="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-purple-100 dark:border-purple-800/50 shadow-sm col-span-2 md:col-span-1">
+                            <div class="flex items-center justify-between mb-2 md:mb-4">
+                                <span class="bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">This Month</span>
+                                <i class="fas fa-calendar-alt text-purple-500 text-sm md:text-base"></i>
                             </div>
-                            <h3 id="stat-time-month" class="text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Monthly total</p>
+                            <h3 id="stat-time-month" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Monthly total</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
                         <!-- Comments Section -->
-                        <div class="bg-gradient-to-br from-green-50 to-white dark:from-green-900/10 dark:to-gray-800 p-6 rounded-2xl border border-green-100 dark:border-green-800/50 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Today</span>
-                                <i class="fas fa-comment-dots text-green-500"></i>
+                        <div class="bg-gradient-to-br from-green-50 to-white dark:from-green-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-green-100 dark:border-green-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-2 md:mb-4">
+                                <span class="bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">Today</span>
+                                <i class="fas fa-comment-dots text-green-500 text-sm md:text-base"></i>
                             </div>
-                            <h3 id="stat-comments-today" class="text-3xl font-bold text-gray-800 dark:text-white">0</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Comments posted</p>
+                            <h3 id="stat-comments-today" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Comments posted</p>
                         </div>
 
-                        <div class="bg-gradient-to-br from-teal-50 to-white dark:from-teal-900/10 dark:to-gray-800 p-6 rounded-2xl border border-teal-100 dark:border-teal-800/50 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">This Week</span>
-                                <i class="fas fa-comments text-teal-500"></i>
+                        <div class="bg-gradient-to-br from-teal-50 to-white dark:from-teal-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-teal-100 dark:border-teal-800/50 shadow-sm">
+                            <div class="flex items-center justify-between mb-2 md:mb-4">
+                                <span class="bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">This Week</span>
+                                <i class="fas fa-comments text-teal-500 text-sm md:text-base"></i>
                             </div>
-                            <h3 id="stat-comments-week" class="text-3xl font-bold text-gray-800 dark:text-white">0</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Weekly discussion</p>
+                            <h3 id="stat-comments-week" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Weekly discussion</p>
                         </div>
 
-                        <div class="bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/10 dark:to-gray-800 p-6 rounded-2xl border border-cyan-100 dark:border-cyan-800/50 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">This Month</span>
-                                <i class="fas fa-comment-medical text-cyan-500"></i>
+                        <div class="bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-cyan-100 dark:border-cyan-800/50 shadow-sm col-span-2 md:col-span-1">
+                            <div class="flex items-center justify-between mb-2 md:mb-4">
+                                <span class="bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">This Month</span>
+                                <i class="fas fa-comment-medical text-cyan-500 text-sm md:text-base"></i>
                             </div>
-                            <h3 id="stat-comments-month" class="text-3xl font-bold text-gray-800 dark:text-white">0</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Monthly total</p>
+                            <h3 id="stat-comments-month" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Monthly total</p>
                         </div>
                     </div>
                     
@@ -142,9 +142,23 @@
                                     
                                     <div>
                                         <label for="main-task-category" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Category</label>
-                                        <select id="main-task-category" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                                            <option value="">Select Category</option>
-                                        </select>
+                                        <div class="relative">
+                                            <input type="hidden" id="main-task-category" name="category_id">
+                                            <button type="button" id="category-dropdown-btn" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between group h-[42px]">
+                                                <span id="category-dropdown-text" class="text-sm text-gray-500 dark:text-gray-400">Select Category</span>
+                                                <i class="fas fa-chevron-down text-gray-400 group-hover:text-blue-500 transition-colors text-xs"></i>
+                                            </button>
+                                            
+                                            <!-- Dropdown Menu -->
+                                            <div id="category-dropdown-menu" class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl hidden">
+                                                <div class="p-2 border-b border-gray-100 dark:border-gray-700">
+                                                    <input type="text" id="category-search" class="w-full px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Search categories...">
+                                                </div>
+                                                <div id="category-options-list" class="max-h-56 overflow-y-auto py-1 custom-scrollbar">
+                                                    <!-- Options will be populated here -->
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -159,17 +173,17 @@
                                     </div>
                                 </div>
                                 
-                                <div class="flex space-x-3">
-                                    <button id="save-main-task-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors">
-                                        <i class="fas fa-save mr-2"></i>
+                                <div class="flex gap-3">
+                                    <button id="save-main-task-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-medium transition-colors text-sm md:text-base">
+                                        <i class="fas fa-save mr-1.5 md:mr-2"></i>
                                         Save Task
                                     </button>
-                                    <button id="update-main-task-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors hidden">
-                                        <i class="fas fa-sync-alt mr-2"></i>
+                                    <button id="update-main-task-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-medium transition-colors hidden text-sm md:text-base">
+                                        <i class="fas fa-sync-alt mr-1.5 md:mr-2"></i>
                                         Update Task
                                     </button>
-                                    <button id="cancel-main-task-btn" class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-4 py-3 rounded-lg transition-colors flex items-center justify-center">
-                                        <i class="fas fa-times mr-2"></i>
+                                    <button id="cancel-main-task-btn" class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-3 py-2.5 md:px-4 md:py-3 rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
+                                        <i class="fas fa-times mr-1.5 md:mr-2"></i>
                                         Cancel
                                     </button>
                                 </div>
@@ -235,17 +249,17 @@
                                     <textarea id="subtask-description" rows="3" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Describe the subtask"></textarea>
                                 </div>
                                 
-                                <div class="flex space-x-3">
-                                    <button id="save-subtask-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors text-sm sm:text-base">
-                                        <i class="fas fa-save mr-1 sm:mr-2"></i>
+                                <div class="flex gap-3">
+                                    <button id="save-subtask-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-medium transition-colors text-sm md:text-base">
+                                        <i class="fas fa-save mr-1.5 md:mr-2"></i>
                                         Save
                                     </button>
-                                    <button id="update-subtask-btn" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium transition-colors hidden text-sm sm:text-base">
-                                        <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>
+                                    <button id="update-subtask-btn" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-medium transition-colors hidden text-sm md:text-base">
+                                        <i class="fas fa-sync-alt mr-1.5 md:mr-2"></i>
                                         Update
                                     </button>
-                                    <button id="cancel-subtask-btn" class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-4 py-3 rounded-lg transition-colors flex items-center justify-center text-sm sm:text-base">
-                                        <i class="fas fa-times mr-1 sm:mr-2"></i>
+                                    <button id="cancel-subtask-btn" class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 px-3 py-2.5 md:px-4 md:py-3 rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
+                                        <i class="fas fa-times mr-1.5 md:mr-2"></i>
                                         Cancel
                                     </button>
                                 </div>

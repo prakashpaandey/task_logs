@@ -11,6 +11,10 @@
             font-family: 'Inter', sans-serif;
         }
         
+        html.dark {
+            color-scheme: dark;
+        }
+        
         .dark {
             color-scheme: dark;
         }
