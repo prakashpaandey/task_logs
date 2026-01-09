@@ -5,6 +5,7 @@
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <div class="flex items-center space-x-3">
+                        <img src="{{ asset('favicon.png') }}" alt="Task Manager Logo" class="w-8 h-8 rounded-lg shadow-sm">
                         <h1 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">Task Manager</h1>
                     </div>
                 </div>
