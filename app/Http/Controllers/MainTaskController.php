@@ -18,7 +18,7 @@ class MainTaskController extends Controller
         $mainTask = MainTask::create($request->all() + ['user_id' => auth()->id()]);
         
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Main Task created successfully.', 'mainTask' => $mainTask->load('user')]);
+            return response()->json(['success' => true, 'message' => 'Main Task created successfully.', 'mainTask' => $mainTask->load(['user', 'category'])]);
         }
         return back()->with('success', 'Main Task created successfully.');
     }
@@ -34,7 +34,7 @@ class MainTaskController extends Controller
         $main_task->update($request->only('title', 'description', 'category_id'));
 
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Main Task updated successfully.', 'mainTask' => $main_task->load('user')]);
+            return response()->json(['success' => true, 'message' => 'Main Task updated successfully.', 'mainTask' => $main_task->load(['user', 'category'])]);
         }
         return back()->with('success', 'Main Task updated successfully.');
     }

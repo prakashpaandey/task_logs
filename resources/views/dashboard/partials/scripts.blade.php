@@ -451,7 +451,8 @@
                 mainTaskTitle.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        if (mainTaskDescription) mainTaskDescription.focus();
+                        const catBtn = document.getElementById('category-dropdown-btn');
+                        if (catBtn) catBtn.click();
                     }
                 });
             }
@@ -521,6 +522,25 @@
                     }
                 });
             }
+
+            // Client Modal Form - Global Enter Key Handler
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.target.id === 'client-name') {
+                    e.preventDefault();
+                    e.stopPropagation(); // Stop bubbling
+                    
+                    // Determine which button to click
+                    if (editingClientId) {
+                        const btn = document.getElementById('update-client-btn');
+                        if (btn && !btn.disabled) btn.click();
+                    } else {
+                        const btn = document.getElementById('save-client-btn');
+                        if (btn && !btn.disabled) btn.click();
+                    }
+                }
+            });
+            
+            // Client Modal Form (Legacy removal, can be kept empty or removed)
         }
         
         // Setup global keyboard shortcuts for quick actions
@@ -537,14 +557,26 @@
                         case 'n':
                             // N - New Client
                             e.preventDefault();
-                            if (addClientBtn) addClientBtn.click();
+                            if (clientModal && !clientModal.classList.contains('hidden')) {
+                                closeClientModalFunc();
+                            } else {
+                                if (addClientBtn) addClientBtn.click();
+                            }
                             break;
                         case 't':
                             // T - Add Main Task (when client selected)
                             if (selectedClientId) {
                                 e.preventDefault();
-                                const addMainTaskBtn = document.getElementById('add-main-task-btn');
-                                if (addMainTaskBtn) addMainTaskBtn.click();
+                                if (mainTaskForm && !mainTaskForm.classList.contains('hidden')) {
+                                    resetMainTaskForm();
+                                } else {
+                                    const addMainTaskBtn = document.getElementById('add-main-task-btn');
+                                    if (addMainTaskBtn) addMainTaskBtn.click();
+                                }
+                            } else {
+                                // Show feedback if no client selected
+                                e.preventDefault();
+                                showErrorNotification('Please select a client to add tasks');
                             }
                             break;
                         case 's':
@@ -808,6 +840,14 @@
                 editingClientId = clientId;
             }
             clientModal.classList.remove('hidden');
+            if (saveClientBtn) saveClientBtn.disabled = false;
+            if (updateClientBtn) updateClientBtn.disabled = false;
+            isSubmittingClient = false;
+            clientModal.classList.remove('hidden');
+            setTimeout(() => {
+                const nameInput = document.getElementById('client-name');
+                if (nameInput) nameInput.focus();
+            }, 50);
         }
         
         function closeClientModalFunc() {
@@ -816,8 +856,15 @@
         
         async function handleClientFormSubmit(e) {
             e.preventDefault();
+            
+            if (isSubmittingClient) return;
+            
             const name = document.getElementById('client-name').value;
             const status = 'active';
+            
+            isSubmittingClient = true;
+            if (saveClientBtn) saveClientBtn.disabled = true;
+            if (updateClientBtn) updateClientBtn.disabled = true;
             
             try {
                 if (!editingClientId) {
@@ -843,6 +890,10 @@
                 closeClientModalFunc();
             } catch (error) {
                 console.error('Client form submit error:', error);
+            } finally {
+                isSubmittingClient = false;
+                if (saveClientBtn) saveClientBtn.disabled = false;
+                if (updateClientBtn) updateClientBtn.disabled = false;
             }
         }
 
@@ -895,6 +946,10 @@
                 saveMainTaskBtn.classList.remove('hidden');
                 updateMainTaskBtn.classList.add('hidden');
                 document.getElementById('main-task-id-display').textContent = 'New Task';
+                
+                isSubmittingMainTask = false;
+                if (saveMainTaskBtn) saveMainTaskBtn.disabled = false;
+                if (updateMainTaskBtn) updateMainTaskBtn.disabled = false;
             } else if (mode === 'edit') {
                 mainTaskTitle.value = title;
                 mainTaskDescription.value = description;
@@ -919,6 +974,10 @@
             addMainTaskBtn.innerHTML = '<i class="fas fa-eye-slash text-sm"></i><span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Hide</span>';
             addMainTaskBtn.classList.replace('bg-blue-600', 'bg-gray-500');
             addMainTaskBtn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-600');
+            
+            setTimeout(() => {
+                if (mainTaskTitle) mainTaskTitle.focus();
+            }, 50);
         }
         
         function resetMainTaskForm() {
@@ -930,11 +989,19 @@
             addMainTaskBtn.classList.replace('hover:bg-gray-600', 'hover:bg-blue-700');
         }
         
+        let isSubmittingMainTask = false;
+
         async function saveMainTask() {
+            if (isSubmittingMainTask) return;
+            
             const title = mainTaskTitle.value;
             const description = mainTaskDescription.value;
             if (!title.trim()) return showErrorNotification('Please enter a task title');
             
+            isSubmittingMainTask = true;
+            if (saveMainTaskBtn) saveMainTaskBtn.disabled = true;
+            if (updateMainTaskBtn) updateMainTaskBtn.disabled = true;
+
             try {
                 const categorySelect = document.getElementById('main-task-category');
                 const category_id = categorySelect ? categorySelect.value : null;
@@ -954,14 +1021,26 @@
                 renderClientsList();
                 showSuccessNotification(result.message);
                 resetMainTaskForm();
-            } catch (error) {}
+            } catch (error) {
+                // Error handled by apiCall or global handler, but we must reset state
+            } finally {
+                isSubmittingMainTask = false;
+                if (saveMainTaskBtn) saveMainTaskBtn.disabled = false;
+                if (updateMainTaskBtn) updateMainTaskBtn.disabled = false;
+            }
         }
         
         async function updateMainTask() {
+            if (isSubmittingMainTask) return;
+            
             const title = mainTaskTitle.value;
             const description = mainTaskDescription.value;
             if (!title.trim()) return showErrorNotification('Please enter a task title');
             
+            isSubmittingMainTask = true;
+            if (saveMainTaskBtn) saveMainTaskBtn.disabled = true;
+            if (updateMainTaskBtn) updateMainTaskBtn.disabled = true;
+
             try {
                 const categorySelect = document.getElementById('main-task-category');
                 const category_id = categorySelect ? categorySelect.value : null;
@@ -984,10 +1063,14 @@
                 }
                 
                 renderMainTasks(client.main_tasks);
-                renderClientsList();
                 showSuccessNotification(result.message);
                 resetMainTaskForm();
-            } catch (error) {}
+            } catch (error) {
+            } finally {
+                isSubmittingMainTask = false;
+                if (saveMainTaskBtn) saveMainTaskBtn.disabled = false;
+                if (updateMainTaskBtn) updateMainTaskBtn.disabled = false;
+            }
         }
         
         function selectMainTask(taskItem) {
@@ -1109,6 +1192,10 @@
                 saveSubtaskBtn.classList.remove('hidden');
                 updateSubtaskBtn.classList.add('hidden');
                 currentSubtaskId = null;
+                
+                isSubmittingSubtask = false;
+                if (saveSubtaskBtn) saveSubtaskBtn.disabled = false;
+                if (updateSubtaskBtn) updateSubtaskBtn.disabled = false;
             } else if (mode === 'edit') {
                 subtaskTitle.value = title;
                 subtaskDescription.value = description;
@@ -1134,11 +1221,19 @@
             addSubtaskBtn.classList.replace('hover:bg-gray-600', 'hover:bg-green-700');
         }
         
+        let isSubmittingSubtask = false;
+        
         async function saveSubtask() {
+            if (isSubmittingSubtask) return;
+            
             const title = subtaskTitle.value;
             const description = subtaskDescription.value;
             const work_date = subtaskWorkDate.value;
             if (!title.trim()) return showErrorNotification('Please enter a subtask title');
+            
+            isSubmittingSubtask = true;
+            if (saveSubtaskBtn) saveSubtaskBtn.disabled = true;
+            if (updateSubtaskBtn) updateSubtaskBtn.disabled = true;
             
             try {
                 const result = await apiCall('{{ route('subtask.store') }}', 'POST', {
@@ -1155,14 +1250,24 @@
                 resetSubtaskForm();
             } catch (error) {
                 console.error('Save subtask error:', error);
+            } finally {
+                isSubmittingSubtask = false;
+                if (saveSubtaskBtn) saveSubtaskBtn.disabled = false;
+                if (updateSubtaskBtn) updateSubtaskBtn.disabled = false;
             }
         }
         
         async function updateSubtask() {
+            if (isSubmittingSubtask) return;
+            
             const title = subtaskTitle.value;
             const description = subtaskDescription.value;
             const work_date = subtaskWorkDate.value;
             if (!title.trim()) return showErrorNotification('Please enter a subtask title');
+            
+            isSubmittingSubtask = true;
+            if (saveSubtaskBtn) saveSubtaskBtn.disabled = true;
+            if (updateSubtaskBtn) updateSubtaskBtn.disabled = true;
             
             try {
                 const url = '{{ route('subtask.update', ['subtask' => ':id']) }}'.replace(':id', currentSubtaskId);
@@ -1181,6 +1286,10 @@
                 resetSubtaskForm();
             } catch (error) {
                 console.error('Update subtask error:', error);
+            } finally {
+                isSubmittingSubtask = false;
+                if (saveSubtaskBtn) saveSubtaskBtn.disabled = false;
+                if (updateSubtaskBtn) updateSubtaskBtn.disabled = false;
             }
         }
         
@@ -1283,6 +1392,11 @@
                 saveTimeLogBtn.classList.add('hidden');
                 updateTimeLogBtn.classList.remove('hidden');
             }
+            
+            isSubmittingTimeLog = false;
+            if (saveTimeLogBtn) saveTimeLogBtn.disabled = false;
+            if (updateTimeLogBtn) updateTimeLogBtn.disabled = false;
+            
             timeLogForm.classList.remove('hidden');
             timeLogValue.focus();
         }
@@ -1326,9 +1440,17 @@
             `).join('');
         }
 
+        let isSubmittingTimeLog = false;
+        
         async function saveTimeLog() {
+            if (isSubmittingTimeLog) return;
+            
             const val = timeLogValue.value;
             if (!val || val <= 0) return showErrorNotification('Please enter a valid amount of time');
+            
+            isSubmittingTimeLog = true;
+            if (saveTimeLogBtn) saveTimeLogBtn.disabled = true;
+            if (updateTimeLogBtn) updateTimeLogBtn.disabled = true;
             
             try {
                 const result = await apiCall('{{ route('dashboard.time-logs.store') }}', 'POST', {
@@ -1349,12 +1471,22 @@
                 showSuccessNotification(result.message);
             } catch (error) {
                 console.error('Save time log error:', error);
+            } finally {
+                isSubmittingTimeLog = false;
+                if (saveTimeLogBtn) saveTimeLogBtn.disabled = false;
+                if (updateTimeLogBtn) updateTimeLogBtn.disabled = false;
             }
         }
 
         async function updateTimeLog() {
+            if (isSubmittingTimeLog) return;
+            
             const val = timeLogValue.value;
             if (!val || val <= 0) return showErrorNotification('Please enter a valid amount of time');
+            
+            isSubmittingTimeLog = true;
+            if (saveTimeLogBtn) saveTimeLogBtn.disabled = true;
+            if (updateTimeLogBtn) updateTimeLogBtn.disabled = true;
             
             try {
                 const url = '{{ route('dashboard.time-logs.update', ['time_log' => ':id']) }}'.replace(':id', editingTimeLogId);
@@ -1378,6 +1510,10 @@
                 showSuccessNotification(result.message);
             } catch (error) {
                 console.error('Update time log error:', error);
+            } finally {
+                isSubmittingTimeLog = false;
+                if (saveTimeLogBtn) saveTimeLogBtn.disabled = false;
+                if (updateTimeLogBtn) updateTimeLogBtn.disabled = false;
             }
         }
 
@@ -1465,6 +1601,7 @@
             if (mode === 'add') {
                 commentText.value = '';
                 currentCommentId = null;
+                isSubmittingComment = false;
             } else if (mode === 'edit') {
                 commentText.value = text;
                 currentCommentId = commentId;
@@ -1478,9 +1615,15 @@
             currentCommentId = null;
         }
         
+        let isSubmittingComment = false;
+        
         async function saveComment() {
+            if (isSubmittingComment) return;
+            
             const comment = commentText.value;
             if (!comment.trim()) return showErrorNotification('Please enter a comment');
+            
+            isSubmittingComment = true;
             
             try {
                 if (!currentCommentId) {
@@ -1503,7 +1646,10 @@
                     showSuccessNotification(result.message);
                 }
                 resetCommentForm();
-            } catch (error) {}
+            } catch (error) {
+            } finally {
+                isSubmittingComment = false;
+            }
         }
         
         // Profile & Security
@@ -1514,6 +1660,14 @@
             passwordForm.reset();
             switchProfileTab('info');
         }
+
+        // Auto-open if deletion has errors (server-side validation redirect)
+        @if($errors->userDeletion->isNotEmpty())
+            document.addEventListener('DOMContentLoaded', () => {
+                openProfileModal();
+                switchProfileTab('delete');
+            });
+        @endif
 
         function closeProfileModalFunc() {
             profileModal.classList.add('hidden');
@@ -1674,10 +1828,46 @@
                 }
             };
             
+            let selectedIndex = -1;
+
+            search.onkeydown = (e) => {
+                const items = list.querySelectorAll('div[onclick]'); // Only selectable items
+                if (items.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex + 1) % items.length;
+                    updateHighlight(items, selectedIndex);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                    updateHighlight(items, selectedIndex);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        items[selectedIndex].click();
+                    }
+                }
+            };
+            
+            function updateHighlight(items, index) {
+                items.forEach((item, i) => {
+                    // Reset base styles
+                    item.className = 'px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm text-gray-700 dark:text-gray-200 transition-colors';
+                    
+                    if (i === index) {
+                        item.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                        item.classList.add('bg-blue-100', 'dark:bg-blue-900', 'font-medium');
+                        item.scrollIntoView({ block: 'nearest' });
+                    }
+                });
+            }
+
             search.oninput = (e) => {
                 const term = e.target.value.toLowerCase();
                 const filtered = window.App.categories.filter(c => c.name.toLowerCase().includes(term));
                 renderCategoryOptions(filtered);
+                selectedIndex = -1; // Reset selection on search
             };
 
             // Close when clicking outside

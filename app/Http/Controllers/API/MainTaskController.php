@@ -35,6 +35,8 @@ class MainTaskController extends Controller
             'user_id' => auth()->id() ?? $request->user_id,
         ]);
 
+        $mainTask->load('category');
+
         return response()->json($mainTask, 201);
     }
 
