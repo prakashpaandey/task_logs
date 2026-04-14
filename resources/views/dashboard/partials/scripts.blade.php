@@ -914,18 +914,43 @@
             } catch (error) {}
         }
         
+        const clientAvatarColors = [
+            'from-emerald-400 to-teal-500',
+            'from-violet-400 to-purple-600',
+            'from-blue-400 to-indigo-600',
+            'from-rose-400 to-pink-600',
+            'from-amber-400 to-orange-500',
+            'from-cyan-400 to-sky-600',
+        ];
+
         function renderClientsList() {
             const container = document.getElementById('clients-list-container');
             if (!container) return;
             container.innerHTML = window.App.clients.map(client => {
                 const initials = getInitials(client.name);
+                const color = clientAvatarColors[client.id % clientAvatarColors.length];
+                const isActive = currentClientId == client.id;
                 return `
-                    <div class="client-item p-3 ${currentClientId == client.id ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'} border rounded-xl cursor-pointer transition-all hover:shadow-md flex items-center space-x-3 overflow-hidden" data-client-id="${client.id}" title="${client.name}">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm shadow-emerald-500/20">
-                            ${initials}
+                    <div class="client-item group relative flex items-center gap-3 px-3 py-3 rounded-xl border cursor-pointer transition-all duration-200 overflow-hidden
+                        ${isActive
+                            ? 'bg-blue-50 dark:bg-blue-900/25 border-blue-300 dark:border-blue-700 shadow-sm'
+                            : 'bg-white dark:bg-gray-800/60 border-gray-200 dark:border-gray-700/60 hover:bg-gray-50 dark:hover:bg-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'}"
+                        data-client-id="${client.id}" title="${client.name}">
+                        ${isActive ? '<div class="absolute left-0 top-2 bottom-2 w-1 bg-blue-500 dark:bg-blue-400 rounded-r-full"></div>' : ''}
+                        <div class="relative shrink-0">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white text-xs font-bold shadow-md">
+                                ${initials}
+                            </div>
+                            ${isActive ? '<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-white dark:border-gray-800 rounded-full"></span>' : ''}
                         </div>
-                        <div class="sidebar-hide-content truncate">
-                            <h3 class="font-bold text-gray-800 dark:text-white text-sm truncate">${client.name}</h3>
+                        <div class="sidebar-hide-content min-w-0 flex-1">
+                            <p class="text-sm font-semibold truncate ${isActive ? 'text-blue-700 dark:text-blue-300' : 'text-gray-800 dark:text-gray-100'}">
+                                ${client.name}
+                            </p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 truncate">Client</p>
+                        </div>
+                        <div class="sidebar-hide-content shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 dark:text-gray-500"></i>
                         </div>
                     </div>
                 `;
