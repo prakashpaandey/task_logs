@@ -49,10 +49,7 @@
                 </div>
                 <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Welcome back</h2>
                 <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                    Don't have an account? 
-                    <a href="{{ route('register') }}" class="font-semibold text-primary-600 hover:text-primary-500 transition-colors">
-                        Create an account
-                    </a>
+                    Sign in to manage your professional tasks securely
                 </p>
             </div>
 

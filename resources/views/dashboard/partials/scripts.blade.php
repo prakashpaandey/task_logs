@@ -40,6 +40,22 @@
         const successMessage = document.getElementById('success-message');
         const errorMessage = document.getElementById('error-message');
         
+        // User Management Elements
+        const userManagementBtn = document.getElementById('user-management-btn');
+        const userManagementModal = document.getElementById('user-management-modal');
+        const closeUserManagementModal = document.getElementById('close-user-management-modal');
+        const userListView = document.getElementById('user-list-view');
+        const userFormView = document.getElementById('user-form-view');
+        const usersListContainer = document.getElementById('users-list-container');
+        const addNewUserBtn = document.getElementById('add-new-user-btn');
+        const adminUserForm = document.getElementById('admin-user-form');
+        const saveUserBtn = document.getElementById('save-user-btn');
+        const updateUserBtn = document.getElementById('update-user-btn');
+        const userFormTitle = document.getElementById('user-form-title');
+        const passwordDisplaySection = document.getElementById('password-display-section');
+        const generatedPasswordField = document.getElementById('generated-password-field');
+        const adminUserStatusContainer = document.getElementById('admin-user-status-container');
+        
         // Profile & Security Elements
         const profileBtn = document.getElementById('profile-btn');
         const profileModal = document.getElementById('profile-modal');
@@ -441,6 +457,12 @@
             if (saveTimeLogBtn) saveTimeLogBtn.addEventListener('click', saveTimeLog);
             if (updateTimeLogBtn) updateTimeLogBtn.addEventListener('click', updateTimeLog);
 
+            // User Management
+            if (userManagementBtn) userManagementBtn.addEventListener('click', openUserManagementModal);
+            if (closeUserManagementModal) closeUserManagementModal.addEventListener('click', () => userManagementModal.classList.add('hidden'));
+            if (addNewUserBtn) addNewUserBtn.addEventListener('click', () => toggleUserView('form', 'add'));
+            if (adminUserForm) adminUserForm.addEventListener('submit', handleUserFormSubmit);
+
             setupKeyboardShortcuts();
             setupGlobalKeyboardShortcuts();
         }
@@ -690,6 +712,175 @@
             sidebarOverlay.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
         }
+
+        // User Management Functionality
+        let editingUserId = null;
+
+        async function openUserManagementModal() {
+            if (userManagementModal) {
+                userManagementModal.classList.remove('hidden');
+                toggleUserView('list');
+                await loadUsers();
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await apiCall('{{ route('admin.users.index') }}');
+                if (response.success) {
+                    renderUsersList(response.users);
+                    // Update global App state if needed
+                    window.App.users = response.users;
+                }
+            } catch (error) {
+                console.error('Failed to load users:', error);
+            }
+        }
+
+        function toggleUserView(view, mode = 'add', userData = null) {
+            if (view === 'list') {
+                userListView.classList.remove('hidden');
+                userFormView.classList.add('hidden');
+                editingUserId = null;
+            } else {
+                userListView.classList.add('hidden');
+                userFormView.classList.remove('hidden');
+                passwordDisplaySection.classList.add('hidden');
+                
+                if (mode === 'add') {
+                    userFormTitle.textContent = 'Create New User';
+                    adminUserForm.reset();
+                    saveUserBtn.classList.remove('hidden');
+                    updateUserBtn.classList.add('hidden');
+                    adminUserStatusContainer.classList.add('hidden');
+                    editingUserId = null;
+                } else if (userData) {
+                    userFormTitle.textContent = 'Edit User';
+                    document.getElementById('admin-user-name').value = userData.name;
+                    document.getElementById('admin-user-email').value = userData.email;
+                    document.getElementById('admin-user-role').value = userData.role;
+                    document.getElementById('admin-user-status').value = userData.status;
+                    
+                    saveUserBtn.classList.add('hidden');
+                    updateUserBtn.classList.remove('hidden');
+                    adminUserStatusContainer.classList.remove('hidden');
+                    editingUserId = userData.id;
+                }
+            }
+        }
+
+        function renderUsersList(users) {
+            if (!usersListContainer) return;
+
+            if (users.length === 0) {
+                usersListContainer.innerHTML = `
+                    <div class="text-center py-10 text-gray-400">
+                        <i class="fas fa-users mb-2 text-2xl"></i>
+                        <p>No users found.</p>
+                    </div>`;
+                return;
+            }
+
+            usersListContainer.innerHTML = users.map(user => `
+                <div class="bg-gray-50 dark:bg-gray-700/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-between group hover:border-purple-200 dark:hover:border-purple-900/50 transition-all">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold font-mono">
+                            ${user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h5 class="font-bold text-gray-800 dark:text-white">${user.name}</h5>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${user.role === 'super_admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'}">
+                                    ${user.role === 'super_admin' ? 'Admin' : 'Dev'}
+                                </span>
+                                ${user.status === 'inactive' ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Inactive</span>' : ''}
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${user.email}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="editUserById(${user.id})" class="p-2 text-gray-400 hover:text-purple-600 transition-colors">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ${user.id !== window.App.user.id ? `
+                        <button onclick="confirmDeleteUser(${user.id}, '${user.name}')" class="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function handleUserFormSubmit(e) {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('admin-user-name').value,
+                email: document.getElementById('admin-user-email').value,
+                role: document.getElementById('admin-user-role').value,
+                status: document.getElementById('admin-user-status').value,
+            };
+
+            try {
+                if (editingUserId) {
+                    // Update
+                    const response = await apiCall(`/dashboard/users/${editingUserId}`, 'PUT', data);
+                    if (response.success) {
+                        showSuccessNotification(response.message);
+                        toggleUserView('list');
+                        await loadUsers();
+                    }
+                } else {
+                    // Create
+                    const response = await apiCall('/dashboard/users', 'POST', data);
+                    if (response.success) {
+                        showSuccessNotification(response.message);
+                        // Display the generated password
+                        generatedPasswordField.value = response.generated_password;
+                        passwordDisplaySection.classList.remove('hidden');
+                        saveUserBtn.classList.add('hidden');
+                        
+                        // We stay in form view to show the password, but hide the Save button to prevent double submit
+                        await loadUsers(); 
+                    }
+                }
+            } catch (error) {
+                console.error('User action failed:', error);
+            }
+        }
+
+        window.editUserById = function(userId) {
+            const user = window.App.users.find(u => u.id == userId);
+            if (user) {
+                toggleUserView('form', 'edit', user);
+            }
+        };
+
+        window.confirmDeleteUser = function(userId, name) {
+            openConfirmationModal('user', name, () => deleteUser(userId));
+        };
+
+        async function deleteUser(userId) {
+            try {
+                const response = await apiCall(`/dashboard/users/${userId}`, 'DELETE');
+                if (response.success) {
+                    showSuccessNotification(response.message);
+                    closeConfirmationModal();
+                    await loadUsers();
+                }
+            } catch (error) {
+                console.error('Delete user failed:', error);
+            }
+        }
+
+        window.copyGeneratedPassword = function() {
+            generatedPasswordField.select();
+            document.execCommand('copy');
+            showSuccessNotification('Password copied to clipboard!');
+        }
+        
+        // End User Management Functionality
         
         // Client functionality
         async function selectClient(clientItem) {
@@ -826,6 +1017,10 @@
         }
         
         function openClientModal(mode, clientId = null, clientName = '') {
+            // Reset checkboxes
+            const checkboxes = document.querySelectorAll('.user-assignment-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+
             if (mode === 'add') {
                 clientModalTitle.textContent = 'Add New Client';
                 saveClientBtn.classList.remove('hidden');
@@ -838,12 +1033,22 @@
                 updateClientBtn.classList.remove('hidden');
                 document.getElementById('client-name').value = clientName;
                 editingClientId = clientId;
+
+                // Pre-select assigned users
+                const client = window.App.clients.find(c => c.id == clientId);
+                if (client && client.users) {
+                    const assignedUserIds = client.users.map(u => u.id);
+                    checkboxes.forEach(cb => {
+                        if (assignedUserIds.includes(parseInt(cb.value))) {
+                            cb.checked = true;
+                        }
+                    });
+                }
             }
             clientModal.classList.remove('hidden');
             if (saveClientBtn) saveClientBtn.disabled = false;
             if (updateClientBtn) updateClientBtn.disabled = false;
             isSubmittingClient = false;
-            clientModal.classList.remove('hidden');
             setTimeout(() => {
                 const nameInput = document.getElementById('client-name');
                 if (nameInput) nameInput.focus();
@@ -862,13 +1067,18 @@
             const name = document.getElementById('client-name').value;
             const status = 'active';
             
+            // Collect user assignments if present
+            const selectedUserIds = Array.from(document.querySelectorAll('.user-assignment-checkbox:checked')).map(cb => cb.value);
+            
             isSubmittingClient = true;
             if (saveClientBtn) saveClientBtn.disabled = true;
             if (updateClientBtn) updateClientBtn.disabled = true;
             
             try {
+                const payload = { name, status, user_ids: selectedUserIds };
+                
                 if (!editingClientId) {
-                    const result = await apiCall('{{ route('dashboard.clients.store') }}', 'POST', { name, status });
+                    const result = await apiCall('{{ route('dashboard.clients.store') }}', 'POST', payload);
                     if (result.client) {
                         window.App.clients.push(result.client);
                         showSuccessNotification(result.message);
@@ -876,7 +1086,7 @@
                     }
                 } else {
                     const url = '{{ route('dashboard.clients.update', ['client' => ':id']) }}'.replace(':id', editingClientId);
-                    const result = await apiCall(url, 'PUT', { name, status });
+                    const result = await apiCall(url, 'PUT', payload);
                     const index = window.App.clients.findIndex(c => c.id == editingClientId);
                     if (index !== -1) {
                         window.App.clients[index] = { ...window.App.clients[index], ...result.client };

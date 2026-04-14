@@ -16,7 +16,12 @@
                             <h2 class="text-xl font-bold text-gray-800 dark:text-white">Clients</h2>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button id="add-client-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 hover:w-36 rounded-lg transition-all duration-300 overflow-hidden shadow-md" title="Add New Client">
+                            @if(auth()->user()->isAdmin())
+                            <button id="user-management-btn" class="flex items-center justify-center w-8 h-8 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 text-purple-600 dark:text-purple-400 rounded-lg transition-all" title="User Management">
+                                <i class="fas fa-users-cog text-xs"></i>
+                            </button>
+                            @endif
+                            <button id="add-client-btn" class="group flex items-center bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 {{ auth()->user()->isAdmin() ? 'hover:w-36' : 'hidden' }} rounded-lg transition-all duration-300 overflow-hidden shadow-md" title="Add New Client">
                                 <div class="flex items-center justify-center min-w-[2.5rem] h-10">
                                     <i class="fas fa-plus"></i>
                                 </div>

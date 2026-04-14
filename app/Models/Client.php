@@ -17,4 +17,9 @@ class Client extends Model
     {
         return $this->hasMany(MainTask::class);
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
 }

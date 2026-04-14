@@ -15,7 +15,17 @@ class SubTaskController extends Controller
             'description' => 'nullable|string',
             'work_date' => 'required|date',
         ]);
-        $subtask = Subtask::create($request->all() + ['user_id' => auth()->id()]);
+
+        $user = auth()->user();
+        $mainTask = \App\Models\MainTask::findOrFail($request->main_task_id);
+
+        if (!$user->isAdmin()) {
+            if (!$user->clients()->where('clients.id', $mainTask->client_id)->exists()) {
+                abort(403, 'Unauthorized action. You are not assigned to this client.');
+            }
+        }
+
+        $subtask = Subtask::create($request->all() + ['user_id' => $user->id]);
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Subtask created successfully.', 'subtask' => $subtask->load('user')]);
@@ -52,8 +62,14 @@ class SubTaskController extends Controller
 
     protected function authorizeUser($model)
     {
-        if ($model->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
+        $user = auth()->user();
+        if ($user->isAdmin()) {
+            return;
+        }
+
+        $mainTask = $model->mainTask;
+        if (!$user->clients()->where('clients.id', $mainTask->client_id)->exists()) {
+            abort(403, 'Unauthorized action. You are not assigned to this client.');
         }
     }
 }

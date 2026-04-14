@@ -13,7 +13,18 @@ class CommentController extends Controller
             'sub_task_id' => 'required|exists:subtasks,id',
             'comment' => 'required|string',
         ]);
-        $comment = SubTaskComment::create($request->all() + ['user_id' => auth()->id()]);
+
+        $user = auth()->user();
+        $subtask = \App\Models\Subtask::findOrFail($request->sub_task_id);
+        $clientId = $subtask->mainTask->client_id;
+
+        if (!$user->isAdmin()) {
+            if (!$user->clients()->where('clients.id', $clientId)->exists()) {
+                abort(403, 'Unauthorized action. You are not assigned to this client.');
+            }
+        }
+
+        $comment = SubTaskComment::create($request->all() + ['user_id' => $user->id]);
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Comment added successfully.', 'comment' => $comment->load('user')]);
@@ -46,8 +57,14 @@ class CommentController extends Controller
 
     protected function authorizeUser($model)
     {
-        if ($model->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
+        $user = auth()->user();
+        if ($user->isAdmin()) {
+            return;
+        }
+
+        $clientId = $model->subtask->mainTask->client_id;
+        if (!$user->clients()->where('clients.id', $clientId)->exists()) {
+            abort(403, 'Unauthorized action. You are not assigned to this client.');
         }
     }
 }

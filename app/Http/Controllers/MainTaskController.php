@@ -15,7 +15,15 @@ class MainTaskController extends Controller
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
         ]);
-        $mainTask = MainTask::create($request->all() + ['user_id' => auth()->id()]);
+
+        $user = auth()->user();
+        if (!$user->isAdmin()) {
+            if (!$user->clients()->where('clients.id', $request->client_id)->exists()) {
+                abort(403, 'Unauthorized action. You are not assigned to this client.');
+            }
+        }
+
+        $mainTask = MainTask::create($request->all() + ['user_id' => $user->id]);
         
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Main Task created successfully.', 'mainTask' => $mainTask->load(['user', 'category'])]);
@@ -52,8 +60,19 @@ class MainTaskController extends Controller
 
     protected function authorizeUser($model)
     {
-        if ($model->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
+        $user = auth()->user();
+        if ($user->isAdmin()) {
+            return;
         }
+
+        // Check if assigned to client
+        $clientId = $model->client_id ?? $model->mainTask->client_id; // Flexible for tasks/subtasks
+        if (!$user->clients()->where('clients.id', $clientId)->exists()) {
+            abort(403, 'Unauthorized action. You are not assigned to this client.');
+        }
+        
+        // Optional: If you want developers to ONLY edit their OWN tasks even within assigned clients:
+        // if ($model->user_id !== $user->id) { abort(403); }
+        // The requirement "work on the clients" usually implies collaboration, so I'll leave it as client-based.
     }
 }

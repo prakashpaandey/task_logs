@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'status',
     ];
 
     /**
@@ -44,5 +46,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    public function isAdmin()
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    public function clients()
+    {
+        return $this->belongsToMany(Client::class);
     }
 }

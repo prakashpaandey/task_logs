@@ -21,9 +21,19 @@ class TimeLogController extends Controller
             'time' => 'required|numeric|min:0.01',
         ]);
 
+        $user = auth()->user();
+        $subtask = \App\Models\Subtask::findOrFail($validated['sub_task_id']);
+        $clientId = $subtask->mainTask->client_id;
+
+        if (!$user->isAdmin()) {
+            if (!$user->clients()->where('clients.id', $clientId)->exists()) {
+                abort(403, 'Unauthorized action. You are not assigned to this client.');
+            }
+        }
+
         $timeLog = \App\Models\TimeLog::create([
             'sub_task_id' => $validated['sub_task_id'],
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'time' => $validated['time'],
         ]);
 
@@ -46,10 +56,7 @@ class TimeLogController extends Controller
         ]);
 
         $timeLog = \App\Models\TimeLog::findOrFail($id);
-        
-        if ($timeLog->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeUser($timeLog);
 
         $timeLog->update([
             'time' => $validated['time'],
@@ -70,10 +77,7 @@ class TimeLogController extends Controller
     public function destroy(string $id)
     {
         $timeLog = \App\Models\TimeLog::findOrFail($id);
-        
-        if ($timeLog->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeUser($timeLog);
         
         $subtask = $timeLog->subtask;
         $timeLog->delete();
@@ -82,5 +86,18 @@ class TimeLogController extends Controller
         $subtask->syncTimeLogged();
 
         return response()->json(['message' => 'Time log deleted successfully']);
+    }
+
+    protected function authorizeUser($model)
+    {
+        $user = auth()->user();
+        if ($user->isAdmin()) {
+            return;
+        }
+
+        $clientId = $model->subtask->mainTask->client_id;
+        if (!$user->clients()->where('clients.id', $clientId)->exists()) {
+            abort(403, 'Unauthorized action. You are not assigned to this client.');
+        }
     }
 }

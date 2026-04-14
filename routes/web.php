@@ -44,6 +44,14 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         'destroy' => 'dashboard.time-logs.destroy',
     ]);
     Route::get('statistics', [StatisticsController::class, 'getStatistics'])->name('dashboard.statistics');
+
+    // Admin User Management
+    Route::resource('users', \App\Http\Controllers\AdminUserController::class)->except(['create', 'edit', 'show'])->names([
+        'index' => 'admin.users.index',
+        'store' => 'admin.users.store',
+        'update' => 'admin.users.update',
+        'destroy' => 'admin.users.destroy',
+    ]);
 });
 
 Route::middleware('auth')->group(function () {
