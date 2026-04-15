@@ -18,6 +18,14 @@ use App\Http\Controllers\StatisticsController;
 Route::get('/dashboard', [TaskController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () {
+    Route::get('account/status', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'checkStatus'])->name('dashboard.account.status');
+    
+    // Temporary Migration Helper
+    Route::get('run-migrations-system-admin', function() {
+        if (!auth()->check() || !auth()->user()->isAdmin()) abort(403);
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return 'Migrations completed successfully: ' . \Illuminate\Support\Facades\Artisan::output();
+    });
     Route::resource('clients', ClientController::class)->only(['store', 'update', 'destroy'])->names([
         'store' => 'dashboard.clients.store',
         'update' => 'dashboard.clients.update',
@@ -52,6 +60,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         'update' => 'admin.users.update',
         'destroy' => 'admin.users.destroy',
     ]);
+    Route::post('users/{user}/reset-password', [\App\Http\Controllers\AdminUserController::class, 'resetPassword'])->name('admin.users.reset-password');
 });
 
 Route::middleware('auth')->group(function () {
@@ -59,5 +68,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 
 require __DIR__.'/auth.php';

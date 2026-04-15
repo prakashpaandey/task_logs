@@ -34,7 +34,7 @@
                     <!-- Admin Panel (System) -->
                     <div class="mb-6 space-y-1">
                         <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 sidebar-hide-content">Admin Panel</p>
-                        <button id="sidebar-manage-users-btn" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group">
+                        <button id="sidebar-manage-users-btn" onclick="switchView('user-management')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group">
                             <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 group-[.active]:bg-indigo-600 group-[.active]:text-white transition-colors">
                                 <i class="fas fa-users-cog text-sm"></i>
                             </div>
@@ -42,6 +42,8 @@
                         </button>
                     </div>
                     @endif
+
+
 
                     <!-- Search clients -->
                     <div class="mb-6 sidebar-hide-content">
@@ -67,7 +69,6 @@
                             </div>
                             <div class="sidebar-hide-content flex-1 min-w-0 text-left">
                                 <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $client->name }}</p>
-                                <p class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-bold">Active</p>
                             </div>
                         </button>
                         @endforeach

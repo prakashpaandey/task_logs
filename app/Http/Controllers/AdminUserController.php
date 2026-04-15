@@ -71,6 +71,27 @@ class AdminUserController extends Controller
         return response()->json(['success' => true, 'message' => 'User deleted successfully.']);
     }
 
+    public function resetPassword(User $user)
+    {
+        $this->authorizeAdmin();
+
+        if ($user->id === auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Use profile settings to change your own password.'], 403);
+        }
+
+        $generatedPassword = Str::random(12);
+        $user->update([
+            'password' => Hash::make($generatedPassword),
+            'force_logout' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully.',
+            'generated_password' => $generatedPassword
+        ]);
+    }
+
     protected function authorizeAdmin()
     {
         if (!auth()->user()->isAdmin()) {

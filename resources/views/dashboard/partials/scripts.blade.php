@@ -107,6 +107,7 @@
         let sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         
         // User Dashboard State
+        if (!window.App.users) window.App.users = [];
         let userDashboardFilter = 'active'; // 'active' or 'deactivated'
         let userDashboardSearchTerm = '';
         
@@ -163,16 +164,55 @@
             
             // Show initial state
             if (window.App.selectedClient) {
-                showClientContent();
+                switchView('client');
                 // Optionally load main tasks if they aren't already in App.selectedClient
                 renderMainTasks(window.App.selectedClient.main_tasks || []);
                 
                 // Set join date for initial client
                 const joinDate = new Date(window.App.selectedClient.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                document.getElementById('client-join-date').textContent = joinDate;
+                const joinDateEl = document.getElementById('client-join-date');
+                if (joinDateEl) joinDateEl.textContent = joinDate;
             } else {
                 switchView('statistics');
             }
+
+            // Start Remote Logout Heartbeat
+            startHeartbeat();
+        }
+
+        /**
+         * Live Kick / Remote Logout Heartbeat
+         * Periodically checks if the user's account has been flagged for force logout.
+         */
+        let heartbeatInterval = null;
+        function startHeartbeat() {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            
+            heartbeatInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('{{ route('dashboard.account.status') }}', {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+                    
+                    if (response.status === 401 || response.status === 419) {
+                        // Session already expired or kicked
+                        window.location.href = '/login';
+                        return;
+                    }
+
+                    const data = await response.json();
+                    if (data.force_logout) {
+                        clearInterval(heartbeatInterval);
+                        // Immediate redirect if flagged
+                        window.location.href = '/login?reason=reset';
+                    }
+                } catch (error) {
+                    // Fail silently for network issues
+                }
+            }, 10000); // Check every 10 seconds
         }
 
         // Load Statistics
@@ -668,7 +708,7 @@
                             break;
                         case 't':
                             // T - Add Main Task (when client selected)
-                            if (selectedClientId) {
+                            if (currentClientId) {
                                 e.preventDefault();
                                 if (mainTaskForm && !mainTaskForm.classList.contains('hidden')) {
                                     resetMainTaskForm();
@@ -843,39 +883,41 @@
         async function loadUserDashboardData() {
             try {
                 const response = await apiCall('{{ route('admin.users.index') }}');
-                if (response.success) {
+                if (response && response.users) {
                     window.App.users = response.users;
-                    applyUserDashboardFilters();
+                } else if (response && Array.isArray(response)) {
+                    window.App.users = response;
                 }
+                applyUserDashboardFilters();
             } catch (error) {
                 console.error('Failed to load users:', error);
             }
         }
 
-        function switchUserDashboardTab(tab) {
-            userDashboardFilter = tab;
+        function switchUserDashboardTab(tabName) {
+            userDashboardFilter = tabName;
             
-            const activeTabBtn = document.getElementById('user-tab-active');
-            const deactivatedTabBtn = document.getElementById('user-tab-deactivated');
-            
-            [activeTabBtn, deactivatedTabBtn].forEach(btn => {
-                const line = btn.querySelector('.absolute.bottom-0');
-                btn.classList.remove('text-indigo-600', 'dark:text-indigo-400', 'text-gray-400', 'dark:text-gray-500');
-                if (line) {
-                    line.classList.replace('bg-indigo-600', 'bg-transparent');
-                    line.classList.replace('dark:bg-indigo-500', 'bg-transparent');
+            // Update UI
+            const tabs = document.querySelectorAll('.user-dashboard-tab');
+            tabs.forEach(tab => {
+                const indicator = tab.querySelector('div.absolute');
+                if (tab.id === `user-tab-${tabName}`) {
+                    tab.classList.remove('text-gray-400', 'dark:text-gray-500');
+                    tab.classList.add('text-indigo-600', 'dark:text-indigo-400');
+                    if (indicator) {
+                        indicator.classList.remove('bg-transparent');
+                        indicator.classList.add('bg-indigo-600', 'dark:bg-indigo-500');
+                    }
+                } else {
+                    tab.classList.add('text-gray-400', 'dark:text-gray-500');
+                    tab.classList.remove('text-indigo-600', 'dark:text-indigo-400');
+                    if (indicator) {
+                        indicator.classList.add('bg-transparent');
+                        indicator.classList.remove('bg-indigo-600', 'dark:bg-indigo-500');
+                    }
                 }
             });
-
-            const activeBtn = tab === 'active' ? activeTabBtn : deactivatedTabBtn;
-            const activeLine = activeBtn.querySelector('.absolute.bottom-0');
             
-            activeBtn.classList.add('text-indigo-600', 'dark:text-indigo-400');
-            if (activeLine) {
-                activeLine.classList.replace('bg-transparent', 'bg-indigo-600');
-                activeLine.classList.add('dark:bg-indigo-500');
-            }
-
             applyUserDashboardFilters();
         }
 
@@ -883,16 +925,16 @@
             if (!window.App.users) return;
 
             const filtered = window.App.users.filter(user => {
-                const matchesTab = userDashboardFilter === 'active' ? user.status === 'active' : user.status === 'inactive';
-                const matchesSearch = user.name.toLowerCase().includes(userDashboardSearchTerm) || 
-                                     user.email.toLowerCase().includes(userDashboardSearchTerm);
+                const matchesTab = userDashboardFilter === 'active' ? user.status === 'active' : user.status !== 'active';
+                const matchesSearch = (user.name || '').toLowerCase().includes(userDashboardSearchTerm) || 
+                                     (user.email || '').toLowerCase().includes(userDashboardSearchTerm);
                 return matchesTab && matchesSearch;
             });
 
             renderUsersDashboardTable(filtered);
             
             const activeCount = window.App.users.filter(u => u.status === 'active').length;
-            const deactivatedCount = window.App.users.filter(u => u.status === 'inactive').length;
+            const deactivatedCount = window.App.users.length - activeCount;
             
             const activeEl = document.getElementById('active-user-count');
             const deactiveEl = document.getElementById('deactivated-user-count');
@@ -951,6 +993,9 @@
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
                                  ${user.id !== window.App.user.id ? `
+                                    <button onclick="confirmResetPassword(${user.id}, '${user.name}')" class="p-2 text-gray-400 hover:text-amber-500 transition-colors" title="Forgot Password">
+                                        <i class="fas fa-user-lock text-xs"></i>
+                                    </button>
                                     <button onclick="openAdminUserModal('edit', ${user.id})" class="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Edit User">
                                         <i class="fas fa-edit text-xs"></i>
                                     </button>
@@ -1056,6 +1101,81 @@
             openConfirmationModal('user', name, () => deleteUser(userId));
         };
 
+        window.confirmResetPassword = function(userId, name) {
+            openConfirmationModal('reset-password', name, () => resetUserPassword(userId));
+        };
+
+        async function resetUserPassword(userId) {
+            try {
+                const url = '{{ route('admin.users.reset-password', ['user' => ':id']) }}'.replace(':id', userId);
+                const response = await apiCall(url, 'POST');
+                
+                if (response.success) {
+                    closeConfirmationModal();
+                    
+                    const successModal = document.getElementById('password-reset-success-modal');
+                    const passInput = document.getElementById('reset-success-password-input');
+                    
+                    if (successModal && passInput) {
+                        passInput.value = response.generated_password;
+                        successModal.classList.remove('hidden');
+                    }
+                    
+                    showSuccessNotification(response.message);
+                }
+            } catch (error) {
+                console.error('Password reset failed:', error);
+            }
+        }
+
+        window.copyResetPassword = function() {
+            const passInput = document.getElementById('reset-success-password-input');
+            if (passInput) {
+                passInput.select();
+                document.execCommand('copy');
+                showSuccessNotification('Password copied to clipboard!');
+            }
+        };
+
+        window.closePasswordResetSuccessModal = function() {
+            const modal = document.getElementById('password-reset-success-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        const closeResetSuccessBtn = document.getElementById('close-reset-success-btn-final');
+        if (closeResetSuccessBtn) {
+            closeResetSuccessBtn.onclick = window.closePasswordResetSuccessModal;
+        }
+
+        const copyResetBtn = document.getElementById('copy-reset-btn');
+        if (copyResetBtn) {
+            copyResetBtn.addEventListener('click', () => {
+                const passInput = document.getElementById('reset-success-password-input');
+                if (!passInput || !passInput.value) return;
+
+                const text = passInput.value;
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showSuccessNotification('Password copied to clipboard!');
+                        copyResetBtn.innerHTML = '<i class="fas fa-check text-emerald-500"></i>';
+                        setTimeout(() => {
+                            copyResetBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                        }, 2000);
+                    }).catch(() => {
+                        // fallback
+                        passInput.select();
+                        document.execCommand('copy');
+                        showSuccessNotification('Password copied!');
+                    });
+                } else {
+                    passInput.select();
+                    document.execCommand('copy');
+                    showSuccessNotification('Password copied!');
+                }
+            });
+        }
+
         async function deleteUser(userId) {
             try {
                 const response = await apiCall(`/dashboard/users/${userId}`, 'DELETE');
@@ -1071,13 +1191,16 @@
 
         window.copyDBPassword = function() {
             const passField = document.getElementById('db-generated-password');
-            passField.select();
-            document.execCommand('copy');
-            showSuccessNotification('Password copied to clipboard!');
+            if (passField) {
+                passField.select();
+                document.execCommand('copy');
+                showSuccessNotification('Password copied to clipboard!');
+            }
         }
 
         window.closeAdminUserModal = closeAdminUserModal;
         window.switchUserDashboardTab = switchUserDashboardTab;
+        window.switchView = switchView;
         // End User Management Dashboard Specifics
         
         // Client functionality
@@ -1180,13 +1303,67 @@
             `).join('');
         }
 
+        function switchView(viewName) {
+            const views = {
+                'statistics': document.getElementById('statistics-dashboard'),
+                'client': document.getElementById('client-content'),
+                'user-management': document.getElementById('user-management-dashboard')
+            };
+
+            const breadcrumb = document.getElementById('breadcrumb-nav');
+
+            // Hide all views
+            Object.values(views).forEach(view => {
+                if (view) view.classList.add('hidden');
+            });
+
+            // Show selected view
+            const activeView = views[viewName];
+            if (activeView) activeView.classList.remove('hidden');
+
+            // Handle breadcrumb visibility
+            if (breadcrumb) {
+                if (viewName === 'client') {
+                    breadcrumb.classList.remove('hidden');
+                } else {
+                    breadcrumb.classList.add('hidden');
+                }
+            }
+
+            // Update sidebar active states
+            const manageUsersBtn = document.getElementById('sidebar-manage-users-btn');
+            if (manageUsersBtn) {
+                if (viewName === 'user-management') {
+                    manageUsersBtn.classList.add('active');
+                } else {
+                    manageUsersBtn.classList.remove('active');
+                }
+            }
+
+            // Sync data on view switch
+            if (viewName === 'statistics') {
+                loadStatistics();
+            } else if (viewName === 'user-management') {
+                loadUserDashboardData();
+            }
+        }
+
+        function showClientSelectionPrompt() {
+            switchView('statistics');
+        }
+
+        function showClientContent() {
+            switchView('client');
+        }
+
         function filterClients() {
             const searchTerm = clientSearch.value.toLowerCase();
             let visibleCount = 0;
             
             const items = document.querySelectorAll('.client-item');
             items.forEach(item => {
-                const clientName = item.querySelector('h3').textContent.toLowerCase();
+                const nameEl = item.querySelector('p.text-sm');
+                const clientName = nameEl ? nameEl.textContent.toLowerCase() : '';
                 if (clientName.includes(searchTerm)) {
                     item.classList.remove('hidden');
                     visibleCount++;
@@ -1201,20 +1378,6 @@
             } else {
                 noClientsMessage.classList.add('hidden');
             }
-        }
-        
-        function showClientSelectionPrompt() {
-            if (clientSelectionPrompt) clientSelectionPrompt.classList.remove('hidden');
-            if (clientContent) clientContent.classList.add('hidden');
-            const breadcrumb = document.getElementById('breadcrumb-nav');
-            if (breadcrumb) breadcrumb.classList.add('hidden');
-            loadStatistics();
-        }
-        
-        function showClientContent() {
-            clientSelectionPrompt.classList.add('hidden');
-            clientContent.classList.remove('hidden');
-            document.getElementById('breadcrumb-nav').classList.remove('hidden');
         }
         
         function openClientModal(mode, clientId = null, clientName = '') {
@@ -2196,8 +2359,43 @@
 
         // Confirmation modal
         function openConfirmationModal(type, name, callback) {
-            confirmationTitle.textContent = `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-            confirmationMessage.textContent = `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+            const icon = document.getElementById('confirmation-icon');
+            const iconContainer = document.getElementById('confirmation-icon-container');
+            const actionText = document.getElementById('confirm-action-text');
+            const actionIcon = document.getElementById('confirm-action-icon');
+            const cancelText = document.getElementById('confirm-cancel-text');
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            
+            if (type === 'reset-password') {
+                confirmationTitle.textContent = 'Forgot Password?';
+                confirmationMessage.textContent = `Do you want to reset the password of this user? If yes, a new password will be generated and "${name}" will be logged out globally.`;
+                
+                if (icon) icon.className = 'fas fa-user-lock text-3xl text-blue-600';
+                if (iconContainer) iconContainer.className = 'mx-auto w-20 h-20 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center mb-6';
+                
+                if (actionText) actionText.textContent = 'Yes, Reset';
+                if (actionIcon) actionIcon.className = 'fas fa-check mr-2';
+                if (cancelText) cancelText.textContent = 'No, Cancel';
+                
+                if (confirmBtn) {
+                    confirmBtn.className = 'flex-1 px-3 py-2.5 md:px-6 md:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base shadow-lg shadow-blue-500/20';
+                }
+            } else {
+                confirmationTitle.textContent = `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                confirmationMessage.textContent = `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+                
+                if (icon) icon.className = 'fas fa-exclamation-triangle text-3xl text-red-600';
+                if (iconContainer) iconContainer.className = 'mx-auto w-20 h-20 bg-red-100 dark:bg-red-800/40 rounded-full flex items-center justify-center mb-6';
+                
+                if (actionText) actionText.textContent = 'Delete';
+                if (actionIcon) actionIcon.className = 'fas fa-trash-alt mr-2';
+                if (cancelText) cancelText.textContent = 'Cancel';
+
+                if (confirmBtn) {
+                    confirmBtn.className = 'flex-1 px-3 py-2.5 md:px-6 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base shadow-lg shadow-red-500/20';
+                }
+            }
+
             deleteCallback = callback;
             currentDeleteType = type;
             confirmationModal.classList.remove('hidden');
@@ -2233,9 +2431,11 @@
         // Initialize the application
         init();
         
-        confirmDeleteBtn.addEventListener('click', () => {
-            if (deleteCallback) deleteCallback();
-        });
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (deleteCallback) deleteCallback();
+            });
+        }
 
         function setupCategoryDropdown() {
             const btn = document.getElementById('category-dropdown-btn');

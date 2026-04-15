@@ -57,8 +57,8 @@
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4">
             <div class="p-4 md:p-6">
                 <div class="flex items-center justify-center mb-6">
-                    <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                        <i class="fas fa-exclamation-triangle text-3xl text-red-600 dark:text-red-400"></i>
+                    <div id="confirmation-icon-container" class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                        <i id="confirmation-icon" class="fas fa-exclamation-triangle text-3xl text-red-600 dark:text-red-400"></i>
                     </div>
                 </div>
                 
@@ -69,12 +69,12 @@
                 
                 <div class="flex justify-center gap-3 w-full">
                     <button id="cancel-confirmation-btn" class="flex-1 px-3 py-2.5 md:px-6 md:py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
-                        <i class="fas fa-times mr-2"></i>
-                        Cancel
+                        <i id="confirm-cancel-icon" class="fas fa-times mr-2"></i>
+                        <span id="confirm-cancel-text">Cancel</span>
                     </button>
                     <button id="confirm-delete-btn" class="flex-1 px-3 py-2.5 md:px-6 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
-                        <i class="fas fa-trash-alt mr-2"></i>
-                        Delete
+                        <i id="confirm-action-icon" class="fas fa-trash-alt mr-2"></i>
+                        <span id="confirm-action-text">Delete</span>
                     </button>
                 </div>
             </div>
@@ -257,6 +257,74 @@
                         </form>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <!-- Activity Detail Modal -->
+    <div id="activity-detail-modal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm hidden animate-fadeIn">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
+            <div class="p-6 md:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800 sticky top-0 z-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/10 transition-transform group-hover:scale-110">
+                        <i class="fas fa-chart-pie text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="activity-detail-title" class="text-xl font-black text-gray-900 dark:text-white leading-tight">Activity Breakdown</h3>
+                        <p id="activity-detail-subtitle" class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-1">Detailed Contribution View</p>
+                    </div>
+                </div>
+                <button onclick="window.closeActivityDetailModal()" class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar bg-gray-50/30 dark:bg-gray-900/10">
+                <div id="activity-detail-list" class="space-y-4">
+                    <!-- Dynamic list will be injected here -->
+                </div>
+
+                <!-- Empty State within Modal -->
+                <div id="activity-detail-empty" class="hidden py-16 text-center">
+                    <div class="w-20 h-20 bg-gray-50 dark:bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-database text-3xl text-gray-200 dark:text-gray-700"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-2">No activity found</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm italic">There are no records reported for this selection yet.</p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700">
+                <button onclick="window.closeActivityDetailModal()" class="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-black hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-xl shadow-gray-900/20 transform active:scale-[0.98]">
+                    Dismiss Details
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Success Modal -->
+    <div id="password-reset-success-modal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm hidden animate-fadeIn">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+            <div class="p-8 text-center">
+                <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-check-circle text-3xl text-emerald-600 dark:text-emerald-400"></i>
+                </div>
+                
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Password Reset!</h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm">
+                    The new temporary password is ready. Copy it below:
+                </p>
+
+                <div class="relative mb-8 group">
+                    <input type="text" id="reset-success-password-input" readonly 
+                        class="w-full bg-gray-50 dark:bg-gray-900/50 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-4 text-center text-xl font-mono font-bold text-indigo-600 dark:text-indigo-400 focus:outline-none tracking-wider select-all cursor-pointer">
+                    <button id="copy-reset-btn" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="Copy password">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+
+                <button id="close-reset-success-btn-final" class="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-bold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-xl shadow-gray-900/20">
+                    Done
+                </button>
             </div>
         </div>
     </div>

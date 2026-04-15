@@ -44,4 +44,20 @@ class AuthenticatedSessionController extends Controller
 
         return redirect('/');
     }
+
+    /**
+     * Check if the user's account status requires a force logout.
+     */
+    public function checkStatus(Request $request)
+    {
+        $user = $request->user();
+        if ($user && $user->force_logout) {
+            $user->update(['force_logout' => false]);
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return response()->json(['force_logout' => true]);
+        }
+        return response()->json(['force_logout' => false]);
+    }
 }
