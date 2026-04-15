@@ -9,9 +9,11 @@
                             </h2>
                             <p id="stat-dashboard-subtitle" class="text-xs md:text-base text-gray-500 dark:text-gray-400 mt-1">Activity summary for {{ auth()->user()->name }}</p>
                         </div>
+                        @if(auth()->user()->isAdmin())
                         <button onclick="document.getElementById('add-client-btn').click()" class="self-start md:self-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center whitespace-nowrap text-sm md:text-base">
                             <i class="fas fa-user-plus mr-2"></i> New Client
                         </button>
+                        @endif
                     </div>
                     
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
