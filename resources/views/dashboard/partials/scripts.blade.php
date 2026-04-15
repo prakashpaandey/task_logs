@@ -180,6 +180,20 @@
             try {
                 const response = await apiCall('{{ route('dashboard.statistics') }}');
                 if (response.success) {
+                    // Update Titles based on user role
+                    const titleEl = document.getElementById('stat-dashboard-title');
+                    const subtitleEl = document.getElementById('stat-dashboard-subtitle');
+                    
+                    if (response.is_admin) {
+                        if (titleEl) titleEl.textContent = 'System Overview';
+                        if (subtitleEl) subtitleEl.textContent = 'Global activity summary for all users';
+                        window.App.statBreakdown = response.breakdown;
+                    } else {
+                        if (titleEl) titleEl.textContent = 'Personal Productivity';
+                        if (subtitleEl) subtitleEl.textContent = `Activity summary for ${window.App.user.name}`;
+                        window.App.statBreakdown = null;
+                    }
+
                     // Update Time Logs
                     if (document.getElementById('stat-time-today'))
                         document.getElementById('stat-time-today').textContent = parseFloat(response.time_logs.today || 0).toFixed(1) + 'h';
@@ -200,6 +214,61 @@
                 console.error('Error loading statistics:', error);
             }
         }
+
+        
+        // Activity Detail Modal Handlers
+        window.showActivityDetails = function(period, type) {
+            if (!window.App.statBreakdown) return;
+            
+            const breakdownData = window.App.statBreakdown[type][period];
+            const listContainer = document.getElementById('activity-detail-list');
+            const titleEl = document.getElementById('activity-detail-title');
+            const subtitleEl = document.getElementById('activity-detail-subtitle');
+            const emptyEl = document.getElementById('activity-detail-empty');
+            const modal = document.getElementById('activity-detail-modal');
+
+            if (!modal || !listContainer) return;
+
+            // Set Title
+            const periodLabel = period.charAt(0).toUpperCase() + period.slice(1);
+            const typeLabel = type === 'time' ? 'Time Tracking' : 'Communication';
+            titleEl.textContent = `${typeLabel} Breakdown`;
+            subtitleEl.textContent = `Showing contributions for ${periodLabel}`;
+
+            listContainer.innerHTML = '';
+            
+            if (!breakdownData || breakdownData.length === 0) {
+                emptyEl.classList.remove('hidden');
+            } else {
+                emptyEl.classList.add('hidden');
+                breakdownData.forEach(item => {
+                    listContainer.innerHTML += `
+                        <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-100 dark:border-gray-600 hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-sm">
+                                    ${item.initials}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${item.user_name}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate">${item.user_email}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-black text-indigo-600 dark:text-indigo-400">${item.value}</p>
+                                <p class="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">${type === 'time' ? 'Logged' : 'Posted'}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeActivityDetailModal = function() {
+            const modal = document.getElementById('activity-detail-modal');
+            if (modal) modal.classList.add('hidden');
+        };
 
         // Sidebar Collapse Logic
         function updateSidebarState() {

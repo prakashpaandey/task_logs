@@ -5,9 +5,9 @@
                         <div>
                             <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white flex items-center">
                                 <i class="fas fa-chart-line mr-3 text-blue-600"></i>
-                                Personal Productivity
+                                <span id="stat-dashboard-title">Personal Productivity</span>
                             </h2>
-                            <p class="text-xs md:text-base text-gray-500 dark:text-gray-400 mt-1">Activity summary for {{ auth()->user()->name }}</p>
+                            <p id="stat-dashboard-subtitle" class="text-xs md:text-base text-gray-500 dark:text-gray-400 mt-1">Activity summary for {{ auth()->user()->name }}</p>
                         </div>
                         <button onclick="document.getElementById('add-client-btn').click()" class="self-start md:self-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center whitespace-nowrap text-sm md:text-base">
                             <i class="fas fa-user-plus mr-2"></i> New Client
@@ -19,28 +19,49 @@
                         <div class="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-blue-100 dark:border-blue-800/50 shadow-sm">
                             <div class="flex items-center justify-between mb-2 md:mb-4">
                                 <span class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">Today</span>
-                                <i class="fas fa-clock text-blue-500 text-sm md:text-base"></i>
+                                <div class="flex items-center gap-2">
+                                    @if(auth()->user()->isAdmin())
+                                    <button onclick="showActivityDetails('today', 'time')" class="text-blue-500 hover:text-blue-700 transition-colors" title="View Breakdown">
+                                        <i class="fas fa-circle-arrow-right text-lg"></i>
+                                    </button>
+                                    @endif
+                                    <i class="fas fa-clock text-blue-500 text-sm md:text-base"></i>
+                                </div>
                             </div>
                             <h3 id="stat-time-today" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Logged today</p>
+                            <p id="stat-time-today-desc" class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Logged today</p>
                         </div>
 
                         <div class="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
                             <div class="flex items-center justify-between mb-2 md:mb-4">
                                 <span class="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">This Week</span>
-                                <i class="fas fa-calendar-week text-indigo-500 text-sm md:text-base"></i>
+                                <div class="flex items-center gap-2">
+                                    @if(auth()->user()->isAdmin())
+                                    <button onclick="showActivityDetails('week', 'time')" class="text-indigo-500 hover:text-indigo-700 transition-colors" title="View Breakdown">
+                                        <i class="fas fa-circle-arrow-right text-lg"></i>
+                                    </button>
+                                    @endif
+                                    <i class="fas fa-calendar-week text-indigo-500 text-sm md:text-base"></i>
+                                </div>
                             </div>
                             <h3 id="stat-time-week" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Weekly total</p>
+                            <p id="stat-time-week-desc" class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Weekly total</p>
                         </div>
 
                         <div class="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-purple-100 dark:border-purple-800/50 shadow-sm col-span-2 md:col-span-1">
                             <div class="flex items-center justify-between mb-2 md:mb-4">
                                 <span class="bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">This Month</span>
-                                <i class="fas fa-calendar-alt text-purple-500 text-sm md:text-base"></i>
+                                <div class="flex items-center gap-2">
+                                    @if(auth()->user()->isAdmin())
+                                    <button onclick="showActivityDetails('month', 'time')" class="text-purple-500 hover:text-purple-700 transition-colors" title="View Breakdown">
+                                        <i class="fas fa-circle-arrow-right text-lg"></i>
+                                    </button>
+                                    @endif
+                                    <i class="fas fa-calendar-alt text-purple-500 text-sm md:text-base"></i>
+                                </div>
                             </div>
                             <h3 id="stat-time-month" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0.0h</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Monthly total</p>
+                            <p id="stat-time-month-desc" class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Monthly total</p>
                         </div>
                     </div>
 
@@ -49,28 +70,49 @@
                         <div class="bg-gradient-to-br from-green-50 to-white dark:from-green-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-green-100 dark:border-green-800/50 shadow-sm">
                             <div class="flex items-center justify-between mb-2 md:mb-4">
                                 <span class="bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">Today</span>
-                                <i class="fas fa-comment-dots text-green-500 text-sm md:text-base"></i>
+                                <div class="flex items-center gap-2">
+                                    @if(auth()->user()->isAdmin())
+                                    <button onclick="showActivityDetails('today', 'comments')" class="text-green-500 hover:text-green-700 transition-colors" title="View Breakdown">
+                                        <i class="fas fa-circle-arrow-right text-lg"></i>
+                                    </button>
+                                    @endif
+                                    <i class="fas fa-comment-dots text-green-500 text-sm md:text-base"></i>
+                                </div>
                             </div>
                             <h3 id="stat-comments-today" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Comments posted</p>
+                            <p id="stat-comments-today-desc" class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Comments posted</p>
                         </div>
 
                         <div class="bg-gradient-to-br from-teal-50 to-white dark:from-teal-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-teal-100 dark:border-teal-800/50 shadow-sm">
                             <div class="flex items-center justify-between mb-2 md:mb-4">
                                 <span class="bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">This Week</span>
-                                <i class="fas fa-comments text-teal-500 text-sm md:text-base"></i>
+                                <div class="flex items-center gap-2">
+                                    @if(auth()->user()->isAdmin())
+                                    <button onclick="showActivityDetails('week', 'comments')" class="text-teal-500 hover:text-teal-700 transition-colors" title="View Breakdown">
+                                        <i class="fas fa-circle-arrow-right text-lg"></i>
+                                    </button>
+                                    @endif
+                                    <i class="fas fa-comments text-teal-500 text-sm md:text-base"></i>
+                                </div>
                             </div>
                             <h3 id="stat-comments-week" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Weekly discussion</p>
+                            <p id="stat-comments-week-desc" class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Weekly discussion</p>
                         </div>
 
                         <div class="bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/10 dark:to-gray-800 p-3 md:p-6 rounded-xl md:rounded-2xl border border-cyan-100 dark:border-cyan-800/50 shadow-sm col-span-2 md:col-span-1">
                             <div class="flex items-center justify-between mb-2 md:mb-4">
                                 <span class="bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">This Month</span>
-                                <i class="fas fa-comment-medical text-cyan-500 text-sm md:text-base"></i>
+                                <div class="flex items-center gap-2">
+                                    @if(auth()->user()->isAdmin())
+                                    <button onclick="showActivityDetails('month', 'comments')" class="text-cyan-500 hover:text-cyan-700 transition-colors" title="View Breakdown">
+                                        <i class="fas fa-circle-arrow-right text-lg"></i>
+                                    </button>
+                                    @endif
+                                    <i class="fas fa-comment-medical text-cyan-500 text-sm md:text-base"></i>
+                                </div>
                             </div>
                             <h3 id="stat-comments-month" class="text-xl md:text-3xl font-bold text-gray-800 dark:text-white">0</h3>
-                            <p class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Monthly total</p>
+                            <p id="stat-comments-month-desc" class="text-gray-500 dark:text-gray-400 text-[10px] md:text-sm mt-1">Monthly total</p>
                         </div>
                     </div>
                     
