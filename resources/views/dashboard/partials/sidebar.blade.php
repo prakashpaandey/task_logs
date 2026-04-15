@@ -79,11 +79,15 @@
                             <i class="fas fa-users text-3xl text-gray-400"></i>
                         </div>
                         <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No clients found</h3>
+                        @if(auth()->user()->isAdmin())
                         <p class="text-gray-500 dark:text-gray-400 mb-4 text-sm">Add your first client to get started</p>
                         <button id="add-client-btn-empty" class="group flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md hover:shadow-lg" title="Add New Client">
                             <i class="fas fa-plus text-sm"></i>
                             <span class="sidebar-text font-medium text-sm">New Client</span>
                         </button>
+                        @else
+                        <p class="text-gray-500 dark:text-gray-400 mb-4 text-sm italic">You don't have any clients assigned to you yet. Please contact your admin for access.</p>
+                        @endif
                     </div>
                 </div>
             </aside>
