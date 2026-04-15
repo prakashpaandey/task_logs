@@ -387,4 +387,152 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- User Management Dashboard -->
+                <div id="user-management-dashboard" class="h-full flex flex-col p-4 md:p-8 animate-fadeIn hidden">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">User Management</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">View and manage system users, their access status, and fine-grained permissions.</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="relative group w-full md:w-72">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                                    <i class="fas fa-search text-xs"></i>
+                                </div>
+                                <input type="text" id="user-dashboard-search" placeholder="Search users by name or email..." class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm shadow-sm transition-all italic">
+                            </div>
+                            <button id="dashboard-add-user-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 flex items-center whitespace-nowrap text-sm">
+                                <i class="fas fa-user-plus mr-2"></i> New User
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- User Filter Tabs -->
+                    <div class="flex items-center border-b border-gray-200 dark:border-gray-800 mb-8 gap-8 overflow-x-auto no-scrollbar">
+                        <button onclick="switchUserDashboardTab('active')" id="user-tab-active" class="user-dashboard-tab relative pb-4 text-sm font-bold text-indigo-600 dark:text-indigo-400 transition-all">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-user-check text-xs"></i>
+                                <span>Active Users</span>
+                                <span id="active-user-count" class="ml-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/40 rounded-full text-[10px]">0</span>
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 dark:bg-indigo-500 rounded-t-full"></div>
+                        </button>
+                        <button onclick="switchUserDashboardTab('deactivated')" id="user-tab-deactivated" class="user-dashboard-tab relative pb-4 text-sm font-bold text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-user-slash text-xs"></i>
+                                <span>Deactivated</span>
+                                <span id="deactivated-user-count" class="ml-1 px-2 py-0.5 bg-gray-50 dark:bg-gray-700 rounded-full text-[10px]">0</span>
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 h-1 bg-transparent rounded-t-full"></div>
+                        </button>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/50 overflow-hidden flex-1 flex flex-col">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-700/50">
+                                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">User Info</th>
+                                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Role</th>
+                                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest text-center">Status</th>
+                                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Joined At</th>
+                                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-dashboard-table-body" class="divide-y divide-gray-50 dark:divide-gray-700/50">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div id="user-dashboard-empty" class="hidden flex-1 flex flex-col items-center justify-center p-12 text-center animate-fadeIn">
+                            <div class="w-20 h-20 bg-gray-50 dark:bg-gray-800/50 rounded-full flex items-center justify-center mb-6">
+                                <i class="fas fa-users text-3xl text-gray-300 dark:text-gray-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">No users found</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto">Try adjusting your filters or search query to find the users you're looking for.</p>
+                        </div>
+                    </div>
+                </div>
             </main>
+
+            <!-- User Management Modal (Create/Edit) -->
+            <div id="admin-user-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm hidden animate-fadeIn">
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-white/20 dark:border-gray-700/50 transform transition-all duration-300 scale-100">
+                    <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/20">
+                        <div>
+                            <h3 id="admin-user-modal-title" class="text-xl font-bold text-gray-900 dark:text-white">Create New User</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Fill in the details to add a new system member.</p>
+                        </div>
+                        <button onclick="closeAdminUserModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+
+                    <form id="dashboard-user-form" class="p-8">
+                        <div class="space-y-6">
+                            <!-- Name & Email -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Full Name</label>
+                                    <input type="text" id="db-user-name" required class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all" placeholder="John Doe">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Email Address</label>
+                                    <input type="email" id="db-user-email" required class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all" placeholder="john@example.com">
+                                </div>
+                            </div>
+
+                            <!-- Role & Status -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">System Role</label>
+                                    <select id="db-user-role" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all">
+                                        <option value="developer">Developer (Normal User)</option>
+                                        <option value="super_admin">Super Admin</option>
+                                    </select>
+                                </div>
+                                <div id="db-user-status-container" class="hidden">
+                                    <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Account Status</label>
+                                    <select id="db-user-status" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Deactivated</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Generated Password Display (Only on Create) -->
+                            <div id="db-password-display" class="hidden animate-slideDown">
+                                <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl">
+                                    <div class="flex items-center gap-2 mb-3 text-amber-700 dark:text-amber-400">
+                                        <i class="fas fa-key text-xs"></i>
+                                        <span class="text-xs font-bold uppercase tracking-wider">Generated Password</span>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="db-generated-password" readonly class="flex-1 bg-white dark:bg-gray-800 border-none rounded-lg px-3 py-2 font-mono text-sm text-center tracking-widest">
+                                        <button type="button" onclick="copyDBPassword()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 rounded-lg transition-all text-xs font-bold whitespace-nowrap">
+                                            Copy
+                                        </button>
+                                    </div>
+                                    <p class="text-[10px] text-amber-600/80 dark:text-amber-400/60 mt-3 text-center italic">Important: Copy this password now. It will not be shown again.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 mt-10">
+                            <button type="button" onclick="closeAdminUserModal()" class="flex-1 px-6 py-3.5 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-600 dark:text-gray-400 font-bold hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-all text-sm">
+                                Cancel
+                            </button>
+                            <button type="submit" id="db-save-user-btn" class="flex-1 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold shadow-xl shadow-indigo-500/20 transition-all text-sm">
+                                Save User
+                            </button>
+                            <button type="submit" id="db-update-user-btn" class="flex-1 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold shadow-xl shadow-emerald-500/20 transition-all text-sm hidden">
+                                Update User
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>

@@ -40,22 +40,6 @@
         const successMessage = document.getElementById('success-message');
         const errorMessage = document.getElementById('error-message');
         
-        // User Management Elements
-        const userManagementBtn = document.getElementById('user-management-btn');
-        const userManagementModal = document.getElementById('user-management-modal');
-        const closeUserManagementModal = document.getElementById('close-user-management-modal');
-        const userListView = document.getElementById('user-list-view');
-        const userFormView = document.getElementById('user-form-view');
-        const usersListContainer = document.getElementById('users-list-container');
-        const addNewUserBtn = document.getElementById('add-new-user-btn');
-        const adminUserForm = document.getElementById('admin-user-form');
-        const saveUserBtn = document.getElementById('save-user-btn');
-        const updateUserBtn = document.getElementById('update-user-btn');
-        const userFormTitle = document.getElementById('user-form-title');
-        const passwordDisplaySection = document.getElementById('password-display-section');
-        const generatedPasswordField = document.getElementById('generated-password-field');
-        const adminUserStatusContainer = document.getElementById('admin-user-status-container');
-        
         // Profile & Security Elements
         const profileBtn = document.getElementById('profile-btn');
         const profileModal = document.getElementById('profile-modal');
@@ -122,6 +106,10 @@
         let currentDeleteType = null;
         let sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         
+        // User Dashboard State
+        let userDashboardFilter = 'active'; // 'active' or 'deactivated'
+        let userDashboardSearchTerm = '';
+        
         // Helper for API calls
         async function apiCall(url, method = 'GET', data = null) {
             const options = {
@@ -183,7 +171,7 @@
                 const joinDate = new Date(window.App.selectedClient.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 document.getElementById('client-join-date').textContent = joinDate;
             } else {
-                showClientSelectionPrompt();
+                switchView('statistics');
                 loadStatistics();
             }
         }
@@ -457,11 +445,42 @@
             if (saveTimeLogBtn) saveTimeLogBtn.addEventListener('click', saveTimeLog);
             if (updateTimeLogBtn) updateTimeLogBtn.addEventListener('click', updateTimeLog);
 
-            // User Management
-            if (userManagementBtn) userManagementBtn.addEventListener('click', openUserManagementModal);
-            if (closeUserManagementModal) closeUserManagementModal.addEventListener('click', () => userManagementModal.classList.add('hidden'));
-            if (addNewUserBtn) addNewUserBtn.addEventListener('click', () => toggleUserView('form', 'add'));
-            if (adminUserForm) adminUserForm.addEventListener('submit', handleUserFormSubmit);
+            // User Management (Dashboard Listeners)
+
+            // New User Management Dashboard Listeners
+            const userDashSearch = document.getElementById('user-dashboard-search');
+            if (userDashSearch) {
+                userDashSearch.addEventListener('input', (e) => {
+                    userDashboardSearchTerm = e.target.value.toLowerCase();
+                    applyUserDashboardFilters();
+                });
+            }
+
+            const allClientBtn = document.getElementById('all-client-overview-btn');
+            if (allClientBtn) {
+                allClientBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchView('statistics');
+                });
+            }
+
+            const manageUsersBtn = document.getElementById('sidebar-manage-users-btn');
+            if (manageUsersBtn) {
+                manageUsersBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchView('user-management');
+                });
+            }
+
+            const dashAddUserBtn = document.getElementById('dashboard-add-user-btn');
+            if (dashAddUserBtn) {
+                dashAddUserBtn.addEventListener('click', () => openAdminUserModal('add'));
+            }
+
+            const dashUserForm = document.getElementById('dashboard-user-form');
+            if (dashUserForm) {
+                dashUserForm.addEventListener('submit', handleDashboardUserFormSubmit);
+            }
 
             setupKeyboardShortcuts();
             setupGlobalKeyboardShortcuts();
@@ -713,149 +732,264 @@
             document.body.classList.remove('overflow-hidden');
         }
 
-        // User Management Functionality
-        let editingUserId = null;
+        // User Management Dashboard Specifics
+        function switchView(viewName) {
+            const views = {
+                'statistics': document.getElementById('statistics-dashboard'),
+                'client': document.getElementById('client-content'),
+                'user-management': document.getElementById('user-management-dashboard')
+            };
 
-        async function openUserManagementModal() {
-            if (userManagementModal) {
-                userManagementModal.classList.remove('hidden');
-                toggleUserView('list');
-                await loadUsers();
+            const breadcrumb = document.getElementById('breadcrumb-nav');
+            
+            // Hide all views
+            Object.values(views).forEach(v => {
+                if (v) v.classList.add('hidden');
+            });
+
+            // Show target view
+            if (views[viewName]) {
+                views[viewName].classList.remove('hidden');
+                views[viewName].classList.add('animate-fadeIn');
             }
+
+            // Breadcrumb visibility
+            if (breadcrumb) {
+                if (viewName === 'client') breadcrumb.classList.remove('hidden');
+                else breadcrumb.classList.add('hidden');
+            }
+
+            // Update Sidebar Highlight
+            const sidebarLinks = document.querySelectorAll('.sidebar-nav-item');
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+
+            if (viewName === 'statistics') {
+                const btn = document.getElementById('all-client-overview-btn');
+                if (btn) btn.classList.add('active');
+            } else if (viewName === 'user-management') {
+                const btn = document.getElementById('sidebar-manage-users-btn');
+                if (btn) btn.classList.add('active');
+                loadUserDashboardData();
+            }
+
+            // Scroll to top
+            const mainContent = document.getElementById('main-content');
+            if (mainContent) mainContent.scrollTop = 0;
         }
 
-        async function loadUsers() {
+        async function loadUserDashboardData() {
             try {
                 const response = await apiCall('{{ route('admin.users.index') }}');
                 if (response.success) {
-                    renderUsersList(response.users);
-                    // Update global App state if needed
                     window.App.users = response.users;
+                    applyUserDashboardFilters();
                 }
             } catch (error) {
                 console.error('Failed to load users:', error);
             }
         }
 
-        function toggleUserView(view, mode = 'add', userData = null) {
-            if (view === 'list') {
-                userListView.classList.remove('hidden');
-                userFormView.classList.add('hidden');
-                editingUserId = null;
-            } else {
-                userListView.classList.add('hidden');
-                userFormView.classList.remove('hidden');
-                passwordDisplaySection.classList.add('hidden');
-                
-                if (mode === 'add') {
-                    userFormTitle.textContent = 'Create New User';
-                    adminUserForm.reset();
-                    saveUserBtn.classList.remove('hidden');
-                    updateUserBtn.classList.add('hidden');
-                    adminUserStatusContainer.classList.add('hidden');
-                    editingUserId = null;
-                } else if (userData) {
-                    userFormTitle.textContent = 'Edit User';
-                    document.getElementById('admin-user-name').value = userData.name;
-                    document.getElementById('admin-user-email').value = userData.email;
-                    document.getElementById('admin-user-role').value = userData.role;
-                    document.getElementById('admin-user-status').value = userData.status;
-                    
-                    saveUserBtn.classList.add('hidden');
-                    updateUserBtn.classList.remove('hidden');
-                    adminUserStatusContainer.classList.remove('hidden');
-                    editingUserId = userData.id;
+        function switchUserDashboardTab(tab) {
+            userDashboardFilter = tab;
+            
+            const activeTabBtn = document.getElementById('user-tab-active');
+            const deactivatedTabBtn = document.getElementById('user-tab-deactivated');
+            
+            [activeTabBtn, deactivatedTabBtn].forEach(btn => {
+                const line = btn.querySelector('.absolute.bottom-0');
+                btn.classList.remove('text-indigo-600', 'dark:text-indigo-400', 'text-gray-400', 'dark:text-gray-500');
+                if (line) {
+                    line.classList.replace('bg-indigo-600', 'bg-transparent');
+                    line.classList.replace('dark:bg-indigo-500', 'bg-transparent');
                 }
+            });
+
+            const activeBtn = tab === 'active' ? activeTabBtn : deactivatedTabBtn;
+            const activeLine = activeBtn.querySelector('.absolute.bottom-0');
+            
+            activeBtn.classList.add('text-indigo-600', 'dark:text-indigo-400');
+            if (activeLine) {
+                activeLine.classList.replace('bg-transparent', 'bg-indigo-600');
+                activeLine.classList.add('dark:bg-indigo-500');
             }
+
+            applyUserDashboardFilters();
         }
 
-        function renderUsersList(users) {
-            if (!usersListContainer) return;
+        function applyUserDashboardFilters() {
+            if (!window.App.users) return;
+
+            const filtered = window.App.users.filter(user => {
+                const matchesTab = userDashboardFilter === 'active' ? user.status === 'active' : user.status === 'inactive';
+                const matchesSearch = user.name.toLowerCase().includes(userDashboardSearchTerm) || 
+                                     user.email.toLowerCase().includes(userDashboardSearchTerm);
+                return matchesTab && matchesSearch;
+            });
+
+            renderUsersDashboardTable(filtered);
+            
+            const activeCount = window.App.users.filter(u => u.status === 'active').length;
+            const deactivatedCount = window.App.users.filter(u => u.status === 'inactive').length;
+            
+            const activeEl = document.getElementById('active-user-count');
+            const deactiveEl = document.getElementById('deactivated-user-count');
+            if (activeEl) activeEl.textContent = activeCount;
+            if (deactiveEl) deactiveEl.textContent = deactivatedCount;
+        }
+
+        function renderUsersDashboardTable(users) {
+            const tbody = document.getElementById('user-dashboard-table-body');
+            const emptyState = document.getElementById('user-dashboard-empty');
+            if (!tbody) return;
 
             if (users.length === 0) {
-                usersListContainer.innerHTML = `
-                    <div class="text-center py-10 text-gray-400">
-                        <i class="fas fa-users mb-2 text-2xl"></i>
-                        <p>No users found.</p>
-                    </div>`;
+                tbody.innerHTML = '';
+                if (emptyState) emptyState.classList.remove('hidden');
                 return;
             }
 
-            usersListContainer.innerHTML = users.map(user => `
-                <div class="bg-gray-50 dark:bg-gray-700/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-between group hover:border-purple-200 dark:hover:border-purple-900/50 transition-all">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold font-mono">
-                            ${user.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h5 class="font-bold text-gray-800 dark:text-white">${user.name}</h5>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${user.role === 'super_admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'}">
-                                    ${user.role === 'super_admin' ? 'Admin' : 'Dev'}
-                                </span>
-                                ${user.status === 'inactive' ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Inactive</span>' : ''}
+            if (emptyState) emptyState.classList.add('hidden');
+            tbody.innerHTML = users.map(user => {
+                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                return `
+                    <tr class="group hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-sm whitespace-nowrap">
+                                    ${initials}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${user.name}</p>
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${user.email}</p>
+                                </div>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">${user.email}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="editUserById(${user.id})" class="p-2 text-gray-400 hover:text-purple-600 transition-colors">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        ${user.id !== window.App.user.id ? `
-                        <button onclick="confirmDeleteUser(${user.id}, '${user.name}')" class="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider
+                                ${user.role === 'super_admin' 
+                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800' 
+                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800'}">
+                                ${user.role === 'super_admin' ? 'Super Admin' : 'Developer'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <div class="w-2 h-2 rounded-full ${user.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}"></div>
+                                <span class="text-xs font-medium ${user.status === 'active' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}">
+                                    ${user.status === 'active' ? 'Active' : 'Offline'}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-xs text-gray-600 dark:text-gray-400">
+                                ${new Date(user.created_at).toLocaleDateString()}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button onclick="openAdminUserModal('edit', ${user.id})" class="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Edit User">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                ${user.id !== window.App.user.id ? `
+                                    <button onclick="confirmDeleteUser(${user.id}, '${user.name}')" class="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Delete User">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        async function handleUserFormSubmit(e) {
+        // Dashboard User Form Handlers
+        let editingDashboardUserId = null;
+
+        function openAdminUserModal(mode, userId = null) {
+            const modal = document.getElementById('admin-user-modal');
+            const title = document.getElementById('admin-user-modal-title');
+            const saveBtn = document.getElementById('db-save-user-btn');
+            const updateBtn = document.getElementById('db-update-user-btn');
+            const statusContainer = document.getElementById('db-user-status-container');
+            const passwordDisplay = document.getElementById('db-password-display');
+            const form = document.getElementById('dashboard-user-form');
+            if (!modal) return;
+            
+            form.reset();
+            passwordDisplay.classList.add('hidden');
+            
+            if (mode === 'add') {
+                title.textContent = 'Create New User';
+                saveBtn.classList.remove('hidden');
+                updateBtn.classList.add('hidden');
+                statusContainer.classList.add('hidden');
+                editingDashboardUserId = null;
+            } else {
+                const user = window.App.users.find(u => u.id == userId);
+                if (!user) return;
+                
+                title.textContent = 'Edit User Profile';
+                saveBtn.classList.add('hidden');
+                updateBtn.classList.remove('hidden');
+                statusContainer.classList.remove('hidden');
+                
+                document.getElementById('db-user-name').value = user.name;
+                document.getElementById('db-user-email').value = user.email;
+                document.getElementById('db-user-role').value = user.role;
+                document.getElementById('db-user-status').value = user.status;
+                
+                editingDashboardUserId = userId;
+            }
+            
+            modal.classList.remove('hidden');
+            modal.querySelector('input').focus();
+        }
+
+        function closeAdminUserModal() {
+            const modal = document.getElementById('admin-user-modal');
+            if (modal) modal.classList.add('hidden');
+            editingDashboardUserId = null;
+        }
+
+        async function handleDashboardUserFormSubmit(e) {
             e.preventDefault();
             
             const data = {
-                name: document.getElementById('admin-user-name').value,
-                email: document.getElementById('admin-user-email').value,
-                role: document.getElementById('admin-user-role').value,
-                status: document.getElementById('admin-user-status').value,
+                name: document.getElementById('db-user-name').value,
+                email: document.getElementById('db-user-email').value,
+                role: document.getElementById('db-user-role').value,
+                status: document.getElementById('db-user-status').value,
             };
 
+            const saveBtn = document.getElementById('db-save-user-btn');
+
             try {
-                if (editingUserId) {
-                    // Update
-                    const response = await apiCall(`/dashboard/users/${editingUserId}`, 'PUT', data);
+                if (editingDashboardUserId) {
+                    const response = await apiCall(`/dashboard/users/${editingDashboardUserId}`, 'PUT', data);
                     if (response.success) {
                         showSuccessNotification(response.message);
-                        toggleUserView('list');
-                        await loadUsers();
+                        closeAdminUserModal();
+                        await loadUserDashboardData();
                     }
                 } else {
-                    // Create
+                    saveBtn.disabled = true;
                     const response = await apiCall('/dashboard/users', 'POST', data);
                     if (response.success) {
                         showSuccessNotification(response.message);
-                        // Display the generated password
-                        generatedPasswordField.value = response.generated_password;
-                        passwordDisplaySection.classList.remove('hidden');
-                        saveUserBtn.classList.add('hidden');
-                        
-                        // We stay in form view to show the password, but hide the Save button to prevent double submit
-                        await loadUsers(); 
+                        document.getElementById('db-generated-password').value = response.generated_password;
+                        document.getElementById('db-password-display').classList.remove('hidden');
+                        saveBtn.classList.add('hidden');
+                        await loadUserDashboardData();
                     }
                 }
             } catch (error) {
                 console.error('User action failed:', error);
+            } finally {
+                if (saveBtn) saveBtn.disabled = false;
             }
         }
-
-        window.editUserById = function(userId) {
-            const user = window.App.users.find(u => u.id == userId);
-            if (user) {
-                toggleUserView('form', 'edit', user);
-            }
-        };
 
         window.confirmDeleteUser = function(userId, name) {
             openConfirmationModal('user', name, () => deleteUser(userId));
@@ -867,26 +1001,32 @@
                 if (response.success) {
                     showSuccessNotification(response.message);
                     closeConfirmationModal();
-                    await loadUsers();
+                    await loadUserDashboardData();
                 }
             } catch (error) {
                 console.error('Delete user failed:', error);
             }
         }
 
-        window.copyGeneratedPassword = function() {
-            generatedPasswordField.select();
+        window.copyDBPassword = function() {
+            const passField = document.getElementById('db-generated-password');
+            passField.select();
             document.execCommand('copy');
             showSuccessNotification('Password copied to clipboard!');
         }
-        
-        // End User Management Functionality
+
+        window.closeAdminUserModal = closeAdminUserModal;
+        window.switchUserDashboardTab = switchUserDashboardTab;
+        // End User Management Dashboard Specifics
         
         // Client functionality
         async function selectClient(clientItem) {
             const clientId = clientItem.getAttribute('data-client-id');
+            
+            // Switch view first for smoother feel
+            switchView('client');
+
             if (clientId == currentClientId) {
-                showClientContent();
                 return;
             }
 
