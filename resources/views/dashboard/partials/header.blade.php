@@ -4,9 +4,9 @@
                     <button id="mobile-menu-toggle" class="p-2 -ml-2 rounded-lg md:hidden text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
-                    <div class="flex items-center space-x-3">
-                        <img src="{{ asset('favicon.png') }}" alt="Task Manager Logo" class="w-8 h-8 rounded-lg shadow-sm">
-                        <h1 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">Task Manager</h1>
+                    <div class="flex items-center space-x-3 cursor-pointer group" onclick="switchView('statistics')">
+                        <img src="{{ asset('favicon.png') }}" alt="Task Manager Logo" class="w-8 h-8 rounded-lg shadow-sm group-hover:scale-110 transition-transform">
+                        <h1 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Task Manager</h1>
                     </div>
                 </div>
                 

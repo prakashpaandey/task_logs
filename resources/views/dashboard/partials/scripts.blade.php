@@ -171,13 +171,7 @@
                 const joinDate = new Date(window.App.selectedClient.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 document.getElementById('client-join-date').textContent = joinDate;
             } else {
-                if (window.App.user && window.App.user.role === 'super_admin') {
-                    switchView('user-management');
-                } else {
-                    // For developers, show a select client state or empty state
-                    // We can use statistics as the empty state for now or hide everything
-                    switchView('statistics'); 
-                }
+                switchView('statistics');
             }
         }
 
@@ -764,7 +758,9 @@
                 link.classList.remove('active');
             });
 
-            if (viewName === 'user-management') {
+            if (viewName === 'statistics') {
+                loadStatistics();
+            } else if (viewName === 'user-management') {
                 const btn = document.getElementById('sidebar-manage-users-btn');
                 if (btn) btn.classList.add('active');
                 loadUserDashboardData();
