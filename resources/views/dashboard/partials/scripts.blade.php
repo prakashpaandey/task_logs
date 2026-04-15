@@ -171,8 +171,13 @@
                 const joinDate = new Date(window.App.selectedClient.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 document.getElementById('client-join-date').textContent = joinDate;
             } else {
-                switchView('statistics');
-                loadStatistics();
+                if (window.App.user && window.App.user.role === 'super_admin') {
+                    switchView('user-management');
+                } else {
+                    // For developers, show a select client state or empty state
+                    // We can use statistics as the empty state for now or hide everything
+                    switchView('statistics'); 
+                }
             }
         }
 
@@ -456,13 +461,7 @@
                 });
             }
 
-            const allClientBtn = document.getElementById('all-client-overview-btn');
-            if (allClientBtn) {
-                allClientBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    switchView('statistics');
-                });
-            }
+            // Button listeners removed for All Client Overview
 
             const manageUsersBtn = document.getElementById('sidebar-manage-users-btn');
             if (manageUsersBtn) {
@@ -765,10 +764,7 @@
                 link.classList.remove('active');
             });
 
-            if (viewName === 'statistics') {
-                const btn = document.getElementById('all-client-overview-btn');
-                if (btn) btn.classList.add('active');
-            } else if (viewName === 'user-management') {
+            if (viewName === 'user-management') {
                 const btn = document.getElementById('sidebar-manage-users-btn');
                 if (btn) btn.classList.add('active');
                 loadUserDashboardData();
