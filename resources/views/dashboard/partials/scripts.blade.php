@@ -881,14 +881,14 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button onclick="openAdminUserModal('edit', ${user.id})" class="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Edit User">
-                                    <i class="fas fa-edit text-xs"></i>
-                                </button>
-                                ${user.id !== window.App.user.id ? `
+                                 ${user.id !== window.App.user.id ? `
+                                    <button onclick="openAdminUserModal('edit', ${user.id})" class="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Edit User">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </button>
                                     <button onclick="confirmDeleteUser(${user.id}, '${user.name}')" class="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Delete User">
                                         <i class="fas fa-trash-alt text-xs"></i>
                                     </button>
-                                ` : ''}
+                                ` : '<span class="text-xs text-gray-400 italic px-2">Current User</span>'}
                             </div>
                         </td>
                     </tr>
