@@ -203,6 +203,16 @@
         margin-right: 0 !important;
     }
 
+    #sidebar.sidebar-collapsed .sidebar-nav-item {
+        padding: 0.75rem !important;
+        justify-content: center !important;
+        gap: 0 !important;
+    }
+
+    #sidebar.sidebar-collapsed .sidebar-nav-item div {
+        margin: 0 !important;
+    }
+
     #sidebar {
         transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }

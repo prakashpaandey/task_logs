@@ -33,7 +33,7 @@
                     @if(auth()->user()->isAdmin())
                     <!-- Admin Panel (System) -->
                     <div class="mb-6 space-y-1">
-                        <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Admin Panel</p>
+                        <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 sidebar-hide-content">Admin Panel</p>
                         <button id="sidebar-manage-users-btn" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group">
                             <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 group-[.active]:bg-indigo-600 group-[.active]:text-white transition-colors">
                                 <i class="fas fa-users-cog text-sm"></i>
