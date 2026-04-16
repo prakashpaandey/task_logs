@@ -42,6 +42,9 @@ class TimeLogController extends Controller
             \App\Models\Notification::create([
                 'user_id' => $user->id,
                 'type' => 'time_log',
+                'client_id' => $clientId,
+                'main_task_id' => $subtask->main_task_id,
+                'sub_task_id' => $subtask->id,
                 'message' => "{$user->name} logged {$validated['time']} hours on Subtask: \"{$subtask->title}\"",
             ]);
         }

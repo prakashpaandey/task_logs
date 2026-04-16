@@ -12,6 +12,9 @@ class Notification extends Model
     protected $fillable = [
         'user_id',
         'type',
+        'client_id',
+        'main_task_id',
+        'sub_task_id',
         'message',
         'read_at',
     ];

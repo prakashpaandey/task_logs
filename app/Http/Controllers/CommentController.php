@@ -31,6 +31,9 @@ class CommentController extends Controller
             \App\Models\Notification::create([
                 'user_id' => $user->id,
                 'type' => 'comment',
+                'client_id' => $clientId,
+                'main_task_id' => $subtask->main_task_id,
+                'sub_task_id' => $subtask->id,
                 'message' => "{$user->name} posted a comment on Subtask: \"{$subtask->title}\"",
             ]);
         }

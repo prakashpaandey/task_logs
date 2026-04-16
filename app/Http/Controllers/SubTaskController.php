@@ -32,6 +32,9 @@ class SubTaskController extends Controller
             \App\Models\Notification::create([
                 'user_id' => $user->id,
                 'type' => 'subtask',
+                'client_id' => $mainTask->client_id,
+                'main_task_id' => $mainTask->id,
+                'sub_task_id' => $subtask->id,
                 'message' => "{$user->name} added a Subtask: \"{$subtask->title}\" for \"{$mainTask->title}\"",
             ]);
         }

@@ -30,6 +30,7 @@ class MainTaskController extends Controller
             \App\Models\Notification::create([
                 'user_id' => $user->id,
                 'type' => 'main_task',
+                'client_id' => $request->client_id,
                 'message' => "{$user->name} created a new Main Task: \"{$mainTask->title}\"",
             ]);
         }

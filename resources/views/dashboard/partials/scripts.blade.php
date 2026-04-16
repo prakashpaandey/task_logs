@@ -3078,6 +3078,92 @@
             }
         }
 
+        async function jumpToNotification(notifId) {
+            const notif = notifications.find(n => n.id == notifId);
+            if (!notif) return;
+
+            // Close dropdown
+            if (notificationsDropdown) notificationsDropdown.classList.add('hidden');
+
+            try {
+                // 1. Switch to Client View
+                switchView('client');
+
+                // 2. Select the client
+                if (notif.client_id) {
+                    const client = window.App.clients.find(c => c.id == notif.client_id);
+                    if (client) {
+                        // Use the existing selection logic
+                        currentClientId = client.id;
+                        renderMainTasks(client.main_tasks || []);
+                        renderClientsList();
+                        updateBreadcrumb();
+                        
+                        // Set join date
+                        const joinDate = new Date(client.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const joinDateEl = document.getElementById('client-join-date');
+                        if (joinDateEl) joinDateEl.textContent = joinDate;
+                    }
+                }
+
+                // 3. Select the Main Task
+                if (notif.main_task_id) {
+                    const client = window.App.clients.find(c => c.id == notif.client_id);
+                    const task = client?.main_tasks?.find(t => t.id == notif.main_task_id);
+                    if (task) {
+                        currentMainTaskId = task.id;
+                        selectedMainTaskTitle.textContent = task.title;
+                        selectedMainTaskDescription.textContent = task.description || 'No description';
+                        selectedMainTaskInfo.classList.remove('hidden');
+                        addSubtaskBtn.disabled = false;
+                        renderSubtasks(task.subtasks || []);
+                        updateBreadcrumb();
+                        
+                        // Update active state in UI
+                        renderMainTasks(client.main_tasks);
+                    }
+                }
+
+                // 4. Open Subtask Details
+                if (notif.sub_task_id) {
+                    const client = window.App.clients.find(c => c.id == notif.client_id);
+                    const task = client?.main_tasks?.find(t => t.id == notif.main_task_id);
+                    const subtask = task?.subtasks?.find(s => s.id == notif.sub_task_id);
+                    
+                    if (subtask) {
+                        // Use existing logic to open detail view
+                        currentSubtaskId = subtask.id;
+                        detailSubtaskTitle.textContent = subtask.title;
+                        detailSubtaskDescription.textContent = subtask.description || 'No description';
+                        
+                        // Update UI toggles
+                        subtaskDetailView.classList.remove('hidden');
+                        subtasksList.classList.add('hidden');
+                        subtaskForm.classList.add('hidden');
+                        
+                        if (typeof updateSubtaskDetailHeader === 'function') updateSubtaskDetailHeader(subtask);
+                        if (typeof renderComments === 'function') renderComments(subtask.comments || []);
+                        if (typeof renderTimeLogs === 'function') renderTimeLogs(subtask.time_logs || []);
+                        
+                        // Switch to comments tab if it was a comment notification
+                        if (notif.type === 'comment') {
+                            const commentTab = document.querySelector('[onclick*="comments"]');
+                            if (commentTab) commentTab.click();
+                        }
+                    }
+                }
+
+                // Scroll to content
+                const mainContent = document.getElementById('main-content');
+                if (mainContent) mainContent.scrollTop = 0;
+
+            } catch (error) {
+                console.error('Navigation failed:', error);
+                showErrorNotification('Could not navigate to the selected item.');
+            }
+        }
+        window.jumpToNotification = jumpToNotification;
+
         function renderNotifications() {
             if (!notificationsList) return;
             const count = notifications.length;
@@ -3103,7 +3189,7 @@
                 else if (notif.type === 'time_log') { icon = 'fa-clock'; iconBg = 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'; }
                 else if (notif.type === 'main_task' || notif.type === 'subtask') { icon = 'fa-tasks'; iconBg = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'; }
                 
-                return `<div class="p-4 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                return `<div class="p-4 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer" onclick="jumpToNotification(${notif.id})">
                     <div class="flex space-x-3">
                         <div class="w-10 h-10 rounded-full ${iconBg} flex items-center justify-center shrink-0">
                             <i class="fas ${icon}"></i>
