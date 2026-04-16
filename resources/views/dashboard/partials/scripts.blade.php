@@ -188,11 +188,39 @@
                 switchView('statistics');
             }
 
+            // Start Nepali Clock
+            startNepaliClock();
+
             // Start Remote Logout Heartbeat
             startHeartbeat();
 
             // Start Global State Sync (Instant Updates)
             startPulseSync();
+        }
+
+        /**
+         * Nepali Live Clock (UTC+5:45)
+         */
+        function startNepaliClock() {
+            const clockEl = document.getElementById('nepali-clock');
+            if (!clockEl) return;
+
+            const updateTime = () => {
+                // Get UTC time and adjust for Nepal Offset (+5:45)
+                const now = new Date();
+                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const nepalOffset = 5.75; // 5 hours and 45 minutes
+                const nepalTime = new Date(utc + (3600000 * nepalOffset));
+
+                const hours = nepalTime.getHours().toString().padStart(2, '0');
+                const minutes = nepalTime.getMinutes().toString().padStart(2, '0');
+                const seconds = nepalTime.getSeconds().toString().padStart(2, '0');
+                
+                clockEl.textContent = `${hours}:${minutes}:${seconds}`;
+            };
+
+            updateTime();
+            setInterval(updateTime, 1000);
         }
 
         /**

@@ -11,6 +11,22 @@
                 </div>
                 
                 <div class="flex items-center space-x-4">
+                    <div class="hidden sm:flex items-center px-4 py-1.5 bg-gray-100/50 dark:bg-gray-700/50 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-inner group transition-all hover:bg-white dark:hover:bg-gray-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <i class="fas fa-clock text-blue-500 dark:text-blue-400 text-xs animate-pulse"></i>
+                                <span class="absolute -top-1 -right-1 flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                </span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-tighter leading-none mb-0.5">Kathmandu, NP</span>
+                                <span id="nepali-clock" class="text-sm font-black text-gray-800 dark:text-white tabular-nums leading-none">00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <button id="theme-toggle" class="p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Toggle Theme (Ctrl+D)">
                         <i id="theme-icon" class="fas fa-moon"></i>
                     </button>
