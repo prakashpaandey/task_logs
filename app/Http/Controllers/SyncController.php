@@ -42,14 +42,25 @@ class SyncController extends Controller
         $statsResponse = $statsController->getStatistics();
         $statsData = $statsResponse->getData();
 
-        // 3. Optional: Users list for Admins (to see if new users were added)
-        $users = $user->isAdmin() ? User::all() : [];
+        // 3. Optional: Users list & Notifications for Admins
+        $users = [];
+        $notifications = [];
+        
+        if ($user->isAdmin()) {
+            $users = User::all();
+            $notifications = \App\Models\Notification::with('user')
+                ->whereNull('read_at')
+                ->latest()
+                ->limit(20)
+                ->get();
+        }
 
         return response()->json([
             'success' => true,
             'clients' => $clients,
             'statistics' => $statsData,
             'users' => $users,
+            'notifications' => $notifications,
             'server_time' => now()->toIso8601String()
         ]);
     }

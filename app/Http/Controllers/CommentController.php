@@ -26,6 +26,15 @@ class CommentController extends Controller
 
         $comment = SubTaskComment::create($request->all() + ['user_id' => $user->id]);
 
+        // Create notification for Super Admin if triggered by a developer
+        if (!$user->isAdmin()) {
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'type' => 'comment',
+                'message' => "{$user->name} posted a comment on Subtask: \"{$subtask->title}\"",
+            ]);
+        }
+
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Comment added successfully.', 'comment' => $comment->load('user')]);
         }

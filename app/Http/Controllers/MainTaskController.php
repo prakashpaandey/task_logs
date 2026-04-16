@@ -24,6 +24,15 @@ class MainTaskController extends Controller
         }
 
         $mainTask = MainTask::create($request->all() + ['user_id' => $user->id]);
+
+        // Create notification for Super Admin if triggered by a developer
+        if (!$user->isAdmin()) {
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'type' => 'main_task',
+                'message' => "{$user->name} created a new Main Task: \"{$mainTask->title}\"",
+            ]);
+        }
         
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Main Task created successfully.', 'mainTask' => $mainTask->load(['user', 'category'])]);

@@ -27,6 +27,15 @@ class SubTaskController extends Controller
 
         $subtask = Subtask::create($request->all() + ['user_id' => $user->id]);
 
+        // Create notification for Super Admin if triggered by a developer
+        if (!$user->isAdmin()) {
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'type' => 'subtask',
+                'message' => "{$user->name} added a Subtask: \"{$subtask->title}\" for \"{$mainTask->title}\"",
+            ]);
+        }
+
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Subtask created successfully.', 'subtask' => $subtask->load('user')]);
         }

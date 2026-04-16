@@ -40,6 +40,13 @@
         const successMessage = document.getElementById('success-message');
         const errorMessage = document.getElementById('error-message');
         
+        // Notifications Elements
+        const notificationsButton = document.getElementById('notifications-button');
+        const notificationsDropdown = document.getElementById('notifications-dropdown');
+        const notificationsBadge = document.getElementById('notifications-badge');
+        const notificationsList = document.getElementById('notifications-list');
+        const notificationsWrapper = document.getElementById('notifications-wrapper');
+        
         // Profile & Security Elements
         const profileBtn = document.getElementById('profile-btn');
         const profileModal = document.getElementById('profile-modal');
@@ -105,6 +112,11 @@
         let deleteCallback = null;
         let currentDeleteType = null;
         let sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        
+        // Notifications state
+        let notifications = [];
+        let lastNotificationCount = 0;
+        let isSuperAdmin = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
         
         // User Dashboard State
         if (!window.App.users) window.App.users = [];
@@ -338,7 +350,15 @@
                         if (typeof showClientSelectionPrompt === 'function') showClientSelectionPrompt();
                         showErrorNotification('The client you were viewing is no longer available.', 'warning');
                     }
+                    
+                    // Dynamic Cleanup: Handle entities that might have been deleted externally
+                    handleDeletedEntities(data.clients);
                 }
+            }
+
+            // 3. Process Notifications (Admins Only)
+            if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin && data.notifications) {
+                processNotifications(data.notifications);
             }
         }
 
@@ -3026,4 +3046,88 @@
             link.click();
             document.body.removeChild(link);
         };
+        // Notification Functions
+        if (isSuperAdmin && notificationsButton) {
+            notificationsButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationsDropdown.classList.toggle('hidden');
+                userDropdown.classList.add('hidden'); // Close user menu
+            });
+
+            document.addEventListener('click', (e) => {
+                if (notificationsDropdown && !notificationsDropdown.contains(e.target) && !notificationsButton.contains(e.target)) {
+                    notificationsDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        function processNotifications(newNotifications) {
+            const oldNotificationsJson = JSON.stringify(notifications);
+            const newNotificationsJson = JSON.stringify(newNotifications);
+            
+            if (oldNotificationsJson !== newNotificationsJson) {
+                const prevCount = notifications.length;
+                notifications = newNotifications;
+                
+                renderNotifications();
+                
+                if (notifications.length > prevCount) {
+                    const latest = notifications[0];
+                    showSuccessNotification(`New Activity: ${latest.message}`);
+                }
+            }
+        }
+
+        function renderNotifications() {
+            if (!notificationsList) return;
+            const count = notifications.length;
+            if (notificationsBadge) {
+                if (count > 0) {
+                    notificationsBadge.textContent = count > 99 ? '99+' : count;
+                    notificationsBadge.classList.remove('hidden');
+                } else {
+                    notificationsBadge.classList.add('hidden');
+                }
+            }
+            if (count === 0) {
+                notificationsList.innerHTML = `<div class="p-8 text-center text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-bell-slash mb-2 text-2xl opacity-20"></i>
+                    <p class="text-sm font-medium">No new notifications</p>
+                </div>`;
+                return;
+            }
+            notificationsList.innerHTML = notifications.map(notif => {
+                const time = new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                let icon = 'fa-info-circle', iconBg = 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
+                if (notif.type === 'comment') { icon = 'fa-comments'; iconBg = 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'; }
+                else if (notif.type === 'time_log') { icon = 'fa-clock'; iconBg = 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'; }
+                else if (notif.type === 'main_task' || notif.type === 'subtask') { icon = 'fa-tasks'; iconBg = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'; }
+                
+                return `<div class="p-4 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <div class="flex space-x-3">
+                        <div class="w-10 h-10 rounded-full ${iconBg} flex items-center justify-center shrink-0">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-800 dark:text-gray-200">${notif.message}</p>
+                            <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-wider">${time}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function markNotificationsAsRead() {
+            try {
+                const response = await fetch('{{ route('dashboard.notifications.mark-read') }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                });
+                if (response.ok) {
+                    notifications = [];
+                    renderNotifications();
+                }
+            } catch (error) { console.error('Failed to clear notifications:', error); }
+        }
+        window.markNotificationsAsRead = markNotificationsAsRead;
     </script>

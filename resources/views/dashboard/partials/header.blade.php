@@ -15,6 +15,29 @@
                         <i id="theme-icon" class="fas fa-moon"></i>
                     </button>
                     
+                    @if(auth()->user()->isAdmin())
+                    <div class="relative" id="notifications-wrapper">
+                        <button id="notifications-button" class="p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative" title="Notifications">
+                            <i class="fas fa-bell text-gray-600 dark:text-gray-300"></i>
+                            <span id="notifications-badge" class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full hidden">0</span>
+                        </button>
+                        
+                        <div id="notifications-dropdown" class="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 hidden z-50 overflow-hidden">
+                            <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+                                <h3 class="font-bold text-gray-800 dark:text-white">Notifications</h3>
+                                <button onclick="markNotificationsAsRead()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Mark all as read</button>
+                            </div>
+                            <div id="notifications-list" class="max-h-[400px] overflow-y-auto">
+                                <!-- Notifications will be rendered here -->
+                                <div class="p-8 text-center text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-bell-slash mb-2 text-2xl opacity-20"></i>
+                                    <p class="text-sm font-medium">No new notifications</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    
                     <div class="relative">
                         <button id="user-menu-button" class="flex items-center space-x-2 md:space-x-3 p-1 md:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                             <div id="user-initials" class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs md:text-base">

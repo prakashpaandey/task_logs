@@ -54,6 +54,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
     Route::get('statistics', [StatisticsController::class, 'getStatistics'])->name('dashboard.statistics');
     Route::get('sync', [\App\Http\Controllers\SyncController::class, 'getPulse'])->name('dashboard.sync');
     Route::get('reports/data', [\App\Http\Controllers\ReportController::class, 'getActivityData'])->name('dashboard.reports.data');
+    Route::post('notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('dashboard.notifications.mark-read');
 
     // Admin User Management
     Route::resource('users', \App\Http\Controllers\AdminUserController::class)->except(['create', 'edit', 'show'])->names([
