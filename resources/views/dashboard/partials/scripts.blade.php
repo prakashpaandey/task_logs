@@ -249,6 +249,51 @@
                         document.getElementById('stat-comments-week').textContent = response.comments.week || 0;
                     if (document.getElementById('stat-comments-month'))
                         document.getElementById('stat-comments-month').textContent = response.comments.month || 0;
+
+                    // Update Recent Activity Table
+                    const personalActivityTable = document.getElementById('personal-activity-table-body');
+                    const personalActivityTitle = document.querySelector('#personal-activity-dashboard h3');
+
+                    if (personalActivityTable) {
+                        if (response.recent_activity && response.recent_activity.length > 0) {
+                            if (personalActivityTitle) {
+                                personalActivityTitle.textContent = response.is_admin ? 'Latest System Activity' : 'Recent Activity';
+                            }
+                            
+                            personalActivityTable.innerHTML = response.recent_activity.map(log => `
+                                <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                            ${new Date(log.created_at).toLocaleDateString()}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col">
+                                            <span class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">
+                                                ${log.subtask?.main_task?.client?.name || 'N/A'}
+                                            </span>
+                                            <span class="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5 line-clamp-1">
+                                                ${log.subtask?.main_task?.title || 'Unknown Task'}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="inline-flex px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs font-black text-gray-700 dark:text-gray-200">
+                                            ${log.time}h
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('');
+                        } else {
+                            personalActivityTable.innerHTML = `
+                                <tr>
+                                    <td colspan="3" class="px-6 py-12 text-center text-gray-400 dark:text-gray-500 text-sm italic">
+                                        No recent activity reported in the last 30 days.
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error loading statistics:', error);
@@ -1307,7 +1352,8 @@
             const views = {
                 'statistics': document.getElementById('statistics-dashboard'),
                 'client': document.getElementById('client-content'),
-                'user-management': document.getElementById('user-management-dashboard')
+                'user-management': document.getElementById('user-management-dashboard'),
+                'reports': document.getElementById('reports-section')
             };
 
             const breadcrumb = document.getElementById('breadcrumb-nav');
@@ -1332,6 +1378,8 @@
 
             // Update sidebar active states
             const manageUsersBtn = document.getElementById('sidebar-manage-users-btn');
+            const reportsBtn = document.getElementById('sidebar-activity-reports-btn');
+
             if (manageUsersBtn) {
                 if (viewName === 'user-management') {
                     manageUsersBtn.classList.add('active');
@@ -1340,11 +1388,21 @@
                 }
             }
 
+            if (reportsBtn) {
+                if (viewName === 'reports') {
+                    reportsBtn.classList.add('active');
+                } else {
+                    reportsBtn.classList.remove('active');
+                }
+            }
+
             // Sync data on view switch
             if (viewName === 'statistics') {
                 loadStatistics();
             } else if (viewName === 'user-management') {
                 loadUserDashboardData();
+            } else if (viewName === 'reports') {
+                loadReportsData(1);
             }
         }
 
@@ -2547,4 +2605,203 @@
             }
             if (menu) menu.classList.add('hidden');
         }
+
+        /* --- Activity Reports Logic --- */
+        let currentReportData = [];
+
+        window.handleReportTypeChange = function() {
+            const type = document.getElementById('report-type-select').value;
+            const targetLabel = document.getElementById('report-target-label');
+            const targetSelect = document.getElementById('report-target-select');
+            
+            if (type === 'user') {
+                if (targetLabel) targetLabel.textContent = 'Target Developer';
+                if (targetSelect) {
+                    targetSelect.innerHTML = '<option value="">All Developers</option>' + 
+                        @json(\App\Models\User::all()).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+                }
+            } else {
+                if (targetLabel) targetLabel.textContent = 'Target Client';
+                if (targetSelect) {
+                    targetSelect.innerHTML = '<option value="">All Clients</option>' + 
+                        @json(\App\Models\Client::all()).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                }
+            }
+        };
+
+        window.handleReportPeriodChange = function() {
+            const period = document.getElementById('report-period-select').value;
+            const customContainer = document.getElementById('report-custom-date-container');
+            if (period === 'custom') {
+                customContainer.classList.remove('hidden');
+            } else {
+                customContainer.classList.add('hidden');
+            }
+        };
+
+        window.loadReportsData = async function(page = 1) {
+            const typeSelect = document.getElementById('report-type-select');
+            const targetSelect = document.getElementById('report-target-select');
+            const periodSelect = document.getElementById('report-period-select');
+            const startTime = document.getElementById('report-start-date');
+            const endTime = document.getElementById('report-end-date');
+
+            const params = new URLSearchParams({
+                page: page,
+                type: typeSelect ? typeSelect.value : 'user',
+                period: periodSelect ? periodSelect.value : 'week'
+            });
+
+            if (targetSelect && targetSelect.value) params.append('target_id', targetSelect.value);
+            if (startTime && startTime.value) params.append('start_date', startTime.value);
+            if (endTime && endTime.value) params.append('end_date', endTime.value);
+
+            try {
+                const response = await fetch(`/dashboard/reports/data?${params.toString()}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentReportData = result.data;
+                    renderReportTable(result.data);
+                    renderPagination(result.pagination);
+                    updateReportSummary(result.summary, result.filters.type);
+                }
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                showNotification('Failed to load report data', 'error');
+            }
+        };
+
+        function renderReportTable(data) {
+            const tbody = document.getElementById('report-table-body');
+            const emptyState = document.getElementById('report-empty-state');
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = data.map(log => `
+                <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-xs font-bold text-gray-700 dark:text-gray-300">${new Date(log.created_at).toLocaleDateString()}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">${log.subtask?.main_task?.client?.name || 'N/A'}</span>
+                            <span class="text-sm font-black text-gray-900 dark:text-white mt-0.5 line-clamp-1">${log.subtask?.main_task?.title || 'Unknown Task'}</span>
+                            <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">${log.subtask?.title || 'No Subtask Title'}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                                ${log.user?.name.charAt(0)}
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">${log.user?.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 max-w-xs italic">
+                            ${log.subtask?.description || 'No work description reported'}
+                        </p>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="inline-flex px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs font-black text-gray-700 dark:text-gray-200">
+                            ${log.time}h
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateReportSummary(summary, type) {
+            document.getElementById('report-summary-hours').textContent = summary.total_hours + 'h';
+            document.getElementById('report-summary-tasks').textContent = summary.task_count;
+            
+            const extraCard = document.getElementById('report-summary-extra-card');
+            const extraLabel = document.getElementById('report-summary-extra-label');
+            const extraValue = document.getElementById('report-summary-extra-value');
+
+            if (type === 'client') {
+                extraCard.classList.remove('hidden');
+                extraLabel.textContent = 'Project Contributors';
+                
+                // Detailed breakdown for easy viewing by Super Admin
+                let breakdownHtml = `<div class="mt-2 text-2xl font-black text-gray-900 dark:text-white">${summary.developer_count}</div>`;
+                if (summary.developer_breakdown && summary.developer_breakdown.length > 0) {
+                    breakdownHtml += `
+                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                            ${summary.developer_breakdown.map(dev => `
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase">${dev.user_name}</span>
+                                    <span class="text-xs font-black text-blue-600">${dev.hours}h</span>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                }
+                extraValue.parentElement.innerHTML = `
+                    <p id="report-summary-extra-label" class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">${extraLabel.textContent}</p>
+                    <div id="report-summary-extra-value">${breakdownHtml}</div>
+                `;
+            } else {
+                extraCard.classList.add('hidden');
+            }
+        }
+
+        function renderPagination(pagination) {
+            const info = document.getElementById('report-pagination-info');
+            const pages = document.getElementById('report-pages');
+            const prevBtn = document.getElementById('report-prev-page');
+            const nextBtn = document.getElementById('report-next-page');
+
+            info.textContent = `Showing ${pagination.total > 0 ? (pagination.current_page - 1) * pagination.per_page + 1 : 0} to ${Math.min(pagination.current_page * pagination.per_page, pagination.total)} of ${pagination.total} records`;
+
+            prevBtn.disabled = pagination.current_page === 1;
+            prevBtn.onclick = () => loadReportsData(pagination.current_page - 1);
+
+            nextBtn.disabled = pagination.current_page === pagination.last_page || pagination.total === 0;
+            nextBtn.onclick = () => loadReportsData(pagination.current_page + 1);
+
+            pages.innerHTML = '';
+            for (let i = 1; i <= Math.min(5, pagination.last_page); i++) {
+                const btn = document.createElement('button');
+                btn.className = `w-8 h-8 rounded-lg text-xs font-bold transition-all ${i === pagination.current_page ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+                btn.textContent = i;
+                btn.onclick = () => loadReportsData(i);
+                pages.appendChild(btn);
+            }
+        }
+
+        window.exportReportToCSV = function() {
+            if (!currentReportData || currentReportData.length === 0) {
+                showNotification('No data available to export', 'warning');
+                return;
+            }
+
+            const headers = ['Date', 'Client', 'Main Task', 'Subtask', 'User', 'Description', 'Hours'];
+            const rows = currentReportData.map(log => [
+                new Date(log.created_at).toLocaleDateString(),
+                log.subtask?.main_task?.client?.name || 'N/A',
+                log.subtask?.main_task?.title || 'N/A',
+                log.subtask?.title || 'N/A',
+                log.user?.name || 'N/A',
+                (log.subtask?.description || '').replace(/,/g, ';'),
+                log.time
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + headers.join(",") + "\n"
+                + rows.map(e => e.join(",")).join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `activity_report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
     </script>

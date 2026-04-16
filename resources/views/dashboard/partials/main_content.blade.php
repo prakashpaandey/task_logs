@@ -118,6 +118,172 @@
                         </div>
                     </div>
                     
+                    <!-- Recent Activity Section (For Developers / Quick View) -->
+                    <div id="personal-activity-dashboard" class="mt-12">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Recent Activity</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">Your latest contributions</p>
+                            </div>
+                            <button onclick="switchView('reports')" class="text-xs font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest transition-colors">
+                                View Full Report <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-gray-50/50 dark:bg-gray-900/30">
+                                        <tr>
+                                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Date</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Project / Task</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right">Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="personal-activity-table-body" class="divide-y divide-gray-50 dark:divide-gray-700">
+                                        <tr>
+                                            <td colspan="3" class="px-6 py-8 text-center text-gray-400 dark:text-gray-500 text-sm italic">
+                                                Select a timeframe to view your latest records.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Reports Section -->
+                <div id="reports-section" class="h-full flex flex-col p-4 md:p-8 animate-fadeIn hidden">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+                        <div>
+                            <h2 class="text-2xl font-black text-gray-900 dark:text-white flex items-center">
+                                <i class="fas fa-file-invoice mr-3 text-blue-600"></i>
+                                Activity Reports
+                            </h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Generate and export detailed work logs</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="exportReportToCSV()" class="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-2xl text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
+                                <i class="fas fa-file-csv text-emerald-500"></i> Export CSV
+                            </button>
+                            <button onclick="window.print()" class="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-2xl text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
+                                <i class="fas fa-print text-indigo-500"></i> Print PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Report Controls -->
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            @if(auth()->user()->isAdmin())
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">Report Type</label>
+                                <select id="report-type-select" onchange="handleReportTypeChange()" class="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all">
+                                    <option value="user">Developer Report</option>
+                                    <option value="client">Client Report</option>
+                                </select>
+                            </div>
+                            <div id="report-target-container" class="space-y-2">
+                                <label id="report-target-label" class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">Target Developer</label>
+                                <select id="report-target-select" class="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl px-4 py-4 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all">
+                                    <option value="">All Developers</option>
+                                    @foreach(\App\Models\User::all() as $u)
+                                        <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">Time Period</label>
+                                <select id="report-period-select" onchange="handleReportPeriodChange()" class="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all">
+                                    <option value="today">Today</option>
+                                    <option value="week" selected>This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                            </div>
+
+                            <div id="report-custom-date-container" class="grid grid-cols-2 gap-3 hidden">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">Start</label>
+                                    <input type="date" id="report-start-date" class="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">End</label>
+                                    <input type="date" id="report-end-date" class="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all">
+                                </div>
+                            </div>
+
+                            <div class="flex items-end">
+                                <button onclick="loadReportsData(1)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-[48px] rounded-2xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                                    Generate Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Section -->
+                    <div id="report-summary-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-6 rounded-3xl shadow-xl shadow-blue-500/20 text-white">
+                            <p class="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">Total Time Tracked</p>
+                            <h4 id="report-summary-hours" class="text-3xl font-black">0.0h</h4>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                            <p class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Tasks Completed</p>
+                            <h4 id="report-summary-tasks" class="text-3xl font-black text-gray-900 dark:text-white">0</h4>
+                        </div>
+                        <div id="report-summary-extra-card" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                            <p id="report-summary-extra-label" class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Contributors</p>
+                            <h4 id="report-summary-extra-value" class="text-3xl font-black text-gray-900 dark:text-white">0</h4>
+                        </div>
+                    </div>
+
+                    <!-- Main Report Table -->
+                    <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex-1 flex flex-col min-h-[400px]">
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10">
+                                    <tr>
+                                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Date</th>
+                                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Client / Task</th>
+                                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">User</th>
+                                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Description</th>
+                                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right">Hours</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-table-body" class="divide-y divide-gray-100 dark:divide-gray-700">
+                                    <!-- Rows injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="report-empty-state" class="hidden flex-1 flex flex-col items-center justify-center p-12 text-center">
+                            <div class="w-20 h-20 bg-gray-50 dark:bg-gray-900/50 rounded-full flex items-center justify-center mb-4">
+                                <i class="fas fa-search text-3xl text-gray-300 dark:text-gray-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-2">No activity found</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters or date range.</p>
+                        </div>
+
+                        <!-- Table Footer / Pagination -->
+                        <div id="report-pagination" class="px-6 py-4 bg-gray-50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                            <span id="report-pagination-info" class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Showing 0 of 0 records</span>
+                            <div class="flex items-center gap-2">
+                                <button id="report-prev-page" class="p-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-400 hover:bg-white dark:hover:bg-gray-800 transition-all disabled:opacity-30 disabled:pointer-events-none">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div id="report-pages" class="flex items-center gap-1">
+                                    <!-- Dynamic pagination numbers -->
+                                </div>
+                                <button id="report-next-page" class="p-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-400 hover:bg-white dark:hover:bg-gray-800 transition-all disabled:opacity-30 disabled:pointer-events-none">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <nav id="breadcrumb-nav" class="mb-6 hidden">

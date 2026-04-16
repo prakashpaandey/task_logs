@@ -63,12 +63,23 @@ class StatisticsController extends Controller
             ];
         }
 
+        // 3. Recent Activity (Latest logs)
+        $recentActivity = TimeLog::with(['subtask.mainTask.client'])
+            ->whereBetween('created_at', [$now->copy()->subDays(30), $now]);
+        
+        if (!$isAdmin) {
+            $recentActivity->where('user_id', $user->id);
+        }
+        
+        $recentActivity = $recentActivity->latest()->limit(10)->get();
+
         return response()->json([
             'success' => true,
             'is_admin' => $isAdmin,
             'time_logs' => $timeStats,
             'comments' => $commentStats,
-            'breakdown' => $breakdown
+            'breakdown' => $breakdown,
+            'recent_activity' => $recentActivity
         ]);
     }
 
