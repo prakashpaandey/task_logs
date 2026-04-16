@@ -28,6 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Clear force_logout flag upon successful proactive login
+        $user = auth()->user();
+        if ($user->force_logout) {
+            $user->update(['force_logout' => false]);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

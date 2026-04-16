@@ -161,14 +161,11 @@
                                 <i class="fas fa-file-invoice mr-3 text-blue-600"></i>
                                 Activity Reports
                             </h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Generate and export detailed work logs</p>
+                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Generate and export detailed work logs</p>
                         </div>
                         <div class="flex items-center gap-3">
                             <button onclick="exportReportToCSV()" class="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-2xl text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
                                 <i class="fas fa-file-csv text-emerald-500"></i> Export CSV
-                            </button>
-                            <button onclick="window.print()" class="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-2xl text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
-                                <i class="fas fa-print text-indigo-500"></i> Print PDF
                             </button>
                         </div>
                     </div>
