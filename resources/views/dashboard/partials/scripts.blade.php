@@ -178,6 +178,9 @@
 
             // Start Remote Logout Heartbeat
             startHeartbeat();
+
+            // Start Global State Sync (Instant Updates)
+            startPulseSync();
         }
 
         /**
@@ -213,6 +216,173 @@
                     // Fail silently for network issues
                 }
             }, 10000); // Check every 10 seconds
+        }
+
+        /**
+         * Global State Sync Engine
+         * Periodically fetches the latest state from the server to keep the UI in sync.
+         */
+        let syncInterval = null;
+        let lastSyncData = null;
+        let isUserTyping = false;
+
+        function startPulseSync() {
+            if (syncInterval) clearInterval(syncInterval);
+            
+            // Listen for typing events to avoid UI jumps while editing
+            document.addEventListener('focusin', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    isUserTyping = true;
+                }
+            });
+            document.addEventListener('focusout', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    isUserTyping = false;
+                }
+            });
+
+            syncInterval = setInterval(async () => {
+                // Skip sync if user is actively writing to avoid losing focus
+                if (isUserTyping || typeof isSubmittingClient !== 'undefined' && isSubmittingClient || typeof isSubmittingMainTask !== 'undefined' && isSubmittingMainTask || typeof isSubmittingSubtask !== 'undefined' && isSubmittingSubtask || typeof isSubmittingTimeLog !== 'undefined' && isSubmittingTimeLog || typeof isSubmittingComment !== 'undefined' && isSubmittingComment) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('{{ route('dashboard.sync') }}', {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+                    
+                    if (!response.ok) return;
+
+                    const data = await response.json();
+                    if (data.success) {
+                        handleSyncPulse(data);
+                    }
+                } catch (error) {
+                    // Fail silently
+                }
+            }, 15000); // Pulse every 15 seconds
+        }
+
+        function handleSyncPulse(data) {
+            // 1. Update Statistics (Cards)
+            if (data.statistics && data.statistics.success) {
+                updateStatisticsDisplay(data.statistics);
+            }
+
+            // 2. Update Global App State
+            const oldClientsJson = JSON.stringify(window.App.clients);
+            const newClientsJson = JSON.stringify(data.clients);
+
+            if (oldClientsJson !== newClientsJson) {
+                const wasEmpty = !window.App.clients || window.App.clients.length === 0;
+                window.App.clients = data.clients;
+                const isNowPopulated = window.App.clients && window.App.clients.length > 0;
+                
+                // Re-render Client List (Sidebar)
+                if (typeof renderClientsList === 'function') renderClientsList();
+
+                // If user was newly assigned their first client, show a success toast
+                if (wasEmpty && isNowPopulated) {
+                    showSuccessNotification('You have been assigned to new clients! Check your sidebar.');
+                }
+
+               // If we are currently viewing a client, refresh the active view
+                if (currentClientId) {
+                    const updatedClient = typeof findClient === 'function' ? findClient(currentClientId) : null;
+                    if (updatedClient) {
+                        // Refresh Main Tasks list if we are in the client view
+                        if (!document.getElementById('client-content').classList.contains('hidden')) {
+                            if (typeof renderMainTasks === 'function') renderMainTasks(updatedClient.main_tasks || []);
+                            
+                            // Refresh breadcrumb text in case client was renamed
+                            if (typeof updateBreadcrumb === 'function') updateBreadcrumb();
+
+                            // If a main task is selected, refresh its subtasks
+                            if (currentMainTaskId) {
+                                const updatedTask = typeof findMainTask === 'function' ? findMainTask(currentMainTaskId) : null;
+                                if (updatedTask) {
+                                    if (typeof renderSubtasks === 'function') renderSubtasks(updatedTask.subtasks || []);
+                                    
+                                    // If a subtask is selected, refresh its details/comments
+                                    if (currentSubtaskId) {
+                                        const updatedSubtask = typeof findSubtask === 'function' ? findSubtask(currentSubtaskId) : null;
+                                        if (updatedSubtask) {
+                                            if (typeof updateSubtaskDetailHeader === 'function') updateSubtaskDetailHeader(updatedSubtask);
+                                            if (typeof renderComments === 'function') renderComments(updatedSubtask.comments || []);
+                                            if (typeof renderTimeLogs === 'function') renderTimeLogs(updatedSubtask.time_logs || []);
+                                            
+                                            // Update details description if shown
+                                            const subtaskDescEl = document.getElementById('detail-subtask-description');
+                                            if (subtaskDescEl && updatedSubtask.description) {
+                                                subtaskDescEl.textContent = updatedSubtask.description;
+                                            }
+                                        } else {
+                                            // Subtask was deleted externally
+                                            if (typeof resetSubtaskForm === 'function') resetSubtaskForm();
+                                            showErrorNotification('The subtask you were viewing was deleted by another user.');
+                                        }
+                                    }
+                                } else {
+                                    // Main task was deleted externally
+                                    if (typeof resetMainTaskSelection === 'function') resetMainTaskSelection();
+                                    showErrorNotification('The task you were viewing was deleted by another user.');
+                                }
+                            }
+                        }
+                    } else {
+                        // Client was likely deleted by another admin
+                        if (typeof showClientSelectionPrompt === 'function') showClientSelectionPrompt();
+                        showErrorNotification('The client you were viewing is no longer available.', 'warning');
+                    }
+                }
+            }
+        }
+
+        function updateStatisticsDisplay(stats) {
+            // Update Time Logs (Dashboard Cards)
+            if (document.getElementById('stat-time-today'))
+                document.getElementById('stat-time-today').textContent = parseFloat(stats.time_logs.today || 0).toFixed(1) + 'h';
+            if (document.getElementById('stat-time-week'))
+                document.getElementById('stat-time-week').textContent = parseFloat(stats.time_logs.week || 0).toFixed(1) + 'h';
+            if (document.getElementById('stat-time-month'))
+                document.getElementById('stat-time-month').textContent = parseFloat(stats.time_logs.month || 0).toFixed(1) + 'h';
+            
+            // Update Comments
+            if (document.getElementById('stat-comments-today'))
+                document.getElementById('stat-comments-today').textContent = stats.comments.today || 0;
+            if (document.getElementById('stat-comments-week'))
+                document.getElementById('stat-comments-week').textContent = stats.comments.week || 0;
+            if (document.getElementById('stat-comments-month'))
+                document.getElementById('stat-comments-month').textContent = stats.comments.month || 0;
+
+            // Update Recent Activity Table
+            const personalActivityTable = document.getElementById('personal-activity-table-body');
+            if (personalActivityTable && stats.recent_activity) {
+                if (stats.recent_activity.length > 0) {
+                    personalActivityTable.innerHTML = stats.recent_activity.map(log => `
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-xs font-bold text-gray-700 dark:text-gray-300">${new Date(log.created_at).toLocaleDateString()}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">${log.subtask?.main_task?.client?.name || 'N/A'}</span>
+                                    <span class="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5 line-clamp-1">${log.subtask?.main_task?.title || 'Unknown Task'}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="inline-flex px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs font-black text-gray-700 dark:text-gray-200">
+                                    ${log.time}h
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
         }
 
         // Load Statistics
@@ -1314,20 +1484,26 @@
                 return;
             }
             
-            list.innerHTML = tasks.map(task => `
-                <div class="main-task-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" data-task-id="${task.id}">
+            list.innerHTML = tasks.map(task => {
+                const isActive = task.id == currentMainTaskId;
+                return `
+                <div class="main-task-item p-4 border rounded-lg cursor-pointer transition-all duration-200 
+                    ${isActive 
+                        ? 'bg-blue-50 dark:bg-blue-900/25 border-blue-300 dark:border-blue-700 shadow-sm' 
+                        : 'bg-white dark:bg-gray-800/60 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'}" 
+                    data-task-id="${task.id}">
                     <div class="flex items-start justify-between">
                         <div class="flex items-start space-x-3">
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                            <div class="w-10 h-10 ${isActive ? 'bg-blue-600 text-white' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'} rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors">
                                 <i class="fas fa-project-diagram"></i>
                             </div>
                             <div>
-                                <h5 class="font-medium text-gray-800 dark:text-white flex flex-wrap items-center gap-2 mb-0.5">
+                                <h5 class="font-bold flex flex-wrap items-center gap-2 mb-0.5 ${isActive ? 'text-blue-800 dark:text-white' : 'text-gray-800 dark:text-white'}">
                                     <span class="break-words">${task.title}</span>
                                     ${task.category ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">${task.category.name}</span>` : ''}
                                 </h5>
-                                <p class="text-sm text-gray-600 dark:text-gray-200 line-clamp-1">${task.description || 'No description'}</p>
-                                <div class="mt-1.5 flex items-center text-xs text-blue-600 dark:text-blue-400">
+                                <p class="text-sm line-clamp-1 ${isActive ? 'text-blue-600/80 dark:text-blue-300/80' : 'text-gray-600 dark:text-gray-200'}">${task.description || 'No description'}</p>
+                                <div class="mt-1.5 flex items-center text-xs ${isActive ? 'text-blue-500 font-bold' : 'text-blue-600 dark:text-blue-400'}">
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
                                     <span>Created by: ${task.user_id == window.App.user.id ? 'You' : (task.user ? task.user.name : 'Unknown')}</span>
                                 </div>
@@ -1335,7 +1511,7 @@
                         </div>
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0 ml-2">
                             ${task.user_id == window.App.user.id ? `
-                                <button class="edit-main-task-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1">
+                                <button class="edit-main-task-btn ${isActive ? 'text-blue-700 hover:text-blue-900' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'} p-1">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="delete-main-task-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1">
@@ -1345,7 +1521,7 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;}).join('');
         }
 
         function switchView(viewName) {
@@ -1515,6 +1691,7 @@
                     }
                     showSuccessNotification(result.message);
                     renderClientsList();
+                    loadStatistics(); // Refresh dashboard cards
                     if (selectedClientName && currentClientId == editingClientId) {
                         selectedClientName.textContent = name;
                     }
@@ -1557,7 +1734,17 @@
 
         function renderClientsList() {
             const container = document.getElementById('clients-list-container');
+            const noClientsMsg = document.getElementById('no-clients-message');
             if (!container) return;
+
+            if (!window.App.clients || window.App.clients.length === 0) {
+                container.innerHTML = '';
+                if (noClientsMsg) noClientsMsg.classList.remove('hidden');
+                return;
+            }
+
+            if (noClientsMsg) noClientsMsg.classList.add('hidden');
+            
             container.innerHTML = window.App.clients.map(client => {
                 const initials = getInitials(client.name);
                 const color = clientAvatarColors[client.id % clientAvatarColors.length];
@@ -1678,6 +1865,7 @@
                 renderClientsList();
                 showSuccessNotification(result.message);
                 resetMainTaskForm();
+                loadStatistics(); // Refresh dashboard cards
             } catch (error) {
                 // Error handled by apiCall or global handler, but we must reset state
             } finally {
@@ -1722,6 +1910,7 @@
                 renderMainTasks(client.main_tasks);
                 showSuccessNotification(result.message);
                 resetMainTaskForm();
+                loadStatistics(); // Refresh dashboard cards
             } catch (error) {
             } finally {
                 isSubmittingMainTask = false;
@@ -1735,11 +1924,15 @@
             const task = findMainTask(taskId);
             if (!task) return;
 
+            currentMainTaskId = taskId;
+            
+            // Re-render to show active state
+            renderMainTasks(findClient(currentClientId).main_tasks || []);
+            
             selectedMainTaskTitle.textContent = task.title;
             selectedMainTaskDescription.textContent = task.description || 'No description';
             selectedMainTaskInfo.classList.remove('hidden');
             addSubtaskBtn.disabled = false;
-            currentMainTaskId = taskId;
             
             renderSubtasks(task.subtasks || []);
 
@@ -1747,15 +1940,32 @@
                 document.getElementById('subtasks-list').scrollIntoView({ behavior: 'smooth' });
             }
             
-            const breadcrumbEl = document.getElementById('breadcrumb-client-name');
-            const clientName = breadcrumbEl.textContent.split(' > ')[0];
-            breadcrumbEl.textContent = `${clientName} > ${task.title}`;
+            updateBreadcrumb();
             
             currentSubtaskId = null;
             subtaskDetailView.classList.add('hidden');
             subtasksList.classList.remove('hidden');
             subtaskForm.classList.add('hidden');
-            subtaskCommentsSection.classList.add('hidden');
+            if (subtaskCommentsSection) subtaskCommentsSection.classList.add('hidden');
+        }
+
+        function updateBreadcrumb() {
+            const breadcrumbEl = document.getElementById('breadcrumb-client-name');
+            if (!breadcrumbEl) return;
+            
+            const client = findClient(currentClientId);
+            if (!client) return;
+            
+            let html = `<a href="#" onclick="showClientContent()" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">${client.name}</a>`;
+            
+            if (currentMainTaskId) {
+                const task = findMainTask(currentMainTaskId);
+                if (task) {
+                    html += ` <i class="fas fa-chevron-right text-[10px] mx-1 opacity-50"></i> <span class="text-gray-400 font-medium">${task.title}</span>`;
+                }
+            }
+            
+            breadcrumbEl.innerHTML = html;
         }
         
         function renderSubtasks(subtasks) {
@@ -1771,20 +1981,26 @@
                 return;
             }
             
-            container.innerHTML = subtasks.map(s => `
-                <div class="subtask-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" data-subtask-id="${s.id}">
+            container.innerHTML = subtasks.map(s => {
+                const isActive = s.id == currentSubtaskId;
+                return `
+                <div class="subtask-item p-4 border rounded-lg cursor-pointer transition-all duration-200 
+                    ${isActive 
+                        ? 'bg-blue-50 dark:bg-blue-900/25 border-blue-300 dark:border-blue-700 shadow-sm' 
+                        : 'bg-white dark:bg-gray-800/60 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'}" 
+                    data-subtask-id="${s.id}">
                     <div class="flex items-start justify-between">
                         <div class="flex items-start space-x-3">
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                            <div class="w-10 h-10 ${isActive ? 'bg-blue-600 text-white' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'} rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors">
                                 <i class="fas fa-pencil-alt"></i>
                             </div>
                             <div>
-                                <h5 class="font-medium text-gray-800 dark:text-white">${s.title}</h5>
-                                <div class="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-200 gap-x-3 gap-y-1 mt-0.5">
-                                    <div class="flex items-center"><i class="fas fa-clock mr-1.5"></i><span>${s.total_time_logged || 0}h total</span></div>
-                                    <div class="flex items-center"><i class="fas fa-calendar-alt mr-1.5"></i><span>${s.work_date}</span></div>
+                                <h5 class="font-bold ${isActive ? 'text-blue-800 dark:text-white' : 'text-gray-800 dark:text-white'}">${s.title}</h5>
+                                <div class="flex flex-wrap items-center text-sm gap-x-3 gap-y-1 mt-0.5 ${isActive ? 'text-blue-600/80 dark:text-blue-300' : 'text-gray-600 dark:text-gray-200'}">
+                                    <div class="flex items-center font-bold"><i class="fas fa-clock mr-1.5"></i><span>${s.total_time_logged || 0}h total</span></div>
+                                    <div class="flex items-center"><i class="fas fa-calendar-alt mr-1.5 opacity-60"></i><span>${s.work_date}</span></div>
                                 </div>
-                                <div class="mt-1.5 flex items-center text-xs text-blue-600 dark:text-blue-400">
+                                <div class="mt-1.5 flex items-center text-xs ${isActive ? 'text-blue-500 font-bold' : 'text-blue-600 dark:text-blue-400'}">
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
                                     <span>Created by: ${s.user_id == window.App.user.id ? 'You' : (s.user ? s.user.name : 'Unknown')}</span>
                                 </div>
@@ -1792,13 +2008,13 @@
                         </div>
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0 ml-2">
                             ${s.user_id == window.App.user.id ? `
-                                <button class="edit-subtask-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1"><i class="fas fa-edit"></i></button>
+                                <button class="edit-subtask-btn ${isActive ? 'text-blue-700 hover:text-blue-900' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'} p-1"><i class="fas fa-edit"></i></button>
                                 <button class="delete-subtask-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"><i class="fas fa-trash-alt"></i></button>
                             ` : ''}
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;}).join('');
         }
 
         function resetMainTaskSelection() {
@@ -1905,6 +2121,7 @@
                 renderSubtasks(task.subtasks);
                 showSuccessNotification(result.message);
                 resetSubtaskForm();
+                loadStatistics(); // Refresh dashboard cards
             } catch (error) {
                 console.error('Save subtask error:', error);
             } finally {
@@ -1941,6 +2158,7 @@
                 renderSubtasks(task.subtasks);
                 showSuccessNotification(result.message);
                 resetSubtaskForm();
+                loadStatistics(); // Refresh dashboard cards
             } catch (error) {
                 console.error('Update subtask error:', error);
             } finally {
@@ -2126,6 +2344,7 @@
                 renderSubtasks(findMainTask(currentMainTaskId).subtasks);
                 resetTimeLogForm();
                 showSuccessNotification(result.message);
+                loadStatistics(); // Refresh dashboard cards
             } catch (error) {
                 console.error('Save time log error:', error);
             } finally {
@@ -2165,6 +2384,7 @@
                 renderSubtasks(findMainTask(currentMainTaskId).subtasks);
                 resetTimeLogForm();
                 showSuccessNotification(result.message);
+                loadStatistics(); // Refresh dashboard cards
             } catch (error) {
                 console.error('Update time log error:', error);
             } finally {
@@ -2293,6 +2513,7 @@
                     subtask.comments.push(result.comment);
                     renderComments(subtask.comments);
                     showSuccessNotification(result.message);
+                    loadStatistics();
                 } else {
                     const url = '{{ route('dashboard.comments.update', ['comment' => ':id']) }}'.replace(':id', currentCommentId);
                     const result = await apiCall(url, 'PUT', { comment });
@@ -2301,6 +2522,7 @@
                     if (idx !== -1) subtask.comments[idx] = result.comment;
                     renderComments(subtask.comments);
                     showSuccessNotification(result.message);
+                    loadStatistics();
                 }
                 resetCommentForm();
             } catch (error) {

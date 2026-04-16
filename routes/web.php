@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         'destroy' => 'dashboard.time-logs.destroy',
     ]);
     Route::get('statistics', [StatisticsController::class, 'getStatistics'])->name('dashboard.statistics');
+    Route::get('sync', [\App\Http\Controllers\SyncController::class, 'getPulse'])->name('dashboard.sync');
     Route::get('reports/data', [\App\Http\Controllers\ReportController::class, 'getActivityData'])->name('dashboard.reports.data');
 
     // Admin User Management
