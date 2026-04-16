@@ -1510,7 +1510,7 @@
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0 ml-2">
-                            ${task.user_id == window.App.user.id ? `
+                            ${(window.App.user.role === 'super_admin' || task.user_id == window.App.user.id) ? `
                                 <button class="edit-main-task-btn ${isActive ? 'text-blue-700 hover:text-blue-900' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'} p-1">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -2007,7 +2007,7 @@
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0 ml-2">
-                            ${s.user_id == window.App.user.id ? `
+                            ${(window.App.user.role === 'super_admin' || s.user_id == window.App.user.id) ? `
                                 <button class="edit-subtask-btn ${isActive ? 'text-blue-700 hover:text-blue-900' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'} p-1"><i class="fas fa-edit"></i></button>
                                 <button class="delete-subtask-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"><i class="fas fa-trash-alt"></i></button>
                             ` : ''}
@@ -2302,7 +2302,7 @@
                         <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(log.created_at).toLocaleDateString()} by ${log.user_id == window.App.user.id ? 'You' : (log.user ? log.user.name : 'User')}</span>
                     </div>
                     <div class="flex items-center space-x-2">
-                        ${log.user_id == window.App.user.id ? `
+                        ${(window.App.user.role === 'super_admin' || log.user_id == window.App.user.id) ? `
                             <button onclick="openTimeLogForm('edit', ${log.id}, ${log.time})" class="text-blue-500 hover:text-blue-700 p-1">
                                 <i class="fas fa-edit text-xs"></i>
                             </button>
@@ -2447,7 +2447,7 @@
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            ${c.user_id == window.App.user.id ? `
+                            ${(window.App.user.role === 'super_admin' || c.user_id == window.App.user.id) ? `
                                 <button class="edit-comment-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"><i class="fas fa-edit"></i></button>
                                 <button class="delete-comment-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><i class="fas fa-trash-alt"></i></button>
                             ` : ''}

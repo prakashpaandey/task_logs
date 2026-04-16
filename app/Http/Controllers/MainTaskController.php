@@ -65,14 +65,15 @@ class MainTaskController extends Controller
             return;
         }
 
-        // Check if assigned to client
-        $clientId = $model->client_id ?? $model->mainTask->client_id; // Flexible for tasks/subtasks
+        // 1. Enforce Ownership: Non-admins can only edit/delete their own tasks
+        if ($model->user_id !== $user->id) {
+            abort(403, 'Unauthorized action. You can only edit or delete tasks you created.');
+        }
+
+        // 2. Client Assignment Check (Safety Layer)
+        $clientId = $model->client_id ?? $model->mainTask->client_id;
         if (!$user->clients()->where('clients.id', $clientId)->exists()) {
             abort(403, 'Unauthorized action. You are not assigned to this client.');
         }
-        
-        // Optional: If you want developers to ONLY edit their OWN tasks even within assigned clients:
-        // if ($model->user_id !== $user->id) { abort(403); }
-        // The requirement "work on the clients" usually implies collaboration, so I'll leave it as client-based.
     }
 }

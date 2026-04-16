@@ -67,6 +67,12 @@ class SubTaskController extends Controller
             return;
         }
 
+        // 1. Enforce Ownership: Non-admins can only edit/delete their own subtasks
+        if ($model->user_id !== $user->id) {
+            abort(403, 'Unauthorized action. You can only edit or delete subtasks you created.');
+        }
+
+        // 2. Client Assignment Check (Safety Layer via Main Task)
         $mainTask = $model->mainTask;
         if (!$user->clients()->where('clients.id', $mainTask->client_id)->exists()) {
             abort(403, 'Unauthorized action. You are not assigned to this client.');
