@@ -452,6 +452,35 @@
                     `).join('');
                 }
             }
+
+            // Update Recent Discussions
+            const discussionsContainer = document.getElementById('recent-discussions-container');
+            if (discussionsContainer && stats.recent_discussions) {
+                if (stats.recent_discussions.length > 0) {
+                    discussionsContainer.innerHTML = stats.recent_discussions.map(c => `
+                        <div onclick="switchView('developer-tasks'); setTimeout(() => openDevTaskComments(${c.developer_task_id}), 300)" class="cursor-pointer p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 hover:border-indigo-500/50 transition-all group">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">${c.task?.title || 'Unknown Task'}</span>
+                                <span class="text-[9px] text-gray-400 font-bold uppercase">${new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <p class="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 italic">"${c.comment}"</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[8px] font-bold text-indigo-600 dark:text-indigo-400">
+                                    ${c.user?.name ? c.user.name.substring(0,2).toUpperCase() : '??'}
+                                </div>
+                                <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">${c.user?.name || 'System'}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    discussionsContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-10 text-center opacity-40">
+                            <i class="fas fa-comments text-3xl mb-3 text-gray-400"></i>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">No recent discussions</p>
+                        </div>
+                    `;
+                }
+            }
         }
 
         // Load Statistics

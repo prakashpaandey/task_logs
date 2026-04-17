@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TimeLog;
 use App\Models\SubTaskComment;
+use App\Models\DeveloperTaskComment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -35,16 +36,22 @@ class StatisticsController extends Controller
             'month' => (clone $timeQuery)->where('created_at', '>=', $startOfMonth)->sum('time'),
         ];
 
-        // 2. Comment Totals
-        $commentQuery = SubTaskComment::query();
+        // 2. Comment Totals (Merged Subtask & Developer Task Comments)
+        $subTaskCommentQuery = SubTaskComment::query();
+        $devTaskCommentQuery = DeveloperTaskComment::query();
+
         if (!$isAdmin) {
-            $commentQuery->where('user_id', $user->id);
+            $subTaskCommentQuery->where('user_id', $user->id);
+            $devTaskCommentQuery->where('user_id', $user->id);
         }
 
         $commentStats = [
-            'today' => (clone $commentQuery)->where('created_at', '>=', $startOfToday)->count(),
-            'week' => (clone $commentQuery)->where('created_at', '>=', $startOfWeek)->count(),
-            'month' => (clone $commentQuery)->where('created_at', '>=', $startOfMonth)->count(),
+            'today' => (clone $subTaskCommentQuery)->where('created_at', '>=', $startOfToday)->count() + 
+                       (clone $devTaskCommentQuery)->where('created_at', '>=', $startOfToday)->count(),
+            'week' => (clone $subTaskCommentQuery)->where('created_at', '>=', $startOfWeek)->count() + 
+                      (clone $devTaskCommentQuery)->where('created_at', '>=', $startOfWeek)->count(),
+            'month' => (clone $subTaskCommentQuery)->where('created_at', '>=', $startOfMonth)->count() + 
+                       (clone $devTaskCommentQuery)->where('created_at', '>=', $startOfMonth)->count(),
         ];
 
         $breakdown = [];
@@ -73,13 +80,26 @@ class StatisticsController extends Controller
         
         $recentActivity = $recentActivity->latest()->limit(10)->get();
 
+        // 4. Recent Discussions (Task Comments)
+        $recentComments = DeveloperTaskComment::with(['user', 'task'])
+            ->latest()
+            ->limit(5);
+        
+        if (!$isAdmin) {
+            $recentComments->whereHas('task', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $recentComments = $recentComments->get();
+
         return response()->json([
             'success' => true,
             'is_admin' => $isAdmin,
             'time_logs' => $timeStats,
             'comments' => $commentStats,
             'breakdown' => $breakdown,
-            'recent_activity' => $recentActivity
+            'recent_activity' => $recentActivity,
+            'recent_discussions' => $recentComments
         ]);
     }
 
@@ -102,18 +122,48 @@ class StatisticsController extends Controller
 
     protected function getUserCommentBreakdown($startDate)
     {
-        return SubTaskComment::with('user')
+        $subTaskComments = SubTaskComment::with('user')
             ->selectRaw('user_id, COUNT(*) as total')
             ->where('created_at', '>=', $startDate)
             ->groupBy('user_id')
-            ->get()
-            ->map(function ($log) {
-                return [
-                    'user_name' => $log->user->name,
-                    'user_email' => $log->user->email,
-                    'initials' => strtoupper(substr($log->user->name, 0, 2)),
-                    'value' => $log->total . ' comments'
+            ->get();
+
+        $devTaskComments = DeveloperTaskComment::with('user')
+            ->selectRaw('user_id, COUNT(*) as total')
+            ->where('created_at', '>=', $startDate)
+            ->groupBy('user_id')
+            ->get();
+
+        $merged = [];
+        // Process Subtasks
+        foreach ($subTaskComments as $c) {
+            $merged[$c->user_id] = [
+                'name' => $c->user->name,
+                'email' => $c->user->email,
+                'total' => $c->total
+            ];
+        }
+
+        // Process Dev tasks
+        foreach ($devTaskComments as $c) {
+            if (isset($merged[$c->user_id])) {
+                $merged[$c->user_id]['total'] += $c->total;
+            } else {
+                $merged[$c->user_id] = [
+                    'name' => $c->user->name,
+                    'email' => $c->user->email,
+                    'total' => $c->total
                 ];
-            });
+            }
+        }
+
+        return collect($merged)->map(function ($data) {
+            return [
+                'user_name' => $data['name'],
+                'user_email' => $data['email'],
+                'initials' => strtoupper(substr($data['name'], 0, 2)),
+                'value' => $data['total'] . ' comments'
+            ];
+        })->values();
     }
 }

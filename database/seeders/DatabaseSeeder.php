@@ -19,6 +19,11 @@ class DatabaseSeeder extends Seeder
             'name' => 'Bihani Tech',
             'email' => 'info@bihanitech.com',
             'password' => bcrypt('Bihanitech1234'),
+            'role' => 'super_admin',
+        ]);
+        
+        $this->call([
+            CategorySeeder::class,
         ]);
     }
 }

@@ -119,35 +119,59 @@
                     </div>
                     
                     <!-- Recent Activity Section (For Developers / Quick View) -->
-                    <div id="personal-activity-dashboard" class="mt-12">
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Recent Activity</h3>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">Your latest contributions</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+                        <div id="personal-activity-dashboard">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Recent Activity</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">Your latest contributions</p>
+                                </div>
+                                <button onclick="switchView('reports')" class="text-xs font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest transition-colors">
+                                    View Full Report <i class="fas fa-arrow-right ml-1"></i>
+                                </button>
                             </div>
-                            <button onclick="switchView('reports')" class="text-xs font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest transition-colors">
-                                View Full Report <i class="fas fa-arrow-right ml-1"></i>
-                            </button>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden min-h-[300px]">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead class="bg-gray-50/50 dark:bg-gray-900/30">
+                                            <tr>
+                                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Date</th>
+                                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Project / Task</th>
+                                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right">Hours</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="personal-activity-table-body" class="divide-y divide-gray-50 dark:divide-gray-700">
+                                            <tr>
+                                                <td colspan="3" class="px-6 py-8 text-center text-gray-400 dark:text-gray-500 text-sm italic">
+                                                    Select a timeframe to view your latest records.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead class="bg-gray-50/50 dark:bg-gray-900/30">
-                                        <tr>
-                                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Date</th>
-                                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Project / Task</th>
-                                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right">Hours</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="personal-activity-table-body" class="divide-y divide-gray-50 dark:divide-gray-700">
-                                        <tr>
-                                            <td colspan="3" class="px-6 py-8 text-center text-gray-400 dark:text-gray-500 text-sm italic">
-                                                Select a timeframe to view your latest records.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+
+                        <!-- New: Recent Task Discussions -->
+                        <div id="recent-discussions-dashboard">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Recent Task Discussions</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">Latest messages on your tasks</p>
+                                </div>
+                                <button onclick="switchView('developer-tasks')" class="text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest transition-colors">
+                                    All Assigned Tasks <i class="fas fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden min-h-[300px]">
+                                <div id="recent-discussions-container" class="p-4 space-y-4">
+                                    <div class="flex flex-col items-center justify-center py-10 text-center opacity-40">
+                                        <i class="fas fa-comments text-3xl mb-3 text-gray-400"></i>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">No recent discussions</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
