@@ -410,13 +410,16 @@
                 const oldJson = JSON.stringify(developerTasks || []);
                 const newJson = JSON.stringify(data.developer_tasks);
                 if (oldJson !== newJson) {
+                    console.log('Sync: Developer tasks list updated.');
                     developerTasks = data.developer_tasks;
-                    // Re-render if the developer tasks view is visible
-                    if (document.getElementById('assigned-tasks-dashboard') && !document.getElementById('assigned-tasks-dashboard').classList.contains('hidden')) {
+                    
+                    // Re-render instantly if the container exists
+                    if (document.getElementById('dev-tasks-container')) {
                         renderDeveloperTasks();
                     }
+                    
                     // Also update history modal if it is open
-                    if (currentHistoryUserId) {
+                    if (typeof currentHistoryUserId !== 'undefined' && currentHistoryUserId) {
                         renderUserTaskHistoryUI();
                     }
                 }
