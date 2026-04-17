@@ -114,14 +114,18 @@
         let sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         
         // Notifications state
-        let notifications = [];
-        let lastNotificationCount = 0;
+        let notifications = window.App.notifications && Array.isArray(window.App.notifications) ? window.App.notifications : [];
+        let lastNotificationCount = notifications.length;
         let isSuperAdmin = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
         
         // User Dashboard State
         if (!window.App.users) window.App.users = [];
+        let developerTasks = window.App.developerTasks && Array.isArray(window.App.developerTasks) ? window.App.developerTasks : [];
         let userDashboardFilter = 'active'; // 'active' or 'deactivated'
         let userDashboardSearchTerm = '';
+        let currentHistoryUserId = null;
+        let historyTaskFilter = 'all';
+        let devTaskFilter = 'all';
         
         // Helper for API calls
         async function apiCall(url, method = 'GET', data = null) {
@@ -304,7 +308,7 @@
                 } catch (error) {
                     // Fail silently
                 }
-            }, 15000); // Pulse every 15 seconds
+            }, 5000); // Pulse every 5 seconds for real-time feel
         }
 
         function handleSyncPulse(data) {
@@ -384,9 +388,26 @@
                 }
             }
 
-            // 3. Process Notifications (Admins Only)
-            if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin && data.notifications) {
+            // 3. Process Notifications (ALL users - admins and developers)
+            if (data.notifications) {
                 processNotifications(data.notifications);
+            }
+
+            // 4. Process Developer Tasks (real-time sync for all users)
+            if (data.developer_tasks) {
+                const oldJson = JSON.stringify(developerTasks || []);
+                const newJson = JSON.stringify(data.developer_tasks);
+                if (oldJson !== newJson) {
+                    developerTasks = data.developer_tasks;
+                    // Re-render if the developer tasks view is visible
+                    if (document.getElementById('assigned-tasks-dashboard') && !document.getElementById('assigned-tasks-dashboard').classList.contains('hidden')) {
+                        renderDeveloperTasks();
+                    }
+                    // Also update history modal if it is open
+                    if (currentHistoryUserId) {
+                        renderUserTaskHistoryUI();
+                    }
+                }
             }
         }
 
@@ -1102,7 +1123,10 @@
             const views = {
                 'statistics': document.getElementById('statistics-dashboard'),
                 'client': document.getElementById('client-content'),
-                'user-management': document.getElementById('user-management-dashboard')
+                'user-management': document.getElementById('user-management-dashboard'),
+                'reports': document.getElementById('reports-section'),
+                'developer-tasks': document.getElementById('assigned-tasks-dashboard'),
+                'assigned-tasks-dashboard': document.getElementById('assigned-tasks-dashboard')
             };
 
             const breadcrumb = document.getElementById('breadcrumb-nav');
@@ -1113,9 +1137,10 @@
             });
 
             // Show target view
-            if (views[viewName]) {
-                views[viewName].classList.remove('hidden');
-                views[viewName].classList.add('animate-fadeIn');
+            const targetView = views[viewName];
+            if (targetView) {
+                targetView.classList.remove('hidden');
+                targetView.classList.add('animate-fadeIn');
             }
 
             // Breadcrumb visibility
@@ -1136,6 +1161,14 @@
                 const btn = document.getElementById('sidebar-manage-users-btn');
                 if (btn) btn.classList.add('active');
                 loadUserDashboardData();
+            } else if (viewName === 'reports') {
+                const btn = document.getElementById('sidebar-reports-btn');
+                if (btn) btn.classList.add('active');
+            } else if (viewName === 'developer-tasks' || viewName === 'assigned-tasks-dashboard') {
+                const btn = document.getElementById('sidebar-developer-tasks-btn');
+                if (btn) btn.classList.add('active');
+                // Refresh tasks when navigating to this view
+                renderDeveloperTasks();
             }
 
             // Scroll to top
@@ -3073,11 +3106,11 @@
             document.body.removeChild(link);
         };
         // Notification Functions
-        if (isSuperAdmin && notificationsButton) {
+        if (notificationsButton) {
             notificationsButton.addEventListener('click', (e) => {
                 e.stopPropagation();
                 notificationsDropdown.classList.toggle('hidden');
-                userDropdown.classList.add('hidden'); // Close user menu
+                if (userDropdown) userDropdown.classList.add('hidden'); // Close user menu
             });
 
             document.addEventListener('click', (e) => {
@@ -3112,6 +3145,12 @@
             if (notificationsDropdown) notificationsDropdown.classList.add('hidden');
 
             try {
+                // Handle Navigation
+                if (notif.type === 'developer_task_assigned') {
+                    switchView('developer-tasks');
+                    return;
+                }
+
                 // 1. Switch to Client View
                 switchView('client');
 
@@ -3211,14 +3250,32 @@
             notificationsList.innerHTML = notifications.map(notif => {
                 const time = new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 let icon = 'fa-info-circle', iconBg = 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
-                if (notif.type === 'comment') { icon = 'fa-comments'; iconBg = 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'; }
-                else if (notif.type === 'time_log') { icon = 'fa-clock'; iconBg = 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'; }
-                else if (notif.type === 'main_task' || notif.type === 'subtask') { icon = 'fa-tasks'; iconBg = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'; }
+                
+                if (notif.type === 'comment') { 
+                    icon = 'fa-comments'; 
+                    iconBg = 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'; 
+                }
+                else if (notif.type === 'time_log') { 
+                    icon = 'fa-clock'; 
+                    iconBg = 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'; 
+                }
+                else if (notif.type === 'main_task' || notif.type === 'subtask') { 
+                    icon = 'fa-tasks'; 
+                    iconBg = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'; 
+                }
+                else if (notif.type === 'developer_task_assigned') {
+                    icon = 'fa-user-tag';
+                    iconBg = 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400';
+                }
+                else if (notif.type === 'developer_task_completed') {
+                    icon = 'fa-check-double';
+                    iconBg = 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400';
+                }
                 
                 return `<div class="p-4 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer" onclick="jumpToNotification(${notif.id})">
                     <div class="flex space-x-3">
                         <div class="w-10 h-10 rounded-full ${iconBg} flex items-center justify-center shrink-0">
-                            <i class="fas ${icon}"></i>
+                            <i class="fas ${icon} text-sm"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm text-gray-800 dark:text-gray-200">${notif.message}</p>
@@ -3243,10 +3300,8 @@
         }
         window.markNotificationsAsRead = markNotificationsAsRead;
         // Developer Task Management Logic
-        let developerTasks = [];
-        let devTaskFilter = 'all';
-        let historyTaskFilter = 'all';
-        let currentHistoryUserId = null;
+        devTaskFilter = 'all'; // Already declared globally at top, just resetting here if needed
+        // Removed duplicate declarations to prevent SyntaxError
 
         function renderDeveloperTasks() {
             const container = document.getElementById('dev-tasks-container');
@@ -3373,10 +3428,29 @@
             if (modal) modal.classList.add('hidden');
         };
 
+        let isSubmittingDevTask = false;
         const assignTaskForm = document.getElementById('assign-task-form');
         if (assignTaskForm) {
             assignTaskForm.onsubmit = async (e) => {
                 e.preventDefault();
+
+                // FIX 4: Prevent multiple submissions on rapid button clicks
+                if (isSubmittingDevTask) return;
+                isSubmittingDevTask = true;
+
+                const saveBtn = document.getElementById('save-assign-task-btn');
+                const updateBtn = document.getElementById('update-assign-task-btn');
+                const originalSaveTxt = saveBtn ? saveBtn.innerHTML : '';
+                const originalUpdateTxt = updateBtn ? updateBtn.innerHTML : '';
+                if (saveBtn && !saveBtn.classList.contains('hidden')) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Assigning...';
+                }
+                if (updateBtn && !updateBtn.classList.contains('hidden')) {
+                    updateBtn.disabled = true;
+                    updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
+                }
+
                 const userId = document.getElementById('assign-task-user-id').value;
                 const taskId = document.getElementById('assign-task-id').value;
                 const data = {
@@ -3405,13 +3479,21 @@
                     if (result.success) {
                         showSuccessNotification(result.message);
                         closeAssignTaskModal();
-                        
+
                         // Update UI instantly
                         if (document.getElementById('assigned-tasks-dashboard')) renderDeveloperTasks();
                         if (currentHistoryUserId == userId) renderUserTaskHistoryUI();
+                    } else {
+                        showErrorNotification(result.message || 'Failed to save task.');
                     }
                 } catch (error) {
+                    showErrorNotification('An error occurred. Please try again.');
                     console.error('Task assignment failed:', error);
+                } finally {
+                    // Always re-enable the button
+                    isSubmittingDevTask = false;
+                    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = originalSaveTxt; }
+                    if (updateBtn) { updateBtn.disabled = false; updateBtn.innerHTML = originalUpdateTxt; }
                 }
             };
         }
@@ -3507,22 +3589,26 @@
             const task = developerTasks.find(t => t.id == taskId);
             if (!task) return;
 
+            // FIX 2: Close the history modal first before opening the edit modal
+            const historyModal = document.getElementById('user-task-history-modal');
+            if (historyModal) historyModal.classList.add('hidden');
+
             const modal = document.getElementById('assign-task-modal');
             const form = document.getElementById('assign-task-form');
             const idInput = document.getElementById('assign-task-user-id');
             const taskIdInput = document.getElementById('assign-task-id');
-            
+
             if (!modal || !form) return;
             form.reset();
             idInput.value = task.user_id;
             taskIdInput.value = task.id;
             const nameSpan = document.getElementById('assign-task-user-name');
             if (nameSpan) nameSpan.textContent = task.developer ? task.developer.name : 'Developer';
-            
+
             document.getElementById('assign-task-title').value = task.title;
-            document.getElementById('assign-task-description').value = task.description;
+            document.getElementById('assign-task-description').value = task.description || '';
             document.getElementById('assign-task-priority').value = task.priority;
-            document.getElementById('assign-task-deadline').value = task.deadline;
+            document.getElementById('assign-task-deadline').value = task.deadline ? task.deadline.split('T')[0] : '';
 
             const saveBtn = document.getElementById('save-assign-task-btn');
             const updateBtn = document.getElementById('update-assign-task-btn');
@@ -3536,64 +3622,36 @@
         };
 
         window.deleteTaskFromHistory = function(taskId) {
-            openConfirmationModal('task', 'this assignment', async () => {
+            // FIX 3: Use the correct confirmation modal with proper callback
+            openConfirmationModal('developer task', 'this task assignment', async () => {
                 try {
                     const result = await apiCall(`/dashboard/developer-tasks/${taskId}`, 'DELETE');
                     if (result.success) {
-                        showSuccessNotification(result.message);
+                        showSuccessNotification(result.message || 'Task deleted successfully.');
                         developerTasks = developerTasks.filter(t => t.id != taskId);
+                        closeConfirmationModal();
                         renderUserTaskHistoryUI();
+                    } else {
+                        showErrorNotification(result.message || 'Failed to delete task.');
                         closeConfirmationModal();
                     }
                 } catch (error) {
+                    showErrorNotification('Failed to delete task. Please try again.');
+                    closeConfirmationModal();
                     console.error('Delete task failed:', error);
                 }
             });
         };
 
-        // Integration with existing pulse system
-        const originalStartPulseSync = typeof startPulseSync === 'function' ? startPulseSync : null;
-        window.startPulseSync = function() {
-            if (originalStartPulseSync) originalStartPulseSync();
-            
-            // Additional pulse for developer tasks
-            setInterval(async () => {
-                if (document.hidden) return;
-                try {
-                    const response = await fetch('{{ route('dashboard.sync') }}');
-                    const data = await response.json();
-                    
-                    if (data.success && data.developer_tasks) {
-                        const oldJson = JSON.stringify(developerTasks);
-                        const newJson = JSON.stringify(data.developer_tasks);
-                        
-                        if (oldJson !== newJson) {
-                            developerTasks = data.developer_tasks;
-                            if (document.getElementById('assigned-tasks-dashboard')) renderDeveloperTasks();
-                            if (currentHistoryUserId) renderUserTaskHistoryUI();
-                        }
-                    }
-                } catch (e) { }
-            }, 15000);
-        };
 
-        // Initialize developer views
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.App && window.App.user) {
-                loadInitialDeveloperTasks();
+        // Initialize developer views from server-provided initial data
+        // (window.App.developerTasks is already populated by the controller)
+        // The main handleSyncPulse handles real-time updates every 15 seconds
+        (function initDeveloperView() {
+            if (developerTasks && developerTasks.length > 0) {
+                renderDeveloperTasks();
             }
-        });
-
-        async function loadInitialDeveloperTasks() {
-            try {
-                const response = await apiCall('/dashboard/developer-tasks');
-                if (response.success) {
-                    developerTasks = response.tasks;
-                    renderDeveloperTasks();
-                }
-            } catch (error) { }
-        }
+        })();
 
         window.renderDeveloperTasks = renderDeveloperTasks;
-        window.loadInitialDeveloperTasks = loadInitialDeveloperTasks;
     </script>

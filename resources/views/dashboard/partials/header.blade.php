@@ -31,7 +31,6 @@
                         <i id="theme-icon" class="fas fa-moon"></i>
                     </button>
                     
-                    @if(auth()->user()->isAdmin())
                     <div class="relative" id="notifications-wrapper">
                         <button id="notifications-button" class="p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative" title="Notifications">
                             <i class="fas fa-bell text-gray-600 dark:text-gray-300"></i>
@@ -52,7 +51,6 @@
                             </div>
                         </div>
                     </div>
-                    @endif
                     
                     <div class="relative">
                         <button id="user-menu-button" class="flex items-center space-x-2 md:space-x-3 p-1 md:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">

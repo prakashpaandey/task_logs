@@ -43,7 +43,7 @@ class DeveloperTaskController extends Controller
             'title' => 'required|string|max:255',
             'user_id' => 'required|exists:users,id',
             'priority' => 'required|in:low,medium,high',
-            'deadline' => 'nullable|date|after:today',
+            'deadline' => 'nullable|date|after_or_equal:today',
             'description' => 'nullable|string',
         ]);
 
@@ -99,7 +99,7 @@ class DeveloperTaskController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'priority' => 'required|in:low,medium,high',
-            'deadline' => 'nullable|date|after:today',
+            'deadline' => 'nullable|date|after_or_equal:today',
             'description' => 'nullable|string',
         ]);
 

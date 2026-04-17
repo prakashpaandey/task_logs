@@ -48,6 +48,8 @@
                 selectedClient: @json($selectedClient),
                 user: @json(auth()->user()),
                 categories: @json($categories),
+                notifications: @json($notifications),
+                developerTasks: @json($developerTasks),
                 csrfToken: '{{ csrf_token() }}'
             };
         </script>

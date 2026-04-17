@@ -42,25 +42,28 @@ class SyncController extends Controller
         $statsResponse = $statsController->getStatistics();
         $statsData = $statsResponse->getData();
 
-        // 3. Optional: Users list & Notifications for Admins
-        $users = [];
-        $notifications = [];
-        
+        // 3. Fetch Notifications for the Current User (Admin or Developer)
+        $notifications = \App\Models\Notification::with('user')
+            ->where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->latest()
+            ->limit(20)
+            ->get();
+
         if ($user->isAdmin()) {
             $users = User::all();
-            $notifications = \App\Models\Notification::with('user')
-                ->whereNull('read_at')
-                ->latest()
-                ->limit(20)
-                ->get();
         }
-
         // 4. Fetch Developer Tasks
         $developerTasks = [];
         if ($user->isAdmin()) {
             $developerTasks = \App\Models\DeveloperTask::with(['developer', 'admin'])->latest()->get();
         } else {
             $developerTasks = \App\Models\DeveloperTask::where('user_id', $user->id)->with(['admin'])->latest()->get();
+        }
+
+        $users = [];
+        if ($user->isAdmin()) {
+            $users = User::all();
         }
 
         return response()->json([

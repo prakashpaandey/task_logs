@@ -35,7 +35,22 @@ class TaskController extends Controller
         if ($user->isAdmin()) {
             $users = \App\Models\User::all();
         }
+
+        // Fetch Notifications for initial load
+        $notifications = \App\Models\Notification::where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->latest()
+            ->limit(20)
+            ->get();
+
+        // Fetch Developer Tasks for initial load
+        $developerTasks = [];
+        if ($user->isAdmin()) {
+            $developerTasks = \App\Models\DeveloperTask::with(['developer', 'admin'])->latest()->get();
+        } else {
+            $developerTasks = \App\Models\DeveloperTask::where('user_id', $user->id)->with(['admin'])->latest()->get();
+        }
         
-        return view('dashboard.index', compact('clients', 'categories', 'selectedClient', 'users'));
+        return view('dashboard.index', compact('clients', 'categories', 'selectedClient', 'users', 'notifications', 'developerTasks'));
     }
 }
