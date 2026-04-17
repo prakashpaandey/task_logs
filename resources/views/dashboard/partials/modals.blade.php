@@ -430,3 +430,43 @@
             </div>
         </div>
     </div>
+
+    <!-- Developer Task Comments Modal -->
+    <div id="dev-task-comments-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[120] hidden p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col overflow-hidden animate-zoomIn">
+            <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800 sticky top-0 z-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-comments text-indigo-600 dark:text-indigo-400"></i>
+                    </div>
+                    <div>
+                        <h3 id="dev-task-comments-title" class="text-lg font-bold text-gray-900 dark:text-white">Task Discussion</h3>
+                        <p id="dev-task-comments-subtitle" class="text-xs text-gray-500 dark:text-gray-400">Team chat about this assignment</p>
+                    </div>
+                </div>
+                <button onclick="closeDevTaskComments()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="dev-task-comments-container" class="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar bg-gray-50/30 dark:bg-gray-900/10">
+                <!-- Comments will be rendered here -->
+            </div>
+
+            <div class="p-6 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <form id="dev-task-comment-form" onsubmit="submitDevTaskComment(event)" class="relative">
+                    <input type="hidden" id="dev-task-comment-task-id">
+                    <div class="relative flex items-center gap-3">
+                        <div class="relative flex-1">
+                            <input type="text" id="dev-task-comment-input" 
+                                class="w-full pl-5 pr-12 py-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all dark:text-white" 
+                                placeholder="Type your message here..." required>
+                        </div>
+                        <button type="submit" id="dev-task-comment-submit-btn" class="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/20 transition-all group">
+                            <i class="fas fa-paper-plane group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>

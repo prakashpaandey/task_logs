@@ -3354,9 +3354,15 @@
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-3">${task.description || 'No description provided.'}</p>
                         
                         <div class="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-gray-700/50">
-                            <div class="flex items-center gap-2 text-xs text-gray-400">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>${deadline}</span>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2 text-xs text-gray-400">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>${deadline}</span>
+                                </div>
+                                <button onclick="openDevTaskComments(${task.id})" class="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                                    <i class="fas fa-comment-dots"></i>
+                                    <span>${task.comments ? task.comments.length : 0} Chat</span>
+                                </button>
                             </div>
                             ${task.status === 'pending' ? `
                                 <button onclick="markTaskComplete(${task.id})" class="relative z-50 cursor-pointer px-4 py-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20">
@@ -3409,6 +3415,96 @@
                 }
             } catch (error) {
                 console.error('Failed to update task:', error);
+            }
+        };
+
+        window.openDevTaskComments = function(taskId) {
+            const task = developerTasks.find(t => t.id == taskId);
+            if (!task) return;
+
+            const modal = document.getElementById('dev-task-comments-modal');
+            const title = document.getElementById('dev-task-comments-title');
+            const taskIdInput = document.getElementById('dev-task-comment-task-id');
+            
+            if (title) title.textContent = `Discussion: ${task.title}`;
+            if (taskIdInput) taskIdInput.value = taskId;
+            
+            renderDevTaskComments(taskId);
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeDevTaskComments = function() {
+            const modal = document.getElementById('dev-task-comments-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.renderDevTaskComments = function(taskId) {
+            const task = developerTasks.find(t => t.id == taskId);
+            const container = document.getElementById('dev-task-comments-container');
+            if (!container || !task) return;
+
+            const comments = task.comments || [];
+            if (comments.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-center py-10 opacity-40">
+                        <i class="fas fa-comments text-4xl mb-4 text-gray-400"></i>
+                        <p class="text-sm font-medium text-gray-500">No messages yet.<br>Start the conversation below.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = comments.map(c => {
+                const isMe = c.user_id == window.App.user.id;
+                const date = new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const userName = c.user ? c.user.name : 'Unknown User';
+                
+                return `
+                    <div class="flex ${isMe ? 'justify-end' : 'justify-start'} animate-fadeIn">
+                        <div class="max-w-[80%] ${isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm shadow-lg shadow-indigo-600/10' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm shadow-sm'} p-4">
+                            ${!isMe ? `<p class="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 mb-1">${userName}</p>` : ''}
+                            <p class="text-sm leading-relaxed">${c.comment}</p>
+                            <p class="text-[9px] mt-2 opacity-60 font-medium text-right">${date}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        };
+
+        window.submitDevTaskComment = async function(event) {
+            event.preventDefault();
+            const input = document.getElementById('dev-task-comment-input');
+            const taskId = document.getElementById('dev-task-comment-task-id').value;
+            const btn = document.getElementById('dev-task-comment-submit-btn');
+
+            if (!input.value.trim() || !taskId) return;
+
+            const originalBtnHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const response = await apiCall(`/dashboard/developer-tasks/${taskId}/comments`, 'POST', { comment: input.value });
+                if (response.success) {
+                    // Update local state
+                    const task = developerTasks.find(t => t.id == taskId);
+                    if (task) {
+                        if (!task.comments) task.comments = [];
+                        task.comments.push(response.comment);
+                    }
+                    input.value = '';
+                    renderDevTaskComments(taskId);
+                    renderDeveloperTasks(); // Update count on cards
+                }
+            } catch (error) {
+                console.error('Failed to post comment:', error);
+                showErrorNotification('Failed to send message.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
             }
         };
 
@@ -3585,6 +3681,9 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button onclick="openDevTaskComments(${task.id})" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="View Discussion">
+                                <i class="fas fa-comment-dots text-xs"></i>
+                            </button>
                             ${!isCompleted ? `
                                 <button onclick="editTaskFromHistory(${task.id})" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Task">
                                     <i class="fas fa-edit text-xs"></i>

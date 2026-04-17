@@ -70,6 +70,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
     Route::post('developer-tasks', [\App\Http\Controllers\DeveloperTaskController::class, 'store'])->name('developer-tasks.store');
     Route::put('developer-tasks/{developer_task}', [\App\Http\Controllers\DeveloperTaskController::class, 'update'])->name('developer-tasks.update');
     Route::patch('developer-tasks/{developer_task}', [\App\Http\Controllers\DeveloperTaskController::class, 'updateStatus'])->name('developer-tasks.update-status');
+    Route::post('developer-tasks/{developer_task}/comments', [\App\Http\Controllers\DeveloperTaskCommentController::class, 'store'])->name('developer-tasks.comments.store');
     Route::delete('developer-tasks/{developer_task}', [\App\Http\Controllers\DeveloperTaskController::class, 'destroy'])->name('developer-tasks.destroy');
 });
 

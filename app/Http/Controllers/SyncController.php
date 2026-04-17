@@ -50,20 +50,17 @@ class SyncController extends Controller
             ->limit(20)
             ->get();
 
-        if ($user->isAdmin()) {
-            $users = User::all();
-        }
-        // 4. Fetch Developer Tasks
-        $developerTasks = [];
-        if ($user->isAdmin()) {
-            $developerTasks = \App\Models\DeveloperTask::with(['developer', 'admin'])->latest()->get();
-        } else {
-            $developerTasks = \App\Models\DeveloperTask::where('user_id', $user->id)->with(['admin'])->latest()->get();
-        }
-
         $users = [];
         if ($user->isAdmin()) {
             $users = User::all();
+        }
+
+        // 4. Fetch Developer Tasks
+        $developerTasks = [];
+        if ($user->isAdmin()) {
+            $developerTasks = \App\Models\DeveloperTask::with(['developer', 'admin', 'comments.user'])->latest()->get();
+        } else {
+            $developerTasks = \App\Models\DeveloperTask::where('user_id', $user->id)->with(['admin', 'comments.user'])->latest()->get();
         }
 
         return response()->json([

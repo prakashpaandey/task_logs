@@ -35,4 +35,12 @@ class DeveloperTask extends Model
     {
         return $this->belongsTo(User::class, 'admin_id');
     }
+
+    /**
+     * Get the comments for the developer task.
+     */
+    public function comments()
+    {
+        return $this->hasMany(DeveloperTaskComment::class, 'developer_task_id')->with('user');
+    }
 }
