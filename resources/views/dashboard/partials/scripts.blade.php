@@ -308,7 +308,7 @@
                 } catch (error) {
                     // Fail silently
                 }
-            }, 5000); // Pulse every 5 seconds for real-time feel
+            }, 3000); // Pulse every 3 seconds for real-time feel
         }
 
         function handleSyncPulse(data) {
@@ -421,6 +421,25 @@
                     // Also update history modal if it is open
                     if (typeof currentHistoryUserId !== 'undefined' && currentHistoryUserId) {
                         renderUserTaskHistoryUI();
+                    }
+
+                    // REAL-TIME CHAT: Refresh open discussion modal
+                    const devChatModal = document.getElementById('dev-task-comments-modal');
+                    if (devChatModal && !devChatModal.classList.contains('hidden')) {
+                        const activeTaskId = document.getElementById('dev-task-comment-task-id').value;
+                        if (activeTaskId) {
+                            const currentTask = developerTasks.find(t => t.id == activeTaskId);
+                            const commentCount = currentTask && currentTask.comments ? currentTask.comments.length : 0;
+                            
+                            // Initialize comment tracker if needed
+                            if (!window._lastCommentCounts) window._lastCommentCounts = {};
+                            
+                            // Only re-render if count has changed to prevent flickering
+                            if (window._lastCommentCounts[activeTaskId] !== commentCount) {
+                                renderDevTaskComments(activeTaskId);
+                                window._lastCommentCounts[activeTaskId] = commentCount;
+                            }
+                        }
                     }
                 }
             }
