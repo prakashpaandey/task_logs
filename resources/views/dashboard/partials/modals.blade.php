@@ -328,3 +328,105 @@
             </div>
         </div>
     </div>
+    <!-- Assign Developer Task Modal -->
+    <div id="assign-task-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm hidden animate-fadeIn">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-white/20 dark:border-gray-700/50 transform transition-all duration-300 scale-100">
+            <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/20">
+                <div>
+                    <h3 id="assign-task-modal-title" class="text-xl font-bold text-gray-900 dark:text-white">Assign Task</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Direct task assignment for <span id="assign-task-user-name" class="font-bold text-indigo-600 dark:text-indigo-400">Developer</span></p>
+                </div>
+                <button onclick="closeAssignTaskModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-8">
+                <form id="assign-task-form" class="space-y-5">
+                    <input type="hidden" id="assign-task-user-id">
+                    <input type="hidden" id="assign-task-id">
+                    
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Task Title</label>
+                        <input type="text" id="assign-task-title" required class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all" placeholder="Enter task title">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Description</label>
+                        <textarea id="assign-task-description" rows="3" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all" placeholder="Describe the task instructions..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Priority</label>
+                            <select id="assign-task-priority" required class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Deadline (Optional)</label>
+                            <input type="date" id="assign-task-deadline" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 mt-10">
+                        <button type="button" onclick="closeAssignTaskModal()" class="flex-1 px-6 py-3.5 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-600 dark:text-gray-400 font-bold hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-all text-sm">
+                            Cancel
+                        </button>
+                        <button type="submit" id="save-assign-task-btn" class="flex-1 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold shadow-xl shadow-indigo-500/20 transition-all text-sm">
+                            Assign Task
+                        </button>
+                        <button type="submit" id="update-assign-task-btn" class="flex-1 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold shadow-xl shadow-emerald-500/20 transition-all text-sm hidden">
+                            Update Task
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Task History Modal -->
+    <div id="user-task-history-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm hidden animate-fadeIn">
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-white/20 dark:border-gray-700/50 transform transition-all duration-300 scale-100 flex flex-col max-h-[90vh]">
+            <div class="px-8 py-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                        <i class="fas fa-history text-indigo-500"></i>
+                        Task History: <span id="history-modal-user-name" class="text-indigo-600 dark:text-indigo-400">Developer</span>
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Audit and manage all tasks assigned to this user.</p>
+                </div>
+                <button onclick="closeUserTaskHistory()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <button onclick="filterHistoryTasks('all')" id="history-filter-all" class="history-filter px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm">All</button>
+                    <button onclick="filterHistoryTasks('pending')" id="history-filter-pending" class="history-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Pending</button>
+                    <button onclick="filterHistoryTasks('completed')" id="history-filter-completed" class="history-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Completed</button>
+                </div>
+                <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                    Total Tasks: <span id="history-total-count" class="text-gray-900 dark:text-white">0</span>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-8 space-y-4 no-scrollbar relative" id="history-tasks-container">
+                <!-- User specific tasks -->
+            </div>
+            
+            <div id="history-empty-state" class="hidden absolute inset-0 flex flex-col items-center justify-center p-12 text-center pointer-events-none mt-40">
+                <i class="fas fa-folder-open text-4xl text-gray-200 dark:text-gray-700 mb-4"></i>
+                <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">No tasks found for this user.</p>
+            </div>
+
+            <div class="px-8 py-6 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 flex justify-end">
+                <button onclick="closeUserTaskHistory()" class="px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all text-sm">
+                    Close History
+                </button>
+            </div>
+        </div>
+    </div>

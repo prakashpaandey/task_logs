@@ -664,6 +664,34 @@
                         </div>
                     </div>
                 </div>
+                <!-- Developer Assigned Tasks Dashboard -->
+                <div id="assigned-tasks-dashboard" class="h-full flex flex-col p-4 md:p-8 animate-fadeIn hidden">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">My Assigned Tasks</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Focus on your direct responsibilities and track your progress.</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <button onclick="filterDevTasks('all')" id="dev-task-filter-all" class="dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm">All</button>
+                                <button onclick="filterDevTasks('pending')" id="dev-task-filter-pending" class="dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Pending</button>
+                                <button onclick="filterDevTasks('completed')" id="dev-task-filter-completed" class="dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Completed</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="dev-tasks-container">
+                        <!-- Tasks will be rendered here dynamically -->
+                    </div>
+
+                    <div id="dev-tasks-empty" class="hidden flex-1 flex flex-col items-center justify-center p-12 text-center animate-fadeIn">
+                        <div class="w-20 h-20 bg-gray-50 dark:bg-gray-800/50 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-clipboard-check text-3xl text-gray-300 dark:text-gray-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">No tasks found</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto">You don't have any tasks matching this filter right now.</p>
+                    </div>
+                </div>
             </main>
 
             <!-- User Management Modal (Create/Edit) -->

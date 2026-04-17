@@ -1256,6 +1256,12 @@
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
                                  ${user.id !== window.App.user.id ? `
+                                    <button onclick="openAssignTaskModal(${user.id}, '${user.name.replace(/'/g, "\\'")}')" class="p-2 text-gray-400 hover:text-emerald-500 transition-colors" title="Assign Task">
+                                        <i class="fas fa-plus-circle text-xs"></i>
+                                    </button>
+                                    <button onclick="openUserTaskHistory(${user.id}, '${user.name.replace(/'/g, "\\'")}')" class="p-2 text-gray-400 hover:text-blue-500 transition-colors" title="Manage Tasks">
+                                        <i class="fas fa-tasks text-xs"></i>
+                                    </button>
                                     <button onclick="confirmResetPassword(${user.id}, '${user.name}')" class="p-2 text-gray-400 hover:text-amber-500 transition-colors" title="Forgot Password">
                                         <i class="fas fa-user-lock text-xs"></i>
                                     </button>
@@ -1577,7 +1583,8 @@
                 'statistics': document.getElementById('statistics-dashboard'),
                 'client': document.getElementById('client-content'),
                 'user-management': document.getElementById('user-management-dashboard'),
-                'reports': document.getElementById('reports-section')
+                'reports': document.getElementById('reports-section'),
+                'developer-tasks': document.getElementById('assigned-tasks-dashboard')
             };
 
             const breadcrumb = document.getElementById('breadcrumb-nav');
@@ -1603,22 +1610,11 @@
             // Update sidebar active states
             const manageUsersBtn = document.getElementById('sidebar-manage-users-btn');
             const reportsBtn = document.getElementById('sidebar-activity-reports-btn');
+            const assignedTasksBtn = document.getElementById('sidebar-assigned-tasks-btn');
 
-            if (manageUsersBtn) {
-                if (viewName === 'user-management') {
-                    manageUsersBtn.classList.add('active');
-                } else {
-                    manageUsersBtn.classList.remove('active');
-                }
-            }
-
-            if (reportsBtn) {
-                if (viewName === 'reports') {
-                    reportsBtn.classList.add('active');
-                } else {
-                    reportsBtn.classList.remove('active');
-                }
-            }
+            if (manageUsersBtn) manageUsersBtn.classList.toggle('active', viewName === 'user-management');
+            if (reportsBtn) reportsBtn.classList.toggle('active', viewName === 'reports');
+            if (assignedTasksBtn) assignedTasksBtn.classList.toggle('active', viewName === 'developer-tasks');
 
             // Sync data on view switch
             if (viewName === 'statistics') {
@@ -1627,6 +1623,8 @@
                 loadUserDashboardData();
             } else if (viewName === 'reports') {
                 loadReportsData(1);
+            } else if (viewName === 'developer-tasks') {
+                loadInitialDeveloperTasks();
             }
         }
 
@@ -3244,4 +3242,349 @@
             } catch (error) { console.error('Failed to clear notifications:', error); }
         }
         window.markNotificationsAsRead = markNotificationsAsRead;
+        // Developer Task Management Logic
+        let developerTasks = [];
+        let devTaskFilter = 'all';
+        let historyTaskFilter = 'all';
+        let currentHistoryUserId = null;
+
+        function renderDeveloperTasks() {
+            const container = document.getElementById('dev-tasks-container');
+            const emptyState = document.getElementById('dev-tasks-empty');
+            if (!container) return;
+
+            const filtered = developerTasks.filter(t => {
+                if (devTaskFilter === 'all') return true;
+                return t.status === devTaskFilter;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            }
+
+            if (emptyState) emptyState.classList.add('hidden');
+            container.innerHTML = filtered.map(task => {
+                const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline';
+                const priorityClass = {
+                    'low': 'bg-gray-100 text-gray-600 dark:bg-gray-700/50 dark:text-gray-400',
+                    'medium': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+                    'high': 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
+                }[task.priority];
+
+                return `
+                    <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${priorityClass}">
+                                ${task.priority} Priority
+                            </span>
+                            <div class="flex items-center gap-2">
+                                ${task.status === 'completed' 
+                                    ? '<span class="flex items-center gap-1.5 text-xs font-bold text-emerald-500"><i class="fas fa-check-circle"></i> Completed</span>'
+                                    : '<span class="flex items-center gap-1.5 text-xs font-bold text-amber-500"><i class="fas fa-clock"></i> Pending</span>'}
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">${task.title}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-3">${task.description || 'No description provided.'}</p>
+                        
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-gray-700/50">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>${deadline}</span>
+                            </div>
+                            ${task.status === 'pending' ? `
+                                <button onclick="markTaskComplete(${task.id})" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20">
+                                    Mark Done
+                                </button>
+                            ` : `
+                                <div class="text-[10px] text-gray-400 italic">
+                                    Done: ${new Date(task.completed_at).toLocaleDateString()}
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.filterDevTasks = function(filter) {
+            devTaskFilter = filter;
+            document.querySelectorAll('.dev-task-filter').forEach(btn => {
+                btn.classList.remove('bg-white', 'dark:bg-gray-700', 'text-indigo-600', 'dark:text-indigo-400', 'shadow-sm');
+                btn.classList.add('text-gray-500', 'dark:text-gray-400');
+            });
+            const activeBtn = document.getElementById(`dev-task-filter-${filter}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white', 'dark:bg-gray-700', 'text-indigo-600', 'dark:text-indigo-400', 'shadow-sm');
+                activeBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+            }
+            renderDeveloperTasks();
+        };
+
+        window.markTaskComplete = async function(taskId) {
+            try {
+                const result = await apiCall(`/dashboard/developer-tasks/${taskId}`, 'PATCH', { status: 'completed' });
+                if (result.success) {
+                    showSuccessNotification('Great job! Task marked as completed.');
+                    // Update local state
+                    const task = developerTasks.find(t => t.id == taskId);
+                    if (task) {
+                        task.status = 'completed';
+                        task.completed_at = new Date().toISOString();
+                    }
+                    renderDeveloperTasks();
+                    if (typeof loadStatistics === 'function') loadStatistics();
+                }
+            } catch (error) {
+                console.error('Failed to update task:', error);
+            }
+        };
+
+        // Admin Task Management
+        window.openAssignTaskModal = function(userId, userName) {
+            const modal = document.getElementById('assign-task-modal');
+            const form = document.getElementById('assign-task-form');
+            const nameSpan = document.getElementById('assign-task-user-name');
+            const idInput = document.getElementById('assign-task-user-id');
+            const taskIdInput = document.getElementById('assign-task-id');
+            
+            if (!modal || !form) return;
+            form.reset();
+            idInput.value = userId;
+            taskIdInput.value = '';
+            if (nameSpan) nameSpan.textContent = userName;
+            
+            const saveBtn = document.getElementById('save-assign-task-btn');
+            const updateBtn = document.getElementById('update-assign-task-btn');
+            const titleEl = document.getElementById('assign-task-modal-title');
+            
+            if (saveBtn) saveBtn.classList.remove('hidden');
+            if (updateBtn) updateBtn.classList.add('hidden');
+            if (titleEl) titleEl.textContent = 'Assign Task';
+
+            modal.classList.remove('hidden');
+            const titleInput = document.getElementById('assign-task-title');
+            if (titleInput) titleInput.focus();
+        };
+
+        window.closeAssignTaskModal = function() {
+            const modal = document.getElementById('assign-task-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        const assignTaskForm = document.getElementById('assign-task-form');
+        if (assignTaskForm) {
+            assignTaskForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const userId = document.getElementById('assign-task-user-id').value;
+                const taskId = document.getElementById('assign-task-id').value;
+                const data = {
+                    user_id: userId,
+                    title: document.getElementById('assign-task-title').value,
+                    description: document.getElementById('assign-task-description').value,
+                    priority: document.getElementById('assign-task-priority').value,
+                    deadline: document.getElementById('assign-task-deadline').value || null
+                };
+
+                try {
+                    let result;
+                    if (taskId) {
+                        result = await apiCall(`/dashboard/developer-tasks/${taskId}`, 'PUT', data);
+                    } else {
+                        result = await apiCall('/dashboard/developer-tasks', 'POST', data);
+                    }
+
+                    if (result.success) {
+                        showSuccessNotification(result.message);
+                        closeAssignTaskModal();
+                        // If we are viewing history for this user, refresh it
+                        if (currentHistoryUserId == userId) renderUserTaskHistoryUI();
+                    }
+                } catch (error) {
+                    console.error('Task assignment failed:', error);
+                }
+            };
+        }
+
+        window.openUserTaskHistory = function(userId, userName) {
+            currentHistoryUserId = userId;
+            const nameEl = document.getElementById('history-modal-user-name');
+            if (nameEl) nameEl.textContent = userName;
+            const modal = document.getElementById('user-task-history-modal');
+            if (modal) modal.classList.remove('hidden');
+            filterHistoryTasks('all');
+        };
+
+        window.closeUserTaskHistory = function() {
+            const modal = document.getElementById('user-task-history-modal');
+            if (modal) modal.classList.add('hidden');
+            currentHistoryUserId = null;
+        };
+
+        window.filterHistoryTasks = function(filter) {
+            historyTaskFilter = filter;
+            document.querySelectorAll('.history-filter').forEach(btn => {
+                btn.classList.remove('bg-white', 'dark:bg-gray-700', 'text-indigo-600', 'dark:text-indigo-400', 'shadow-sm');
+                btn.classList.add('text-gray-500', 'dark:text-gray-400');
+            });
+            const activeBtn = document.getElementById(`history-filter-${filter}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white', 'dark:bg-gray-700', 'text-indigo-600', 'dark:text-indigo-400', 'shadow-sm');
+                activeBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+            }
+            renderUserTaskHistoryUI();
+        };
+
+        function renderUserTaskHistoryUI() {
+            const container = document.getElementById('history-tasks-container');
+            const emptyState = document.getElementById('history-empty-state');
+            const totalCountEl = document.getElementById('history-total-count');
+            
+            if (!container) return;
+
+            // Use global developerTasks (for Admin it contains all tasks)
+            const userTasks = developerTasks.filter(t => t.user_id == currentHistoryUserId);
+            const filtered = userTasks.filter(t => {
+                if (historyTaskFilter === 'all') return true;
+                return t.status === historyTaskFilter;
+            });
+
+            if (totalCountEl) totalCountEl.textContent = userTasks.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            }
+
+            if (emptyState) emptyState.classList.add('hidden');
+            container.innerHTML = filtered.map(task => {
+                const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline';
+                const isCompleted = task.status === 'completed';
+                return `
+                    <div class="bg-gray-50 dark:bg-gray-900/40 rounded-2xl p-5 border border-gray-100 dark:border-gray-800/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h4 class="font-bold text-gray-900 dark:text-white">${task.title}</h4>
+                                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}">
+                                    ${task.status}
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">${task.description || 'No description'}</p>
+                            <div class="flex items-center gap-4 mt-2">
+                                <span class="text-[10px] text-gray-400 font-medium italic">Priority: ${task.priority}</span>
+                                <span class="text-[10px] text-gray-400 font-medium">Deadline: ${deadline}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${!isCompleted ? `
+                                <button onclick="editTaskFromHistory(${task.id})" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Task">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                            ` : `
+                                <span class="text-[10px] text-gray-400 font-bold uppercase mr-2">${new Date(task.completed_at).toLocaleDateString()}</span>
+                            `}
+                            <button onclick="deleteTaskFromHistory(${task.id})" class="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Delete Task">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.editTaskFromHistory = function(taskId) {
+            const task = developerTasks.find(t => t.id == taskId);
+            if (!task) return;
+
+            const modal = document.getElementById('assign-task-modal');
+            const form = document.getElementById('assign-task-form');
+            const idInput = document.getElementById('assign-task-user-id');
+            const taskIdInput = document.getElementById('assign-task-id');
+            
+            if (!modal || !form) return;
+            form.reset();
+            idInput.value = task.user_id;
+            taskIdInput.value = task.id;
+            const nameSpan = document.getElementById('assign-task-user-name');
+            if (nameSpan) nameSpan.textContent = task.developer ? task.developer.name : 'Developer';
+            
+            document.getElementById('assign-task-title').value = task.title;
+            document.getElementById('assign-task-description').value = task.description;
+            document.getElementById('assign-task-priority').value = task.priority;
+            document.getElementById('assign-task-deadline').value = task.deadline;
+
+            const saveBtn = document.getElementById('save-assign-task-btn');
+            const updateBtn = document.getElementById('update-assign-task-btn');
+            const titleEl = document.getElementById('assign-task-modal-title');
+
+            if (saveBtn) saveBtn.classList.add('hidden');
+            if (updateBtn) updateBtn.classList.remove('hidden');
+            if (titleEl) titleEl.textContent = 'Edit Task';
+
+            modal.classList.remove('hidden');
+        };
+
+        window.deleteTaskFromHistory = function(taskId) {
+            openConfirmationModal('task', 'this assignment', async () => {
+                try {
+                    const result = await apiCall(`/dashboard/developer-tasks/${taskId}`, 'DELETE');
+                    if (result.success) {
+                        showSuccessNotification(result.message);
+                        developerTasks = developerTasks.filter(t => t.id != taskId);
+                        renderUserTaskHistoryUI();
+                        closeConfirmationModal();
+                    }
+                } catch (error) {
+                    console.error('Delete task failed:', error);
+                }
+            });
+        };
+
+        // Integration with existing pulse system
+        const originalStartPulseSync = typeof startPulseSync === 'function' ? startPulseSync : null;
+        window.startPulseSync = function() {
+            if (originalStartPulseSync) originalStartPulseSync();
+            
+            // Additional pulse for developer tasks
+            setInterval(async () => {
+                if (document.hidden) return;
+                try {
+                    const response = await fetch('{{ route('dashboard.sync') }}');
+                    const data = await response.json();
+                    
+                    if (data.success && data.developer_tasks) {
+                        const oldJson = JSON.stringify(developerTasks);
+                        const newJson = JSON.stringify(data.developer_tasks);
+                        
+                        if (oldJson !== newJson) {
+                            developerTasks = data.developer_tasks;
+                            if (document.getElementById('assigned-tasks-dashboard')) renderDeveloperTasks();
+                            if (currentHistoryUserId) renderUserTaskHistoryUI();
+                        }
+                    }
+                } catch (e) { }
+            }, 15000);
+        };
+
+        // Initialize developer views
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.App && window.App.user) {
+                loadInitialDeveloperTasks();
+            }
+        });
+
+        async function loadInitialDeveloperTasks() {
+            try {
+                const response = await apiCall('/dashboard/developer-tasks');
+                if (response.success) {
+                    developerTasks = response.tasks;
+                    renderDeveloperTasks();
+                }
+            } catch (error) { }
+        }
+
+        window.renderDeveloperTasks = renderDeveloperTasks;
+        window.loadInitialDeveloperTasks = loadInitialDeveloperTasks;
     </script>

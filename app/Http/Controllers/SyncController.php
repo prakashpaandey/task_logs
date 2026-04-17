@@ -55,12 +55,21 @@ class SyncController extends Controller
                 ->get();
         }
 
+        // 4. Fetch Developer Tasks
+        $developerTasks = [];
+        if ($user->isAdmin()) {
+            $developerTasks = \App\Models\DeveloperTask::with(['developer', 'admin'])->latest()->get();
+        } else {
+            $developerTasks = \App\Models\DeveloperTask::where('user_id', $user->id)->with(['admin'])->latest()->get();
+        }
+
         return response()->json([
             'success' => true,
             'clients' => $clients,
             'statistics' => $statsData,
             'users' => $users,
             'notifications' => $notifications,
+            'developer_tasks' => $developerTasks,
             'server_time' => now()->toIso8601String()
         ]);
     }
