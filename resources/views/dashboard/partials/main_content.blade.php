@@ -12,9 +12,14 @@
                             </p>
                         </div>
                         @if(auth()->user()->isAdmin())
-                        <button onclick="document.getElementById('add-client-btn').click()" class="self-start md:self-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center whitespace-nowrap text-sm md:text-base">
-                            <i class="fas fa-user-plus mr-2"></i> New Client
-                        </button>
+                        <div class="flex flex-wrap items-center gap-3 self-start md:self-auto">
+                            <button onclick="switchView('developer-tasks')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-bold transition-all shadow-lg hover:shadow-purple-500/20 flex items-center whitespace-nowrap text-sm md:text-base">
+                                <i class="fas fa-tasks mr-2 text-sm md:text-lg"></i> View Task Board
+                            </button>
+                            <button onclick="document.getElementById('add-client-btn').click()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center whitespace-nowrap text-sm md:text-base">
+                                <i class="fas fa-user-plus mr-2 text-sm md:text-lg"></i> New Client
+                            </button>
+                        </div>
                         @endif
                     </div>
                     

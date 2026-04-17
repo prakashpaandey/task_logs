@@ -40,6 +40,12 @@
                             </div>
                             <span class="sidebar-hide-content text-sm font-semibold text-gray-600 dark:text-gray-400 group-[.active]:text-gray-900 dark:group-[.active]:text-white transition-colors">Manage Users</span>
                         </button>
+                        <button id="sidebar-task-mgmt-btn" onclick="switchView('developer-tasks')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group">
+                            <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 group-[.active]:bg-purple-600 group-[.active]:text-white transition-colors">
+                                <i class="fas fa-tasks text-sm"></i>
+                            </div>
+                            <span class="sidebar-hide-content text-sm font-semibold text-gray-600 dark:text-gray-400 group-[.active]:text-gray-900 dark:group-[.active]:text-white transition-colors">Task Management</span>
+                        </button>
                     </div>
                     @endif
 
