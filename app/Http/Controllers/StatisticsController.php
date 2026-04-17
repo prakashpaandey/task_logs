@@ -86,8 +86,8 @@ class StatisticsController extends Controller
             ->limit(5);
         
         if (!$isAdmin) {
-            $recentComments->whereHas('task', function($q) use ($user) {
-                $q->where('user_id', $user->id);
+            $recentComments->whereHas('task.developers', function($q) use ($user) {
+                $q->where('users.id', $user->id);
             });
         }
         $recentComments = $recentComments->get();

@@ -5,9 +5,11 @@
                         <div>
                             <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white flex items-center">
                                 <i class="fas fa-chart-line mr-3 text-blue-600"></i>
-                                <span id="stat-dashboard-title">Personal Productivity</span>
+                                <span id="stat-dashboard-title">{{ auth()->user()->isAdmin() ? 'System Overview' : 'Personal Productivity' }}</span>
                             </h2>
-                            <p id="stat-dashboard-subtitle" class="text-xs md:text-base text-gray-500 dark:text-gray-400 mt-1">Activity summary for {{ auth()->user()->name }}</p>
+                            <p id="stat-dashboard-subtitle" class="text-xs md:text-base text-gray-500 dark:text-gray-400 mt-1">
+                                {{ auth()->user()->isAdmin() ? 'Activity oversight for all members' : 'Activity summary for ' . auth()->user()->name }}
+                            </p>
                         </div>
                         @if(auth()->user()->isAdmin())
                         <button onclick="document.getElementById('add-client-btn').click()" class="self-start md:self-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center whitespace-nowrap text-sm md:text-base">
@@ -122,10 +124,12 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
                         <div id="personal-activity-dashboard">
                             <div class="flex items-center justify-between mb-6">
-                                <div>
-                                    <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Recent Activity</h3>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">Your latest contributions</p>
-                                </div>
+                                    <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                                        {{ auth()->user()->isAdmin() ? 'Global Activity Feed' : 'Recent Activity' }}
+                                    </h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">
+                                        {{ auth()->user()->isAdmin() ? 'Latest contributions across the system' : 'Your latest contributions' }}
+                                    </p>
                                 <button onclick="switchView('reports')" class="text-xs font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest transition-colors">
                                     View Full Report <i class="fas fa-arrow-right ml-1"></i>
                                 </button>
@@ -157,11 +161,15 @@
                         <div id="recent-discussions-dashboard">
                             <div class="flex items-center justify-between mb-6">
                                 <div>
-                                    <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Recent Task Discussions</h3>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">Latest messages on your tasks</p>
+                                    <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                                        {{ auth()->user()->isAdmin() ? 'Global Task Discussions' : 'Recent Task Discussions' }}
+                                    </h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">
+                                        {{ auth()->user()->isAdmin() ? 'Latest messages on shared tasks' : 'Latest messages on your tasks' }}
+                                    </p>
                                 </div>
                                 <button onclick="switchView('developer-tasks')" class="text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest transition-colors">
-                                    All Assigned Tasks <i class="fas fa-arrow-right ml-1"></i>
+                                    {{ auth()->user()->isAdmin() ? 'Manage Tasks' : 'All Assigned Tasks' }} <i class="fas fa-arrow-right ml-1"></i>
                                 </button>
                             </div>
 
@@ -692,10 +700,19 @@
                 <div id="assigned-tasks-dashboard" class="h-full flex flex-col p-4 md:p-8 animate-fadeIn hidden">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
                         <div>
-                            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">My Assigned Tasks</h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Focus on your direct responsibilities and track your progress.</p>
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                                {{ auth()->user()->isAdmin() ? 'Task Management' : 'My Assigned Tasks' }}
+                            </h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {{ auth()->user()->isAdmin() ? 'Oversee and track shared tasks across all developers.' : 'Focus on your direct responsibilities and track your progress.' }}
+                            </p>
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 md:gap-4">
+                            @if(auth()->user()->isAdmin())
+                            <button onclick="openAssignTaskModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 flex items-center whitespace-nowrap text-xs">
+                                <i class="fas fa-plus-circle mr-2"></i> Assign Task
+                            </button>
+                            @endif
                             <div class="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 relative z-50">
                                 <button onclick="filterDevTasks('all')" id="dev-task-filter-all" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm">All</button>
                                 <button onclick="filterDevTasks('pending')" id="dev-task-filter-pending" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Pending</button>

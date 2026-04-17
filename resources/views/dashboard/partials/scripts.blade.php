@@ -3493,7 +3493,9 @@
                     `).join('');
 
                     const isAssigned = developers.some(d => d.id == window.App.user.id);
-                    const canUpdate = isSuperAdmin || isAssigned;
+                    // Only assigned developers can see/click "Mark Done"
+                    // Admins should not mark as done unless they are assignees themselves
+                    const showMarkDone = isAssigned && task.status === 'pending';
 
                     return `
                         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group">
@@ -3538,17 +3540,21 @@
                                         <span>${task.comments ? task.comments.length : 0} Chat</span>
                                     </button>
                                 </div>
-                                ${task.status === 'pending' ? `
+                                ${showMarkDone ? `
                                     <button 
-                                        onclick="${canUpdate ? `markTaskComplete(${task.id})` : 'showErrorNotification(&quot;Unauthorized. Only assigned developers can complete this task.&quot;)'}" 
-                                        class="relative z-50 cursor-pointer px-4 py-2 ${canUpdate ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'} text-white rounded-xl text-xs font-bold transition-all shadow-lg">
+                                        onclick="markTaskComplete(${task.id})" 
+                                        class="relative z-50 cursor-pointer px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg">
                                         Mark Done
                                     </button>
-                                ` : `
+                                ` : (task.status === 'completed' ? `
                                     <div class="text-[10px] text-gray-400 italic">
                                         Done: ${new Date(task.completed_at).toLocaleDateString()}
                                     </div>
-                                `}
+                                ` : `
+                                    <div class="text-[10px] text-amber-500 font-bold uppercase tracking-widest">
+                                        In Progress
+                                    </div>
+                                `)}
                             </div>
                         </div>
                     `;
