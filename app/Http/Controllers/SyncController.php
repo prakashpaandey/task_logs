@@ -45,7 +45,6 @@ class SyncController extends Controller
         // 3. Fetch Notifications for the Current User (Admin or Developer)
         $notifications = \App\Models\Notification::with('user')
             ->where('user_id', $user->id)
-            ->whereNull('read_at')
             ->latest()
             ->limit(20)
             ->get();

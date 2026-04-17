@@ -12,7 +12,7 @@ class NotificationController extends Controller
      */
     public function markAllAsRead(Request $request)
     {
-        Notification::where('user_id', auth()->id())->whereNull('read_at')->update(['read_at' => now()]);
+        Notification::where('user_id', auth()->id())->delete();
 
         return response()->json([
             'success' => true,

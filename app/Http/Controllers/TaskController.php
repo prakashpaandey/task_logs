@@ -38,7 +38,6 @@ class TaskController extends Controller
 
         // Fetch Notifications for initial load
         $notifications = \App\Models\Notification::where('user_id', $user->id)
-            ->whereNull('read_at')
             ->latest()
             ->limit(20)
             ->get();

@@ -3414,8 +3414,8 @@
 
                 // NEW CLICKABILITY LOGIC:
                 // 1. Users (Developers) can NEVER click notifications.
-                // 2. Super Admins can click everything EXCEPT "Assignment" notifications.
-                const canClick = isSuperAdmin && (notif.type !== 'developer_task_assigned');
+                // 2. Super Admins can click everything EXCEPT "Assignment" and "Developer Task Comment" notifications.
+                const canClick = isSuperAdmin && (notif.type !== 'developer_task_assigned' && notif.type !== 'developer_task_comment');
                 
                 const clickAction = canClick ? `onclick="jumpToNotification(${notif.id})"` : '';
                 const cursorStyle = canClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30' : 'cursor-default opacity-80 pointer-events-none';
