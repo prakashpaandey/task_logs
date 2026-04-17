@@ -3412,10 +3412,13 @@
                     iconBg = 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400';
                 }
 
-                // Strictly make assignment notifications non-clickable and visually different
-                const isAssignment = notif.type === 'developer_task_assigned';
-                const clickAction = isAssignment ? '' : `onclick="jumpToNotification(${notif.id})"`;
-                const cursorStyle = isAssignment ? 'cursor-default opacity-70 grayscale-[0.3] pointer-events-none' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30';
+                // NEW CLICKABILITY LOGIC:
+                // 1. Users (Developers) can NEVER click notifications.
+                // 2. Super Admins can click everything EXCEPT "Assignment" notifications.
+                const canClick = isSuperAdmin && (notif.type !== 'developer_task_assigned');
+                
+                const clickAction = canClick ? `onclick="jumpToNotification(${notif.id})"` : '';
+                const cursorStyle = canClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30' : 'cursor-default opacity-80 pointer-events-none';
                 
                 return `<div class="p-4 border-b border-gray-50 dark:border-gray-700/50 transition-colors ${cursorStyle}" ${clickAction}>
                     <div class="flex space-x-3">
@@ -3423,7 +3426,7 @@
                             <i class="fas ${icon} text-sm"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm text-gray-800 dark:text-gray-200 ${isAssignment ? 'italic' : ''}">${notif.message}</p>
+                            <p class="text-sm text-gray-800 dark:text-gray-200 ${!canClick ? 'italic' : ''}">${notif.message}</p>
                             <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-wider">${time}</p>
                         </div>
                     </div>
