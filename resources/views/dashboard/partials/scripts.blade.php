@@ -3391,14 +3391,23 @@
                     let result;
                     if (taskId) {
                         result = await apiCall(`/dashboard/developer-tasks/${taskId}`, 'PUT', data);
+                        if (result.success) {
+                            const idx = developerTasks.findIndex(t => t.id == taskId);
+                            if (idx !== -1) developerTasks[idx] = result.task;
+                        }
                     } else {
                         result = await apiCall('/dashboard/developer-tasks', 'POST', data);
+                        if (result.success) {
+                            developerTasks.push(result.task);
+                        }
                     }
 
                     if (result.success) {
                         showSuccessNotification(result.message);
                         closeAssignTaskModal();
-                        // If we are viewing history for this user, refresh it
+                        
+                        // Update UI instantly
+                        if (document.getElementById('assigned-tasks-dashboard')) renderDeveloperTasks();
                         if (currentHistoryUserId == userId) renderUserTaskHistoryUI();
                     }
                 } catch (error) {
