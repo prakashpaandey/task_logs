@@ -46,7 +46,6 @@ class DeveloperTaskCommentController extends Controller
             Notification::create([
                 'user_id' => $targetUserId,
                 'type' => 'developer_task_comment',
-                'title' => 'New Task Comment',
                 'message' => $message,
                 'developer_task_id' => $developer_task->id,
             ]);

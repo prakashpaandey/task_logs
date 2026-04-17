@@ -27,16 +27,19 @@ class SubTaskController extends Controller
 
         $subtask = Subtask::create($request->all() + ['user_id' => $user->id]);
 
-        // Create notification for Super Admin if triggered by a developer
+        // Create notification for Super Admins if triggered by a developer
         if (!$user->isAdmin()) {
-            \App\Models\Notification::create([
-                'user_id' => $user->id,
-                'type' => 'subtask',
-                'client_id' => $mainTask->client_id,
-                'main_task_id' => $mainTask->id,
-                'sub_task_id' => $subtask->id,
-                'message' => "{$user->name} added a Subtask: \"{$subtask->title}\" for \"{$mainTask->title}\"",
-            ]);
+            $admins = \App\Models\User::where('role', 'super_admin')->get();
+            foreach ($admins as $admin) {
+                \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'type' => 'subtask',
+                    'client_id' => $mainTask->client_id,
+                    'main_task_id' => $mainTask->id,
+                    'sub_task_id' => $subtask->id,
+                    'message' => "{$user->name} added a Subtask: \"{$subtask->title}\" for \"{$mainTask->title}\"",
+                ]);
+            }
         }
 
         if ($request->expectsJson()) {

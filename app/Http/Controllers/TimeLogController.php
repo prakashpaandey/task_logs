@@ -37,16 +37,19 @@ class TimeLogController extends Controller
             'time' => $validated['time'],
         ]);
 
-        // Create notification for Super Admin if triggered by a developer
+        // Create notification for Super Admins if triggered by a developer
         if (!$user->isAdmin()) {
-            \App\Models\Notification::create([
-                'user_id' => $user->id,
-                'type' => 'time_log',
-                'client_id' => $clientId,
-                'main_task_id' => $subtask->main_task_id,
-                'sub_task_id' => $subtask->id,
-                'message' => "{$user->name} logged {$validated['time']} hours on Subtask: \"{$subtask->title}\"",
-            ]);
+            $admins = \App\Models\User::where('role', 'super_admin')->get();
+            foreach ($admins as $admin) {
+                \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'type' => 'time_log',
+                    'client_id' => $clientId,
+                    'main_task_id' => $subtask->main_task_id,
+                    'sub_task_id' => $subtask->id,
+                    'message' => "{$user->name} logged {$validated['time']} hours on Subtask: \"{$subtask->title}\"",
+                ]);
+            }
         }
 
         // Sync total time in subtask table

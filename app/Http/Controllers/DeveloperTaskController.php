@@ -70,6 +70,7 @@ class DeveloperTaskController extends Controller
         Notification::create([
             'user_id' => $request->user_id,
             'type' => 'developer_task_assigned',
+            'developer_task_id' => $task->id,
             'message' => 'Super Admin assigned a new task: ' . $task->title,
         ]);
 
@@ -139,6 +140,7 @@ class DeveloperTaskController extends Controller
             Notification::create([
                 'user_id' => $developerTask->admin_id,
                 'type' => 'developer_task_completed',
+                'developer_task_id' => $developerTask->id,
                 'message' => 'Developer ' . $user->name . ' completed task: ' . $developerTask->title,
             ]);
         } else {

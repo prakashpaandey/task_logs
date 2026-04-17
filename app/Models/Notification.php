@@ -15,6 +15,7 @@ class Notification extends Model
         'client_id',
         'main_task_id',
         'sub_task_id',
+        'developer_task_id',
         'message',
         'read_at',
     ];

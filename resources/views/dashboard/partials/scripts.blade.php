@@ -3242,110 +3242,128 @@
             if (!notif) return;
 
             // Close dropdown
-            if (notificationsDropdown) notificationsDropdown.classList.add('hidden');
+            if (typeof notificationsDropdown !== 'undefined' && notificationsDropdown) {
+                notificationsDropdown.classList.add('hidden');
+            }
 
             try {
-                // Handle Navigation
-                if (notif.type === 'developer_task_assigned' || notif.type === 'developer_task_completed' || notif.type === 'developer_task_comment' || (notif.message && notif.message.includes('Developer Task'))) {
+                // 1. Unified isDevTask detection
+                const type = notif.type || '';
+                const msg = notif.message || '';
+                const isDevTask = type.startsWith('developer_task') || msg.toLowerCase().includes('developer task') || type === 'dev_task';
+                const devTaskId = notif.developer_task_id;
+
+                if (isDevTask) {
+                    console.log('Jumping to developer task:', devTaskId);
                     switchView('developer-tasks');
-                    
-                    if (notif.type === 'developer_task_comment' && notif.developer_task_id) {
-                        // Small delay to ensure view is switched and tasks rendered
+                    if (devTaskId) {
                         setTimeout(() => {
-                            if (typeof openDevTaskComments === 'function') {
-                                openDevTaskComments(notif.developer_task_id);
+                            if (typeof window.openDevTaskComments === 'function') {
+                                window.openDevTaskComments(devTaskId);
+                            } else {
+                                console.warn('openDevTaskComments not found, retrying...');
+                                // One more try if script is still loading
+                                setTimeout(() => {
+                                    if (typeof window.openDevTaskComments === 'function') window.openDevTaskComments(devTaskId);
+                                }, 1000);
                             }
-                        }, 300);
+                        }, 400);
                     }
                     return;
                 }
 
-                // Protect against missing App.clients
+                // 2. Project Task Navigation (requires App.clients)
                 if (!window.App || !window.App.clients) {
-                    return;
+                    throw new Error('Application data (App.clients) is not loaded yet. Please wait a moment.');
                 }
 
-                // 1. Switch to Client View
                 switchView('client');
 
-                // 2. Select the client
+                // 3. Client Context
                 if (notif.client_id) {
                     const client = window.App.clients.find(c => c.id == notif.client_id);
                     if (client) {
-                        // Use the existing selection logic
                         currentClientId = client.id;
-                        renderMainTasks(client.main_tasks || []);
-                        renderClientsList();
-                        updateBreadcrumb();
+                        if (typeof renderMainTasks === 'function') renderMainTasks(client.main_tasks || []);
+                        if (typeof renderClientsList === 'function') renderClientsList();
+                        if (typeof updateBreadcrumb === 'function') updateBreadcrumb();
                         
-                        // Set join date
-                        const joinDate = new Date(client.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         const joinDateEl = document.getElementById('client-join-date');
-                        if (joinDateEl) joinDateEl.textContent = joinDate;
+                        if (joinDateEl) joinDateEl.textContent = new Date(client.created_at).toLocaleDateString();
+                    } else {
+                        throw new Error('This task belongs to a client you are not currently assigned to.');
                     }
                 }
 
-                // 3. Select the Main Task
+                // 4. Main Task Context
                 if (notif.main_task_id) {
                     const client = window.App.clients.find(c => c.id == notif.client_id);
                     const task = client?.main_tasks?.find(t => t.id == notif.main_task_id);
                     if (task) {
                         currentMainTaskId = task.id;
-                        selectedMainTaskTitle.textContent = task.title;
-                        selectedMainTaskDescription.textContent = task.description || 'No description';
-                        selectedMainTaskInfo.classList.remove('hidden');
-                        addSubtaskBtn.disabled = false;
-                        renderSubtasks(task.subtasks || []);
-                        updateBreadcrumb();
+                        if (typeof selectedMainTaskTitle !== 'undefined' && selectedMainTaskTitle) selectedMainTaskTitle.textContent = task.title;
+                        if (typeof selectedMainTaskDescription !== 'undefined' && selectedMainTaskDescription) selectedMainTaskDescription.textContent = task.description || 'No description';
+                        if (typeof selectedMainTaskInfo !== 'undefined' && selectedMainTaskInfo) selectedMainTaskInfo.classList.remove('hidden');
+                        if (typeof addSubtaskBtn !== 'undefined' && addSubtaskBtn) addSubtaskBtn.disabled = false;
                         
-                        // Update active state in UI
-                        renderMainTasks(client.main_tasks);
+                        if (typeof renderSubtasks === 'function') renderSubtasks(task.subtasks || []);
+                        if (typeof renderMainTasks === 'function' && client) renderMainTasks(client.main_tasks);
+                        if (typeof updateBreadcrumb === 'function') updateBreadcrumb();
                     }
                 }
 
-                // 4. Open Subtask Details
+                // 5. Subtask / Detail Context
                 if (notif.sub_task_id) {
                     const client = window.App.clients.find(c => c.id == notif.client_id);
                     const task = client?.main_tasks?.find(t => t.id == notif.main_task_id);
                     const subtask = task?.subtasks?.find(s => s.id == notif.sub_task_id);
                     
                     if (subtask) {
-                        // Use existing logic to open detail view
                         currentSubtaskId = subtask.id;
-                        detailSubtaskTitle.textContent = subtask.title;
-                        detailSubtaskDescription.textContent = subtask.description || 'No description';
-                        
-                        // Update UI toggles
-                        subtaskDetailView.classList.remove('hidden');
-                        subtasksList.classList.add('hidden');
-                        subtaskForm.classList.add('hidden');
+                        if (typeof subtaskDetailView !== 'undefined' && subtaskDetailView) subtaskDetailView.classList.remove('hidden');
+                        if (typeof subtasksList !== 'undefined' && subtasksList) subtasksList.classList.add('hidden');
+                        if (typeof subtaskForm !== 'undefined' && subtaskForm) subtaskForm.classList.add('hidden');
                         
                         if (typeof updateSubtaskDetailHeader === 'function') updateSubtaskDetailHeader(subtask);
                         if (typeof renderComments === 'function') renderComments(subtask.comments || []);
                         if (typeof renderTimeLogs === 'function') renderTimeLogs(subtask.time_logs || []);
                         
-                        // Switch to comments tab if it was a comment notification
-                        if (notif.type === 'comment') {
-                            const commentTab = document.querySelector('[onclick*="comments"]');
+                        if (type === 'comment') {
+                            const commentTab = document.getElementById('tab-comments');
                             if (commentTab) commentTab.click();
                         }
                     }
                 }
 
-                // Scroll to content
-                const mainContent = document.getElementById('main-content');
-                if (mainContent) mainContent.scrollTop = 0;
+                if (document.getElementById('main-content')) {
+                    document.getElementById('main-content').scrollTop = 0;
+                }
 
             } catch (error) {
-                console.error('Navigation failed:', error);
-                showErrorNotification('Nav Error: ' + (error.message || 'Unknown error'));
+                console.error('Notification Jump Error:', error);
+                showErrorNotification('Navigation failed: ' + (error.message || 'Data is missing or restricted.'));
             }
         }
         window.jumpToNotification = jumpToNotification;
 
+        function processNotifications(newList) {
+            if (!Array.isArray(newList)) return;
+            
+            const oldIds = notifications.map(n => n.id);
+            const newIds = newList.map(n => n.id);
+            
+            // If they are exactly the same, skip rendering
+            if (JSON.stringify(oldIds) === JSON.stringify(newIds)) return;
+            
+            notifications = newList;
+            renderNotifications();
+        }
+
         function renderNotifications() {
             if (!notificationsList) return;
             const count = notifications.length;
+            
+            // Update the badge
             if (notificationsBadge) {
                 if (count > 0) {
                     notificationsBadge.textContent = count > 99 ? '99+' : count;
@@ -3354,13 +3372,18 @@
                     notificationsBadge.classList.add('hidden');
                 }
             }
+
             if (count === 0) {
-                notificationsList.innerHTML = `<div class="p-8 text-center text-gray-500 dark:text-gray-400">
-                    <i class="fas fa-bell-slash mb-2 text-2xl opacity-20"></i>
-                    <p class="text-sm font-medium">No new notifications</p>
+                notificationsList.innerHTML = `<div class="p-12 text-center text-gray-500 dark:text-gray-400">
+                    <div class="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-700">
+                        <i class="fas fa-bell-slash text-2xl opacity-20"></i>
+                    </div>
+                    <p class="text-xs font-bold uppercase tracking-widest opacity-60">Clean Slate</p>
+                    <p class="text-[10px] mt-1">No new notifications</p>
                 </div>`;
                 return;
             }
+
             notificationsList.innerHTML = notifications.map(notif => {
                 const time = new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 let icon = 'fa-info-circle', iconBg = 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
@@ -3377,7 +3400,7 @@
                     icon = 'fa-tasks'; 
                     iconBg = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'; 
                 }
-                else if (notif.type === 'developer_task_assigned') {
+                else if (notif.type === 'developer_task_assigned' || notif.type === 'dev_task') {
                     icon = 'fa-user-tag';
                     iconBg = 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400';
                 }
@@ -3385,14 +3408,19 @@
                     icon = 'fa-check-double';
                     iconBg = 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400';
                 }
+
+                // Strictly make assignment notifications non-clickable and visually different
+                const isAssignment = notif.type === 'developer_task_assigned';
+                const clickAction = isAssignment ? '' : `onclick="jumpToNotification(${notif.id})"`;
+                const cursorStyle = isAssignment ? 'cursor-default opacity-70 grayscale-[0.3] pointer-events-none' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30';
                 
-                return `<div class="p-4 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer" onclick="jumpToNotification(${notif.id})">
+                return `<div class="p-4 border-b border-gray-50 dark:border-gray-700/50 transition-colors ${cursorStyle}" ${clickAction}>
                     <div class="flex space-x-3">
                         <div class="w-10 h-10 rounded-full ${iconBg} flex items-center justify-center shrink-0">
                             <i class="fas ${icon} text-sm"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm text-gray-800 dark:text-gray-200">${notif.message}</p>
+                            <p class="text-sm text-gray-800 dark:text-gray-200 ${isAssignment ? 'italic' : ''}">${notif.message}</p>
                             <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-wider">${time}</p>
                         </div>
                     </div>
