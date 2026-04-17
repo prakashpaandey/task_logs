@@ -32,15 +32,15 @@
                     
                     @if(auth()->user()->isAdmin())
                     <!-- Admin Panel (System) -->
-                    <div class="mb-6 space-y-1">
-                        <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 sidebar-hide-content">Admin Panel</p>
-                        <button id="sidebar-manage-users-btn" onclick="switchView('user-management')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group">
+                    <div class="mb-4 space-y-1">
+                        <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 sidebar-hide-content">Admin Panel</p>
+                        <button id="sidebar-manage-users-btn" onclick="switchView('user-management')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group">
                             <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 group-[.active]:bg-indigo-600 group-[.active]:text-white transition-colors">
                                 <i class="fas fa-users-cog text-sm"></i>
                             </div>
                             <span class="sidebar-hide-content text-sm font-semibold text-gray-600 dark:text-gray-400 group-[.active]:text-gray-900 dark:group-[.active]:text-white transition-colors">Manage Users</span>
                         </button>
-                        <button id="sidebar-task-mgmt-btn" onclick="switchView('developer-tasks')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group">
+                        <button id="sidebar-task-mgmt-btn" onclick="switchView('developer-tasks')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group">
                             <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 group-[.active]:bg-purple-600 group-[.active]:text-white transition-colors">
                                 <i class="fas fa-tasks text-sm"></i>
                             </div>
@@ -50,9 +50,9 @@
                     @endif
 
                     <!-- Reports (Shared) -->
-                    <div class="mb-6 space-y-1">
-                        <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 sidebar-hide-content">Reports</p>
-                        <button id="sidebar-activity-reports-btn" onclick="switchView('reports')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group">
+                    <div class="mb-4 space-y-1">
+                        <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 sidebar-hide-content">Reports</p>
+                        <button id="sidebar-activity-reports-btn" onclick="switchView('reports')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group">
                             <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 group-[.active]:bg-blue-600 group-[.active]:text-white transition-colors">
                                 <i class="fas fa-file-invoice text-sm"></i>
                             </div>
@@ -64,9 +64,9 @@
 
                     @if(!auth()->user()->isAdmin())
                     <!-- Developer Tasks (Private) -->
-                    <div class="mb-6 space-y-1">
-                        <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 sidebar-hide-content">My Workspace</p>
-                        <button id="sidebar-assigned-tasks-btn" onclick="switchView('developer-tasks')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group">
+                    <div class="mb-4 space-y-1">
+                        <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 sidebar-hide-content">My Workspace</p>
+                        <button id="sidebar-assigned-tasks-btn" onclick="switchView('developer-tasks')" class="sidebar-nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group">
                             <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 group-[.active]:bg-purple-600 group-[.active]:text-white transition-colors">
                                 <i class="fas fa-tasks text-sm"></i>
                             </div>
