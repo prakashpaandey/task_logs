@@ -3146,8 +3146,17 @@
 
             try {
                 // Handle Navigation
-                if (notif.type === 'developer_task_assigned' || notif.type === 'developer_task_completed' || (notif.message && notif.message.includes('Developer Task'))) {
+                if (notif.type === 'developer_task_assigned' || notif.type === 'developer_task_completed' || notif.type === 'developer_task_comment' || (notif.message && notif.message.includes('Developer Task'))) {
                     switchView('developer-tasks');
+                    
+                    if (notif.type === 'developer_task_comment' && notif.developer_task_id) {
+                        // Small delay to ensure view is switched and tasks rendered
+                        setTimeout(() => {
+                            if (typeof openDevTaskComments === 'function') {
+                                openDevTaskComments(notif.developer_task_id);
+                            }
+                        }, 300);
+                    }
                     return;
                 }
 
@@ -3359,7 +3368,7 @@
                                     <i class="fas fa-calendar-alt"></i>
                                     <span>${deadline}</span>
                                 </div>
-                                <button onclick="openDevTaskComments(${task.id})" class="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                                <button onclick="openDevTaskComments(${task.id})" class="relative z-50 cursor-pointer flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
                                     <i class="fas fa-comment-dots"></i>
                                     <span>${task.comments ? task.comments.length : 0} Chat</span>
                                 </button>
@@ -3681,7 +3690,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="openDevTaskComments(${task.id})" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="View Discussion">
+                            <button onclick="openDevTaskComments(${task.id})" class="relative z-50 cursor-pointer p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="View Discussion">
                                 <i class="fas fa-comment-dots text-xs"></i>
                             </button>
                             ${!isCompleted ? `
