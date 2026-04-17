@@ -12,11 +12,7 @@ class NotificationController extends Controller
      */
     public function markAllAsRead(Request $request)
     {
-        if (!auth()->user()->isAdmin()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-        }
-
-        Notification::whereNull('read_at')->update(['read_at' => now()]);
+        Notification::where('user_id', auth()->id())->whereNull('read_at')->update(['read_at' => now()]);
 
         return response()->json([
             'success' => true,

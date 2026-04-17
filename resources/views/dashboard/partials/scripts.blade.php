@@ -3146,8 +3146,13 @@
 
             try {
                 // Handle Navigation
-                if (notif.type === 'developer_task_assigned') {
+                if (notif.type === 'developer_task_assigned' || notif.type === 'developer_task_completed' || (notif.message && notif.message.includes('Developer Task'))) {
                     switchView('developer-tasks');
+                    return;
+                }
+
+                // Protect against missing App.clients
+                if (!window.App || !window.App.clients) {
                     return;
                 }
 
@@ -3224,7 +3229,7 @@
 
             } catch (error) {
                 console.error('Navigation failed:', error);
-                showErrorNotification('Could not navigate to the selected item.');
+                showErrorNotification('Nav Error: ' + (error.message || 'Unknown error'));
             }
         }
         window.jumpToNotification = jumpToNotification;
@@ -3304,23 +3309,28 @@
         // Removed duplicate declarations to prevent SyntaxError
 
         function renderDeveloperTasks() {
-            const container = document.getElementById('dev-tasks-container');
-            const emptyState = document.getElementById('dev-tasks-empty');
-            if (!container) return;
+            try {
+                const container = document.getElementById('dev-tasks-container');
+                const emptyState = document.getElementById('dev-tasks-empty');
+                if (!container) return;
 
-            const filtered = developerTasks.filter(t => {
-                if (devTaskFilter === 'all') return true;
-                return t.status === devTaskFilter;
-            });
-
-            if (filtered.length === 0) {
-                container.innerHTML = '';
-                if (emptyState) emptyState.classList.remove('hidden');
-                return;
+            if (!developerTasks || !Array.isArray(developerTasks)) {
+                developerTasks = [];
             }
 
-            if (emptyState) emptyState.classList.add('hidden');
-            container.innerHTML = filtered.map(task => {
+                const filtered = developerTasks.filter(t => {
+                    if (devTaskFilter === 'all') return true;
+                    return t.status === devTaskFilter;
+                });
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '';
+                    if (emptyState) emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                if (emptyState) emptyState.classList.add('hidden');
+                container.innerHTML = filtered.map(task => {
                 const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline';
                 const priorityClass = {
                     'low': 'bg-gray-100 text-gray-600 dark:bg-gray-700/50 dark:text-gray-400',
@@ -3349,7 +3359,7 @@
                                 <span>${deadline}</span>
                             </div>
                             ${task.status === 'pending' ? `
-                                <button onclick="markTaskComplete(${task.id})" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20">
+                                <button onclick="markTaskComplete(${task.id})" class="relative z-50 cursor-pointer px-4 py-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20">
                                     Mark Done
                                 </button>
                             ` : `
@@ -3360,7 +3370,12 @@
                         </div>
                     </div>
                 `;
-            }).join('');
+                }).join('');
+            } catch (renderError) {
+                console.error('Error rendering dev tasks:', renderError);
+                const container = document.getElementById('dev-tasks-container');
+                if (container) container.innerHTML = `<p class="text-red-500">Error rendering tasks: ${renderError.message}</p>`;
+            }
         }
 
         window.filterDevTasks = function(filter) {
@@ -3376,6 +3391,7 @@
             }
             renderDeveloperTasks();
         };
+
 
         window.markTaskComplete = async function(taskId) {
             try {
