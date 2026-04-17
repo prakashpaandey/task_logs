@@ -19,14 +19,7 @@
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assign Users (Developers)</label>
                         <div id="assign-users-container" class="max-h-40 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg space-y-2">
-                            @foreach($users as $user)
-                                @if(!$user->isAdmin())
-                                <label class="flex items-center space-x-3 cursor-pointer group">
-                                    <input type="checkbox" name="user_ids[]" value="{{ $user->id }}" class="user-assignment-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                    <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{{ $user->name }}</span>
-                                </label>
-                                @endif
-                            @endforeach
+                            <!-- Populated dynamically via JS -->
                         </div>
                         <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Selected users will be able to view and manage tasks for this client.</p>
                     </div>

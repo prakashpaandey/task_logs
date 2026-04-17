@@ -47,6 +47,7 @@
                 clients: @json($clients),
                 selectedClient: @json($selectedClient),
                 user: @json(auth()->user()),
+                users: @json($users),
                 categories: @json($categories),
                 notifications: @json($notifications),
                 developerTasks: @json($developerTasks),

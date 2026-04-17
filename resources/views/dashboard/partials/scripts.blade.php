@@ -388,12 +388,24 @@
                 }
             }
 
-            // 3. Process Notifications (ALL users - admins and developers)
+            // 3. Update Sync for Developers (Users)
+            if (data.users && Array.isArray(data.users)) {
+                const oldUsersJson = JSON.stringify(window.App.users || []);
+                const newUsersJson = JSON.stringify(data.users);
+                
+                if (oldUsersJson !== newUsersJson) {
+                    if (typeof syncUsersUI === 'function') {
+                        syncUsersUI(data.users);
+                    }
+                }
+            }
+
+            // 4. Process Notifications (ALL users - admins and developers)
             if (data.notifications) {
                 processNotifications(data.notifications);
             }
 
-            // 4. Process Developer Tasks (real-time sync for all users)
+            // 5. Process Developer Tasks (real-time sync for all users)
             if (data.developer_tasks) {
                 const oldJson = JSON.stringify(developerTasks || []);
                 const newJson = JSON.stringify(data.developer_tasks);
@@ -1208,16 +1220,42 @@
         async function loadUserDashboardData() {
             try {
                 const response = await apiCall('{{ route('admin.users.index') }}');
-                if (response && response.users) {
-                    window.App.users = response.users;
-                } else if (response && Array.isArray(response)) {
-                    window.App.users = response;
+                const usersList = (response && response.users) ? response.users : (Array.isArray(response) ? response : []);
+                
+                if (typeof syncUsersUI === 'function') {
+                    syncUsersUI(usersList);
                 }
-                applyUserDashboardFilters();
             } catch (error) {
                 console.error('Failed to load users:', error);
             }
         }
+
+        // Centralized User Sync Function
+        window.syncUsersUI = function(userData) {
+            if (!userData || !Array.isArray(userData)) return;
+
+            // 1. Update Global State
+            window.App.users = userData;
+
+            // 2. Trigger Table Refresh (if user is on user-management view)
+            if (typeof applyUserDashboardFilters === 'function') {
+                applyUserDashboardFilters();
+            }
+
+            // 3. Trigger Modal List Refresh (Assign Users checkboxes)
+            if (typeof renderAssignUsersList === 'function') {
+                renderAssignUsersList();
+            }
+            
+            // 4. Update any other dependent UI counters/elements
+            const activeCount = userData.filter(u => u.status === 'active').length;
+            const deactivatedCount = userData.length - activeCount;
+            
+            const activeEl = document.getElementById('active-user-count');
+            const deactiveEl = document.getElementById('deactivated-user-count');
+            if (activeEl) activeEl.textContent = activeCount;
+            if (deactiveEl) deactiveEl.textContent = deactivatedCount;
+        };
 
         function switchUserDashboardTab(tabName) {
             userDashboardFilter = tabName;
@@ -1427,6 +1465,39 @@
                 if (saveBtn) saveBtn.disabled = false;
             }
         }
+
+        // New Helper: Dynamic User Assignment Rendering
+        window.renderAssignUsersList = function() {
+            const container = document.getElementById('assign-users-container');
+            if (!container || !window.App.users) return;
+
+            // Capture currently checked users to prevent losing selection during sync
+            const checkedUserIds = Array.from(document.querySelectorAll('.user-assignment-checkbox:checked'))
+                .map(cb => parseInt(cb.value));
+
+            const html = window.App.users
+                .filter(user => user.role !== 'super_admin') // Only show developers
+                .map(user => {
+                    const isChecked = checkedUserIds.includes(user.id);
+                    return `
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input type="checkbox" name="user_ids[]" value="${user.id}" 
+                                ${isChecked ? 'checked' : ''}
+                                class="user-assignment-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">${user.name}</span>
+                        </label>
+                    `;
+                }).join('');
+
+            container.innerHTML = html || '<p class="text-xs text-gray-400 italic p-2 text-center">No developers available</p>';
+        };
+
+        // Initial render on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.App.user.role === 'super_admin') {
+                renderAssignUsersList();
+            }
+        });
 
         window.confirmDeleteUser = function(userId, name) {
             openConfirmationModal('user', name, () => deleteUser(userId));
