@@ -327,7 +327,7 @@
             <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/20">
                 <div>
                     <h3 id="assign-task-modal-title" class="text-xl font-bold text-gray-900 dark:text-white">Assign Task</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Direct task assignment for <span id="assign-task-user-name" class="font-bold text-indigo-600 dark:text-indigo-400">Developer</span></p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Select one or more developers for this assignment.</p>
                 </div>
                 <button onclick="closeAssignTaskModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                     <i class="fas fa-times text-lg"></i>
@@ -336,8 +336,15 @@
 
             <div class="p-8">
                 <form id="assign-task-form" class="space-y-5">
-                    <input type="hidden" id="assign-task-user-id">
                     <input type="hidden" id="assign-task-id">
+                    
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Select Developers</label>
+                        <div id="assign-task-developers-list" class="max-h-40 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl space-y-2 custom-scrollbar">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        <p class="mt-2 text-[10px] text-gray-500 dark:text-gray-400 italic">At least one developer must be selected.</p>
+                    </div>
                     
                     <div>
                         <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Task Title</label>

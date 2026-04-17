@@ -58,9 +58,9 @@ class SyncController extends Controller
         // 4. Fetch Developer Tasks
         $developerTasks = [];
         if ($user->isAdmin()) {
-            $developerTasks = \App\Models\DeveloperTask::with(['developer', 'admin', 'comments.user'])->latest()->get();
+            $developerTasks = \App\Models\DeveloperTask::with(['developers', 'admin', 'comments.user'])->latest()->get();
         } else {
-            $developerTasks = \App\Models\DeveloperTask::where('user_id', $user->id)->with(['admin', 'comments.user'])->latest()->get();
+            $developerTasks = $user->assignedDeveloperTasks()->with(['admin', 'developers', 'comments.user'])->latest()->get();
         }
 
         return response()->json([

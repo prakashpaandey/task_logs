@@ -27,24 +27,25 @@ class DeveloperTaskCommentController extends Controller
         // Load the user who made the comment
         $comment->load('user');
 
-        // Notification Logic
+        // Notification Logic: Notify ALL participants except the commenter
         $user = auth()->user();
-        $targetUserId = null;
-        $message = "";
+        $message = $user->isAdmin() ? "Admin commented on: " . $developer_task->title : $user->name . " commented on: " . $developer_task->title;
 
-        if ($user->isAdmin()) {
-            // If admin comments, notify the developer
-            $targetUserId = $developer_task->user_id;
-            $message = "Admin commented on: " . $developer_task->title;
-        } else {
-            // If developer comments, notify the admin who assigned it
-            $targetUserId = $developer_task->admin_id;
-            $message = $user->name . " commented on: " . $developer_task->title;
+        // 1. Always notify the Admin if a developer comments
+        if (!$user->isAdmin()) {
+            Notification::create([
+                'user_id' => $developer_task->admin_id,
+                'type' => 'developer_task_comment',
+                'message' => $message,
+                'developer_task_id' => $developer_task->id,
+            ]);
         }
 
-        if ($targetUserId && $targetUserId !== $user->id) {
+        // 2. Notify all OTHER assigned developers
+        $developersToNotify = $developer_task->developers()->where('users.id', '!=', $user->id)->get();
+        foreach ($developersToNotify as $dev) {
             Notification::create([
-                'user_id' => $targetUserId,
+                'user_id' => $dev->id,
                 'type' => 'developer_task_comment',
                 'message' => $message,
                 'developer_task_id' => $developer_task->id,

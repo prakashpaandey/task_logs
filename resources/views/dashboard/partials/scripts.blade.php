@@ -3457,9 +3457,9 @@
                 const emptyState = document.getElementById('dev-tasks-empty');
                 if (!container) return;
 
-            if (!developerTasks || !Array.isArray(developerTasks)) {
-                developerTasks = [];
-            }
+                if (!developerTasks || !Array.isArray(developerTasks)) {
+                    developerTasks = [];
+                }
 
                 const filtered = developerTasks.filter(t => {
                     if (devTaskFilter === 'all') return true;
@@ -3474,56 +3474,87 @@
 
                 if (emptyState) emptyState.classList.add('hidden');
                 container.innerHTML = filtered.map(task => {
-                const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline';
-                const priorityClass = {
-                    'low': 'bg-gray-100 text-gray-600 dark:bg-gray-700/50 dark:text-gray-400',
-                    'medium': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-                    'high': 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
-                }[task.priority];
+                    const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline';
+                    const priorityClass = {
+                        'low': 'bg-gray-100 text-gray-600 dark:bg-gray-700/50 dark:text-gray-400',
+                        'medium': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+                        'high': 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
+                    }[task.priority];
 
-                return `
-                    <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group">
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${priorityClass}">
-                                ${task.priority} Priority
-                            </span>
-                            <div class="flex items-center gap-2">
-                                ${task.status === 'completed' 
-                                    ? '<span class="flex items-center gap-1.5 text-xs font-bold text-emerald-500"><i class="fas fa-check-circle"></i> Completed</span>'
-                                    : '<span class="flex items-center gap-1.5 text-xs font-bold text-amber-500"><i class="fas fa-clock"></i> Pending</span>'}
+                    // Multi-User Avatar Stack
+                    const developers = task.developers || [];
+                    const devAvatars = developers.map(d => `
+                        <div class="w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[8px] font-black text-indigo-600 dark:text-indigo-400 group/avatar relative" title="${d.name}">
+                            ${d.name.substring(0,2).toUpperCase()}
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover/avatar:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                                ${d.name}
                             </div>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">${task.title}</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-3">${task.description || 'No description provided.'}</p>
-                        
-                        <div class="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-gray-700/50">
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-2 text-xs text-gray-400">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    <span>${deadline}</span>
+                    `).join('');
+
+                    const isAssigned = developers.some(d => d.id == window.App.user.id);
+                    const canUpdate = isSuperAdmin || isAssigned;
+
+                    return `
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${priorityClass}">
+                                    ${task.priority} Priority
+                                </span>
+                                <div class="flex items-center gap-2">
+                                    ${task.status === 'completed' 
+                                        ? '<span class="flex items-center gap-1.5 text-xs font-bold text-emerald-500"><i class="fas fa-check-circle"></i> Completed</span>'
+                                        : '<span class="flex items-center gap-1.5 text-xs font-bold text-amber-500"><i class="fas fa-clock"></i> Pending</span>'}
                                 </div>
-                                <button onclick="openDevTaskComments(${task.id})" class="relative z-50 cursor-pointer flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
-                                    <i class="fas fa-comment-dots"></i>
-                                    <span>${task.comments ? task.comments.length : 0} Chat</span>
-                                </button>
                             </div>
-                            ${task.status === 'pending' ? `
-                                <button onclick="markTaskComplete(${task.id})" class="relative z-50 cursor-pointer px-4 py-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20">
-                                    Mark Done
-                                </button>
-                            ` : `
-                                <div class="text-[10px] text-gray-400 italic">
-                                    Done: ${new Date(task.completed_at).toLocaleDateString()}
+
+                            <div class="flex justify-between items-start gap-4 mb-2">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">${task.title}</h3>
+                                ${isSuperAdmin ? `
+                                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onclick="openAssignTaskModal(null, null, ${JSON.stringify(task).replace(/"/g, '&quot;')})" class="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors"><i class="fas fa-edit text-xs"></i></button>
+                                        <button onclick="deleteTaskFromHistory(${task.id})" class="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt text-xs"></i></button>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-3 italic">"${task.description || 'No description provided.'}"</p>
+                            
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="flex -space-x-2 overflow-hidden">
+                                    ${devAvatars}
                                 </div>
-                            `}
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${developers.length} Assignee(s)</span>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-gray-700/50">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>${deadline}</span>
+                                    </div>
+                                    <button onclick="openDevTaskComments(${task.id})" class="relative z-50 cursor-pointer flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                                        <i class="fas fa-comment-dots"></i>
+                                        <span>${task.comments ? task.comments.length : 0} Chat</span>
+                                    </button>
+                                </div>
+                                ${task.status === 'pending' ? `
+                                    <button 
+                                        onclick="${canUpdate ? `markTaskComplete(${task.id})` : 'showErrorNotification(&quot;Unauthorized. Only assigned developers can complete this task.&quot;)'}" 
+                                        class="relative z-50 cursor-pointer px-4 py-2 ${canUpdate ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'} text-white rounded-xl text-xs font-bold transition-all shadow-lg">
+                                        Mark Done
+                                    </button>
+                                ` : `
+                                    <div class="text-[10px] text-gray-400 italic">
+                                        Done: ${new Date(task.completed_at).toLocaleDateString()}
+                                    </div>
+                                `}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
                 }).join('');
             } catch (renderError) {
                 console.error('Error rendering dev tasks:', renderError);
-                const container = document.getElementById('dev-tasks-container');
-                if (container) container.innerHTML = `<p class="text-red-500">Error rendering tasks: ${renderError.message}</p>`;
             }
         }
 
@@ -3652,26 +3683,63 @@
         };
 
         // Admin Task Management
-        window.openAssignTaskModal = function(userId, userName) {
+        window.openAssignTaskModal = function(userId = null, userName = null, task = null) {
             const modal = document.getElementById('assign-task-modal');
             const form = document.getElementById('assign-task-form');
-            const nameSpan = document.getElementById('assign-task-user-name');
-            const idInput = document.getElementById('assign-task-user-id');
             const taskIdInput = document.getElementById('assign-task-id');
+            const devListContainer = document.getElementById('assign-task-developers-list');
             
-            if (!modal || !form) return;
+            if (!modal || !form || !devListContainer) return;
             form.reset();
-            idInput.value = userId;
-            taskIdInput.value = '';
-            if (nameSpan) nameSpan.textContent = userName;
+            taskIdInput.value = task ? task.id : '';
             
+            // Populate Developers List
+            const developers = window.App.users ? window.App.users.filter(u => u.role !== 'super_admin') : [];
+            devListContainer.innerHTML = developers.map(dev => `
+                <div class="flex items-center justify-between p-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors cursor-pointer group" onclick="const cb = this.querySelector('input'); cb.checked = !cb.checked;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                            ${dev.name.substring(0,2).toUpperCase()}
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">${dev.name}</span>
+                    </div>
+                    <input type="checkbox" value="${dev.id}" class="dev-assign-cb w-4 h-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500/20" onclick="event.stopPropagation()">
+                </div>
+            `).join('') || '<p class="text-xs text-gray-400 italic text-center py-2">No developers found</p>';
+
             const saveBtn = document.getElementById('save-assign-task-btn');
             const updateBtn = document.getElementById('update-assign-task-btn');
             const titleEl = document.getElementById('assign-task-modal-title');
-            
-            if (saveBtn) saveBtn.classList.remove('hidden');
-            if (updateBtn) updateBtn.classList.add('hidden');
-            if (titleEl) titleEl.textContent = 'Assign Task';
+
+            if (task) {
+                // EDIT MODE
+                if (titleEl) titleEl.textContent = 'Edit Shared Task';
+                if (saveBtn) saveBtn.classList.add('hidden');
+                if (updateBtn) updateBtn.classList.remove('hidden');
+
+                document.getElementById('assign-task-title').value = task.title;
+                document.getElementById('assign-task-description').value = task.description || '';
+                document.getElementById('assign-task-priority').value = task.priority;
+                document.getElementById('assign-task-deadline').value = task.deadline ? task.deadline.split('T')[0] : '';
+
+                // Check assigned developers
+                const assignedIds = (task.developers || []).map(d => d.id);
+                devListContainer.querySelectorAll('.dev-assign-cb').forEach(cb => {
+                    if (assignedIds.includes(parseInt(cb.value))) cb.checked = true;
+                });
+            } else {
+                // ADD MODE
+                if (titleEl) titleEl.textContent = 'Assign New Task';
+                if (saveBtn) saveBtn.classList.remove('hidden');
+                if (updateBtn) updateBtn.classList.add('hidden');
+
+                // If opened from a specific user's row, pre-check them
+                if (userId) {
+                    devListContainer.querySelectorAll('.dev-assign-cb').forEach(cb => {
+                        if (cb.value == userId) cb.checked = true;
+                    });
+                }
+            }
 
             modal.classList.remove('hidden');
             const titleInput = document.getElementById('assign-task-title');
@@ -3689,14 +3757,21 @@
             assignTaskForm.onsubmit = async (e) => {
                 e.preventDefault();
 
-                // FIX 4: Prevent multiple submissions on rapid button clicks
                 if (isSubmittingDevTask) return;
+
+                // Validate selection
+                const selectedIds = Array.from(document.querySelectorAll('.dev-assign-cb:checked')).map(cb => cb.value);
+                if (selectedIds.length === 0) {
+                    return showErrorNotification('Please select at least one developer.');
+                }
+
                 isSubmittingDevTask = true;
 
                 const saveBtn = document.getElementById('save-assign-task-btn');
                 const updateBtn = document.getElementById('update-assign-task-btn');
                 const originalSaveTxt = saveBtn ? saveBtn.innerHTML : '';
                 const originalUpdateTxt = updateBtn ? updateBtn.innerHTML : '';
+                
                 if (saveBtn && !saveBtn.classList.contains('hidden')) {
                     saveBtn.disabled = true;
                     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Assigning...';
@@ -3706,10 +3781,9 @@
                     updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
                 }
 
-                const userId = document.getElementById('assign-task-user-id').value;
                 const taskId = document.getElementById('assign-task-id').value;
                 const data = {
-                    user_id: userId,
+                    developer_ids: selectedIds,
                     title: document.getElementById('assign-task-title').value,
                     description: document.getElementById('assign-task-description').value,
                     priority: document.getElementById('assign-task-priority').value,
@@ -3736,16 +3810,12 @@
                         closeAssignTaskModal();
 
                         // Update UI instantly
-                        if (document.getElementById('assigned-tasks-dashboard')) renderDeveloperTasks();
-                        if (currentHistoryUserId == userId) renderUserTaskHistoryUI();
-                    } else {
-                        showErrorNotification(result.message || 'Failed to save task.');
+                        renderDeveloperTasks();
+                        if (typeof currentHistoryUserId !== 'undefined' && currentHistoryUserId) renderUserTaskHistoryUI();
                     }
                 } catch (error) {
-                    showErrorNotification('An error occurred. Please try again.');
                     console.error('Task assignment failed:', error);
                 } finally {
-                    // Always re-enable the button
                     isSubmittingDevTask = false;
                     if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = originalSaveTxt; }
                     if (updateBtn) { updateBtn.disabled = false; updateBtn.innerHTML = originalUpdateTxt; }
@@ -3789,8 +3859,8 @@
             
             if (!container) return;
 
-            // Use global developerTasks (for Admin it contains all tasks)
-            const userTasks = developerTasks.filter(t => t.user_id == currentHistoryUserId);
+            // Check if user is in the developers array
+            const userTasks = developerTasks.filter(t => (t.developers || []).some(d => d.id == currentHistoryUserId));
             const filtered = userTasks.filter(t => {
                 if (historyTaskFilter === 'all') return true;
                 return t.status === historyTaskFilter;
@@ -3817,9 +3887,9 @@
                                     ${task.status}
                                 </span>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">${task.description || 'No description'}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 italic">"${task.description || 'No description'}"</p>
                             <div class="flex items-center gap-4 mt-2">
-                                <span class="text-[10px] text-gray-400 font-medium italic">Priority: ${task.priority}</span>
+                                <span class="text-[10px] text-gray-400 font-medium tracking-tight">Priority: <span class="font-bold italic">${task.priority}</span></span>
                                 <span class="text-[10px] text-gray-400 font-medium">Deadline: ${deadline}</span>
                             </div>
                         </div>
@@ -3847,36 +3917,12 @@
             const task = developerTasks.find(t => t.id == taskId);
             if (!task) return;
 
-            // FIX 2: Close the history modal first before opening the edit modal
+            // Close the history modal first
             const historyModal = document.getElementById('user-task-history-modal');
             if (historyModal) historyModal.classList.add('hidden');
 
-            const modal = document.getElementById('assign-task-modal');
-            const form = document.getElementById('assign-task-form');
-            const idInput = document.getElementById('assign-task-user-id');
-            const taskIdInput = document.getElementById('assign-task-id');
-
-            if (!modal || !form) return;
-            form.reset();
-            idInput.value = task.user_id;
-            taskIdInput.value = task.id;
-            const nameSpan = document.getElementById('assign-task-user-name');
-            if (nameSpan) nameSpan.textContent = task.developer ? task.developer.name : 'Developer';
-
-            document.getElementById('assign-task-title').value = task.title;
-            document.getElementById('assign-task-description').value = task.description || '';
-            document.getElementById('assign-task-priority').value = task.priority;
-            document.getElementById('assign-task-deadline').value = task.deadline ? task.deadline.split('T')[0] : '';
-
-            const saveBtn = document.getElementById('save-assign-task-btn');
-            const updateBtn = document.getElementById('update-assign-task-btn');
-            const titleEl = document.getElementById('assign-task-modal-title');
-
-            if (saveBtn) saveBtn.classList.add('hidden');
-            if (updateBtn) updateBtn.classList.remove('hidden');
-            if (titleEl) titleEl.textContent = 'Edit Task';
-
-            modal.classList.remove('hidden');
+            // Use the new multi-assign aware modal opener
+            openAssignTaskModal(null, null, task);
         };
 
         window.deleteTaskFromHistory = function(taskId) {

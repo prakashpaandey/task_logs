@@ -10,7 +10,6 @@ class DeveloperTask extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'admin_id',
         'title',
         'description',
@@ -21,11 +20,11 @@ class DeveloperTask extends Model
     ];
 
     /**
-     * Get the developer assigned to the task.
+     * Get the developers assigned to the task.
      */
-    public function developer()
+    public function developers()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsToMany(User::class, 'developer_task_user', 'developer_task_id', 'user_id')->withTimestamps();
     }
 
     /**

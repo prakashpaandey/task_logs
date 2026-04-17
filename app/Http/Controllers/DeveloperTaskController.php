@@ -20,13 +20,13 @@ class DeveloperTaskController extends Controller
         if ($user->isAdmin()) {
             return response()->json([
                 'success' => true,
-                'tasks' => DeveloperTask::with(['developer', 'admin'])->latest()->get()
+                'tasks' => DeveloperTask::with(['developers', 'admin'])->latest()->get()
             ]);
         }
 
         return response()->json([
             'success' => true,
-            'tasks' => DeveloperTask::where('user_id', $user->id)->with(['admin'])->latest()->get()
+            'tasks' => $user->assignedDeveloperTasks()->with(['admin', 'developers'])->latest()->get()
         ]);
     }
 
@@ -41,23 +41,25 @@ class DeveloperTaskController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
-            'user_id' => 'required|exists:users,id',
+            'developer_ids' => 'required|array|min:1',
+            'developer_ids.*' => 'exists:users,id',
             'priority' => 'required|in:low,medium,high',
             'deadline' => 'nullable|date|after_or_equal:today',
             'description' => 'nullable|string',
         ]);
 
-        // Secondary check to ensure user_id is a developer
-        $developer = User::find($request->user_id);
-        if ($developer->isAdmin()) {
+        // Clean developer_ids from duplicates and ensure they are NOT admins
+        $devIds = array_unique($request->developer_ids);
+        $developers = User::whereIn('id', $devIds)->where('role', '!=', 'super_admin')->get();
+        
+        if ($developers->count() === 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tasks can only be assigned to developers.'
+                'message' => 'Tasks must be assigned to at least one valid developer.'
             ], 422);
         }
 
         $task = DeveloperTask::create([
-            'user_id' => $request->user_id,
             'admin_id' => auth()->id(),
             'title' => $request->title,
             'description' => $request->description,
@@ -66,18 +68,23 @@ class DeveloperTaskController extends Controller
             'status' => 'pending',
         ]);
 
-        // Create Notification for the Developer
-        Notification::create([
-            'user_id' => $request->user_id,
-            'type' => 'developer_task_assigned',
-            'developer_task_id' => $task->id,
-            'message' => 'Super Admin assigned a new task: ' . $task->title,
-        ]);
+        // Sync developers (Many-to-Many)
+        $task->developers()->sync($developers->pluck('id'));
+
+        // Create Notifications for ALL assigned Developers
+        foreach ($developers as $developer) {
+            Notification::create([
+                'user_id' => $developer->id,
+                'type' => 'developer_task_assigned',
+                'developer_task_id' => $task->id,
+                'message' => 'Super Admin assigned you to a new task: ' . $task->title,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Task assigned successfully.',
-            'task' => $task->load('developer')
+            'message' => 'Task assigned to ' . $developers->count() . ' developer(s) successfully.',
+            'task' => $task->load('developers')
         ]);
     }
 
@@ -99,6 +106,8 @@ class DeveloperTaskController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
+            'developer_ids' => 'required|array|min:1',
+            'developer_ids.*' => 'exists:users,id',
             'priority' => 'required|in:low,medium,high',
             'deadline' => 'nullable|date|after_or_equal:today',
             'description' => 'nullable|string',
@@ -106,10 +115,14 @@ class DeveloperTaskController extends Controller
 
         $developerTask->update($request->only('title', 'priority', 'deadline', 'description'));
 
+        // Sync updated developer list
+        $devIds = array_unique($request->developer_ids);
+        $developerTask->developers()->sync($devIds);
+
         return response()->json([
             'success' => true,
             'message' => 'Task updated successfully.',
-            'task' => $developerTask->load('developer')
+            'task' => $developerTask->load('developers')
         ]);
     }
 
@@ -120,9 +133,13 @@ class DeveloperTaskController extends Controller
     {
         $user = auth()->user();
 
-        // Security check
-        if (!$user->isAdmin() && $developerTask->user_id !== $user->id) {
-            abort(403, 'Unauthorized.');
+        // Security check: Admins OR assigned developers only
+        $isAssigned = $developerTask->developers()->where('users.id', $user->id)->exists();
+        if (!$user->isAdmin() && !$isAssigned) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. You are not assigned to this task.'
+            ], 403);
         }
 
         $newStatus = $request->status;
@@ -141,8 +158,19 @@ class DeveloperTaskController extends Controller
                 'user_id' => $developerTask->admin_id,
                 'type' => 'developer_task_completed',
                 'developer_task_id' => $developerTask->id,
-                'message' => 'Developer ' . $user->name . ' completed task: ' . $developerTask->title,
+                'message' => 'Task completed by ' . $user->name . ': ' . $developerTask->title,
             ]);
+
+            // Notify OTHER assigned developers
+            $otherDevelopers = $developerTask->developers()->where('users.id', '!=', $user->id)->get();
+            foreach ($otherDevelopers as $otherDev) {
+                Notification::create([
+                    'user_id' => $otherDev->id,
+                    'type' => 'developer_task_completed',
+                    'developer_task_id' => $developerTask->id,
+                    'message' => $user->name . ' marked the shared task as completed: ' . $developerTask->title,
+                ]);
+            }
         } else {
             $developerTask->update([
                 'status' => $newStatus,
@@ -153,7 +181,7 @@ class DeveloperTaskController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Task status updated.',
-            'task' => $developerTask
+            'task' => $developerTask->load('developers')
         ]);
     }
 

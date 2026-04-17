@@ -62,4 +62,12 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Client::class);
     }
+
+    /**
+     * Get the developer tasks assigned to this user.
+     */
+    public function assignedDeveloperTasks()
+    {
+        return $this->belongsToMany(DeveloperTask::class, 'developer_task_user', 'user_id', 'developer_task_id')->withTimestamps();
+    }
 }

@@ -46,9 +46,9 @@ class TaskController extends Controller
         // Fetch Developer Tasks for initial load
         $developerTasks = [];
         if ($user->isAdmin()) {
-            $developerTasks = \App\Models\DeveloperTask::with(['developer', 'admin', 'comments.user'])->latest()->get();
+            $developerTasks = \App\Models\DeveloperTask::with(['developers', 'admin', 'comments.user'])->latest()->get();
         } else {
-            $developerTasks = \App\Models\DeveloperTask::where('user_id', $user->id)->with(['developer', 'admin', 'comments.user'])->latest()->get();
+            $developerTasks = $user->assignedDeveloperTasks()->with(['developers', 'admin', 'comments.user'])->latest()->get();
         }
         
         return view('dashboard.index', compact('clients', 'categories', 'selectedClient', 'users', 'notifications', 'developerTasks'));
