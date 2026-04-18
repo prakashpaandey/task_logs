@@ -126,11 +126,6 @@
         let historyTaskFilter = 'all';
         let devTaskFilter = 'all';
         
-        // Performance & Memory Management (Registry)
-        let clockFrameId = null;
-        let heartbeatIntervalId = null;
-        let syncIntervalId = null;
-        
         // Helper for API calls
         async function apiCall(url, method = 'GET', data = null) {
             const options = {
@@ -202,20 +197,6 @@
 
             // Start Global State Sync (Instant Updates)
             startPulseSync();
-
-            // Centralized Cleanup on Unload
-            window.addEventListener('beforeunload', cleanupAllIntervals);
-        }
-
-        /**
-         * Global cleanup for intervals and animations to prevent memory leaks.
-         */
-        function cleanupAllIntervals() {
-            if (clockFrameId) cancelAnimationFrame(clockFrameId);
-            if (heartbeatIntervalId) clearInterval(heartbeatIntervalId);
-            if (syncIntervalId) clearInterval(syncIntervalId);
-            
-            console.log('Cleanup: All intervals and animations cleared.');
         }
 
         /**
@@ -225,39 +206,33 @@
             const clockEl = document.getElementById('nepali-clock');
             if (!clockEl) return;
 
-            if (clockFrameId) cancelAnimationFrame(clockFrameId);
-            let lastUpdate = 0;
+            const updateTime = () => {
+                // Get UTC time and adjust for Nepal Offset (+5:45)
+                const now = new Date();
+                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const nepalOffset = 5.75; // 5 hours and 45 minutes
+                const nepalTime = new Date(utc + (3600000 * nepalOffset));
 
-            const updateTime = (timestamp) => {
-                // Update roughly once per second (1 FPS) to save CPU
-                if (timestamp - lastUpdate >= 1000) {
-                    // Get UTC time and adjust for Nepal Offset (+5:45)
-                    const now = new Date();
-                    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-                    const nepalOffset = 5.75; // 5 hours and 45 minutes
-                    const nepalTime = new Date(utc + (3600000 * nepalOffset));
-
-                    const hours = nepalTime.getHours().toString().padStart(2, '0');
-                    const minutes = nepalTime.getMinutes().toString().padStart(2, '0');
-                    const seconds = nepalTime.getSeconds().toString().padStart(2, '0');
-                    
-                    clockEl.textContent = `${hours}:${minutes}:${seconds}`;
-                    lastUpdate = timestamp;
-                }
-                clockFrameId = requestAnimationFrame(updateTime);
+                const hours = nepalTime.getHours().toString().padStart(2, '0');
+                const minutes = nepalTime.getMinutes().toString().padStart(2, '0');
+                const seconds = nepalTime.getSeconds().toString().padStart(2, '0');
+                
+                clockEl.textContent = `${hours}:${minutes}:${seconds}`;
             };
 
-            clockFrameId = requestAnimationFrame(updateTime);
+            updateTime();
+            setInterval(updateTime, 1000);
         }
 
         /**
          * Live Kick / Remote Logout Heartbeat
          * Periodically checks if the user's account has been flagged for force logout.
          */
+        let heartbeatInterval = null;
         function startHeartbeat() {
-            if (heartbeatIntervalId) clearInterval(heartbeatIntervalId);
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
             
-            heartbeatIntervalId = setInterval(async () => {
+            heartbeatInterval = setInterval(async () => {
                 try {
                     const response = await fetch(window.App.routes.user_status, {
                         headers: {
@@ -274,7 +249,7 @@
 
                     const data = await response.json();
                     if (data.force_logout) {
-                        clearInterval(heartbeatIntervalId);
+                        clearInterval(heartbeatInterval);
                         // Immediate redirect if flagged
                         window.location.href = '/login?reason=reset';
                     }
@@ -288,8 +263,12 @@
          * Global State Sync Engine
          * Periodically fetches the latest state from the server to keep the UI in sync.
          */
+        let syncInterval = null;
+        let lastSyncData = null;
+        let isUserTyping = false;
+
         function startPulseSync() {
-            if (syncIntervalId) clearInterval(syncIntervalId);
+            if (syncInterval) clearInterval(syncInterval);
             
             // Listen for typing events to avoid UI jumps while editing
             document.addEventListener('focusin', (e) => {
@@ -303,25 +282,9 @@
                 }
             });
 
-            // Visibility Throttling: Stop sync when tab is hidden
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') {
-                    console.log('Tab visible: Resuming sync...');
-                    startPulseSync(); // Restart immediately for fresh data
-                } else {
-                    console.log('Tab hidden: Pausing sync...');
-                    if (syncIntervalId) clearInterval(syncIntervalId);
-                }
-            });
-
-            syncIntervalId = setInterval(async () => {
-                // Skip sync if user is actively writing or tab is hidden
-                if (document.visibilityState !== 'visible' || isUserTyping || 
-                    (typeof isSubmittingClient !== 'undefined' && isSubmittingClient) || 
-                    (typeof isSubmittingMainTask !== 'undefined' && isSubmittingMainTask) || 
-                    (typeof isSubmittingSubtask !== 'undefined' && isSubmittingSubtask) || 
-                    (typeof isSubmittingTimeLog !== 'undefined' && isSubmittingTimeLog) || 
-                    (typeof isSubmittingComment !== 'undefined' && isSubmittingComment)) {
+            syncInterval = setInterval(async () => {
+                // Skip sync if user is actively writing to avoid losing focus
+                if (isUserTyping || typeof isSubmittingClient !== 'undefined' && isSubmittingClient || typeof isSubmittingMainTask !== 'undefined' && isSubmittingMainTask || typeof isSubmittingSubtask !== 'undefined' && isSubmittingSubtask || typeof isSubmittingTimeLog !== 'undefined' && isSubmittingTimeLog || typeof isSubmittingComment !== 'undefined' && isSubmittingComment) {
                     return;
                 }
 
@@ -342,7 +305,7 @@
                 } catch (error) {
                     // Fail silently
                 }
-            }, 15000); // Increased to 15 seconds to improve background performance
+            }, 3000); // Pulse every 3 seconds for real-time feel
         }
 
         function handleSyncPulse(data) {
