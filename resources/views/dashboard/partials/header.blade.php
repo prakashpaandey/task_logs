@@ -27,8 +27,13 @@
                         </div>
                     </div>
 
-                    <button id="theme-toggle" class="p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Toggle Theme (Ctrl+D)">
-                        <i id="theme-icon" class="fas fa-moon"></i>
+                    <button id="theme-toggle" class="relative p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 shadow-sm group transition-all duration-300 overflow-hidden" title="Toggle Theme (Ctrl+D)">
+                        <div class="relative w-5 h-5">
+                            <!-- Sun Icon (Visible in Dark Mode) -->
+                            <i class="fas fa-sun absolute inset-0 flex items-center justify-center text-amber-400 transition-all duration-500 transform translate-y-10 opacity-0 dark:translate-y-0 dark:opacity-100"></i>
+                            <!-- Moon Icon (Visible in Light Mode) -->
+                            <i class="fas fa-moon absolute inset-0 flex items-center justify-center text-gray-600 transition-all duration-500 transform dark:-translate-y-10 dark:opacity-0"></i>
+                        </div>
                     </button>
                     
                     <div class="relative" id="notifications-wrapper">

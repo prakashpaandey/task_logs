@@ -2,7 +2,6 @@
         // DOM Elements
         const appContainer = document.getElementById('app');
         const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
         const userMenuButton = document.getElementById('user-menu-button');
         const userDropdown = document.getElementById('user-dropdown');
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
@@ -160,13 +159,7 @@
         // Initialize the UI
         function init() {
             // Update icon state based on current theme (now applied in head)
-            if (document.documentElement.classList.contains('dark')) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            }
+            // Update icon state based on current theme (Handled by CSS in new structure)
             
             // Set default date for subtask work date
             const today = new Date().toISOString().split('T')[0];
@@ -1154,14 +1147,10 @@
         
         function enableDarkMode() {
             document.documentElement.classList.add('dark');
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
         }
         
         function disableDarkMode() {
             document.documentElement.classList.remove('dark');
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
         }
         
         // User dropdown functionality

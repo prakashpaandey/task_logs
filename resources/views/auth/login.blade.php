@@ -37,8 +37,13 @@
 </head>
 <body class="h-full bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 antialiased flex items-center justify-center p-4 transition-colors duration-300">
     <!-- Theme Toggle Button -->
-    <button id="theme-toggle" class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 p-3 rounded-xl bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all">
-        <i class="fas fa-moon text-slate-700 dark:text-slate-300 text-lg"></i>
+    <button id="theme-toggle" class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300 overflow-hidden">
+        <div class="relative w-5 h-5">
+            <!-- Sun Icon (Visible in Dark Mode) -->
+            <i class="fas fa-sun absolute inset-0 flex items-center justify-center text-amber-400 transition-all duration-500 transform translate-y-10 opacity-0 dark:translate-y-0 dark:opacity-100"></i>
+            <!-- Moon Icon (Visible in Light Mode) -->
+            <i class="fas fa-moon absolute inset-0 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all duration-500 transform dark:-translate-y-10 dark:opacity-0 text-lg"></i>
+        </div>
     </button>
     
     <div class="w-full max-w-md mt-12 sm:mt-0">
@@ -123,26 +128,15 @@
         // Theme toggle functionality
         const themeToggle = document.getElementById('theme-toggle');
         const html = document.documentElement;
-        const themeIcon = themeToggle.querySelector('i');
         
-        // Check for saved theme preference or default to light mode
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        if (currentTheme === 'dark') {
-            html.classList.add('dark');
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        }
+        // Initial setup handled by CSS classes in the template structure
         
         themeToggle.addEventListener('click', () => {
             html.classList.toggle('dark');
             
             if (html.classList.contains('dark')) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
                 localStorage.setItem('theme', 'dark');
             } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
                 localStorage.setItem('theme', 'light');
             }
         });
