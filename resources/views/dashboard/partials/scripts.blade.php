@@ -333,28 +333,28 @@
 
                // If we are currently viewing a client, refresh the active view
                 if (currentClientId) {
-                    const updatedClient = typeof findClient === 'function' ? findClient(currentClientId) : null;
+                    const updatedClient = findClient(currentClientId);
                     if (updatedClient) {
                         // Refresh Main Tasks list if we are in the client view
                         if (!document.getElementById('client-content').classList.contains('hidden')) {
-                            if (typeof renderMainTasks === 'function') renderMainTasks(updatedClient.main_tasks || []);
+                            renderMainTasks(updatedClient.main_tasks || []);
                             
                             // Refresh breadcrumb text in case client was renamed
-                            if (typeof updateBreadcrumb === 'function') updateBreadcrumb();
+                            updateBreadcrumb();
 
                             // If a main task is selected, refresh its subtasks
                             if (currentMainTaskId) {
-                                const updatedTask = typeof findMainTask === 'function' ? findMainTask(currentMainTaskId) : null;
+                                const updatedTask = findMainTask(currentMainTaskId);
                                 if (updatedTask) {
-                                    if (typeof renderSubtasks === 'function') renderSubtasks(updatedTask.subtasks || []);
+                                    renderSubtasks(updatedTask.subtasks || []);
                                     
                                     // If a subtask is selected, refresh its details/comments
                                     if (currentSubtaskId) {
-                                        const updatedSubtask = typeof findSubtask === 'function' ? findSubtask(currentSubtaskId) : null;
+                                        const updatedSubtask = findSubtask(currentSubtaskId);
                                         if (updatedSubtask) {
-                                            if (typeof updateSubtaskDetailHeader === 'function') updateSubtaskDetailHeader(updatedSubtask);
-                                            if (typeof renderComments === 'function') renderComments(updatedSubtask.comments || []);
-                                            if (typeof renderTimeLogs === 'function') renderTimeLogs(updatedSubtask.time_logs || []);
+                                            updateSubtaskDetailHeader(updatedSubtask);
+                                            renderComments(updatedSubtask.comments || []);
+                                            renderTimeLogs(updatedSubtask.time_logs || []);
                                             
                                             // Update details description if shown
                                             const subtaskDescEl = document.getElementById('detail-subtask-description');
@@ -363,13 +363,13 @@
                                             }
                                         } else {
                                             // Subtask was deleted externally
-                                            if (typeof resetSubtaskForm === 'function') resetSubtaskForm();
+                                            resetSubtaskForm();
                                             showErrorNotification('The subtask you were viewing was deleted by another user.');
                                         }
                                     }
                                 } else {
                                     // Main task was deleted externally
-                                    if (typeof resetMainTaskSelection === 'function') resetMainTaskSelection();
+                                    resetMainTaskSelection();
                                     showErrorNotification('The task you were viewing was deleted by another user.');
                                 }
                             }
@@ -425,8 +425,8 @@
                     if (devChatModal && !devChatModal.classList.contains('hidden')) {
                         const activeTaskId = document.getElementById('dev-task-comment-task-id').value;
                         if (activeTaskId) {
-                            const currentTask = developerTasks.find(t => t.id == activeTaskId);
-                            const commentCount = currentTask && currentTask.comments ? currentTask.comments.length : 0;
+                            const currentTask = findDeveloperTask(activeTaskId);
+                            const commentCount = currentTask?.comments ? currentTask.comments.length : 0;
                             
                             // Initialize comment tracker if needed
                             if (!window._lastCommentCounts) window._lastCommentCounts = {};
@@ -753,13 +753,13 @@
             // Edit and delete client buttons
             if (editClientBtn) {
                 editClientBtn.addEventListener('click', () => {
-                    const client = window.App.clients.find(c => c.id == currentClientId);
+                    const client = findClient(currentClientId);
                     if (client) openClientModal('edit', client.id, client.name);
                 });
             }
             if (deleteClientBtn) {
                 deleteClientBtn.addEventListener('click', () => {
-                    const client = window.App.clients.find(c => c.id == currentClientId);
+                    const client = findClient(currentClientId);
                     if (client) openConfirmationModal('client', client.name, deleteCurrentClient);
                 });
             }
@@ -1417,8 +1417,8 @@
                 statusContainer.classList.add('hidden');
                 editingDashboardUserId = null;
             } else {
-                const user = window.App.users.find(u => u.id == userId);
-                if (!user) return;
+                const user = findUser(userId);
+                if (!user) return showErrorNotification('User not found.');
                 
                 title.textContent = 'Edit User Profile';
                 saveBtn.classList.add('hidden');
@@ -1685,7 +1685,7 @@
             
             // Load client data
             try {
-                const client = window.App.clients.find(c => c.id == clientId);
+                const client = findClient(clientId);
                 if (client) {
                     selectedClientName.textContent = client.name;
                     
@@ -1743,7 +1743,7 @@
                                 <p class="text-sm line-clamp-1 ${isActive ? 'text-blue-600/80 dark:text-blue-300/80' : 'text-gray-600 dark:text-gray-200'}">${task.description || 'No description'}</p>
                                 <div class="mt-1.5 flex items-center text-xs ${isActive ? 'text-blue-500 font-bold' : 'text-blue-600 dark:text-blue-400'}">
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
-                                    <span>Created by: ${task.user_id == window.App.user.id ? 'You' : (task.user ? task.user.name : 'Unknown')}</span>
+                                    <span>Created by: ${task.user_id == window.App.user.id ? 'You' : (task.user?.name || 'Unknown')}</span>
                                 </div>
                             </div>
                         </div>
@@ -1863,8 +1863,8 @@
                 editingClientId = clientId;
 
                 // Pre-select assigned users
-                const client = window.App.clients.find(c => c.id == clientId);
-                if (client && client.users) {
+                const client = findClient(clientId);
+                if (client?.users) {
                     const assignedUserIds = client.users.map(u => u.id);
                     checkboxes.forEach(cb => {
                         if (assignedUserIds.includes(parseInt(cb.value))) {
@@ -2048,13 +2048,15 @@
                 mainTaskDescription.value = description;
                 if (document.getElementById('main-task-category')) {
                     document.getElementById('main-task-category').value = categoryId || '';
-                    if (categoryId && window.App.categories) {
-                        const cat = window.App.categories.find(c => c.id == categoryId);
+                    if (categoryId) {
+                        const cat = findCategory(categoryId);
                         if (cat) {
                             const textEl = document.getElementById('category-dropdown-text');
-                            textEl.textContent = cat.name;
-                            textEl.classList.remove('text-gray-500', 'dark:text-gray-400');
-                            textEl.classList.add('text-gray-800', 'dark:text-white');
+                            if (textEl) {
+                                textEl.textContent = cat.name;
+                                textEl.classList.remove('text-gray-500', 'dark:text-gray-400');
+                                textEl.classList.add('text-gray-800', 'dark:text-white');
+                            }
                         }
                     }
                 }
@@ -2109,9 +2111,11 @@
                 if (client) {
                     if (!client.main_tasks) client.main_tasks = [];
                     client.main_tasks.push(result.mainTask);
+                    renderMainTasks(client.main_tasks);
+                    renderClientsList();
+                } else {
+                    showErrorNotification('Client context lost. Please refresh.');
                 }
-                renderMainTasks(client.main_tasks);
-                renderClientsList();
                 showSuccessNotification(result.message);
                 resetMainTaskForm();
                 loadStatistics(); // Refresh dashboard cards
@@ -2146,17 +2150,18 @@
                     category_id
                 });
                 const client = findClient(currentClientId);
-                const taskIndex = client.main_tasks.findIndex(t => t.id == currentMainTaskId);
-                if (taskIndex !== -1) {
-                    client.main_tasks[taskIndex] = { ...client.main_tasks[taskIndex], ...result.mainTask };
-                    
-                    if (currentMainTaskId == result.mainTask.id) {
-                        selectedMainTaskTitle.textContent = result.mainTask.title;
-                        selectedMainTaskDescription.textContent = result.mainTask.description || 'No description';
+                if (client?.main_tasks) {
+                    const taskIndex = client.main_tasks.findIndex(t => t.id == currentMainTaskId);
+                    if (taskIndex !== -1) {
+                        client.main_tasks[taskIndex] = { ...client.main_tasks[taskIndex], ...result.mainTask };
+                        
+                        if (currentMainTaskId == result.mainTask.id) {
+                            selectedMainTaskTitle.textContent = result.mainTask.title;
+                            selectedMainTaskDescription.textContent = result.mainTask.description || 'No description';
+                        }
+                        renderMainTasks(client.main_tasks);
                     }
                 }
-                
-                renderMainTasks(client.main_tasks);
                 showSuccessNotification(result.message);
                 resetMainTaskForm();
                 loadStatistics(); // Refresh dashboard cards
@@ -2176,7 +2181,7 @@
             currentMainTaskId = taskId;
             
             // Re-render to show active state
-            renderMainTasks(findClient(currentClientId).main_tasks || []);
+            renderMainTasks(findClient(currentClientId)?.main_tasks || []);
             
             selectedMainTaskTitle.textContent = task.title;
             selectedMainTaskDescription.textContent = task.description || 'No description';
@@ -2251,7 +2256,7 @@
                                 </div>
                                 <div class="mt-1.5 flex items-center text-xs ${isActive ? 'text-blue-500 font-bold' : 'text-blue-600 dark:text-blue-400'}">
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
-                                    <span>Created by: ${s.user_id == window.App.user.id ? 'You' : (s.user ? s.user.name : 'Unknown')}</span>
+                                    <span>Created by: ${s.user_id == window.App.user.id ? 'You' : (s.user?.name || 'Unknown')}</span>
                                 </div>
                             </div>
                         </div>
@@ -2365,9 +2370,11 @@
                     work_date
                 });
                 const task = findMainTask(currentMainTaskId);
-                if (!task.subtasks) task.subtasks = [];
-                task.subtasks.push(result.subtask);
-                renderSubtasks(task.subtasks);
+                if (task) {
+                    if (!task.subtasks) task.subtasks = [];
+                    task.subtasks.push(result.subtask);
+                    renderSubtasks(task.subtasks);
+                }
                 showSuccessNotification(result.message);
                 resetSubtaskForm();
                 loadStatistics(); // Refresh dashboard cards
@@ -2400,11 +2407,13 @@
                     work_date
                 });
                 const task = findMainTask(currentMainTaskId);
-                const idx = task.subtasks.findIndex(s => s.id == currentSubtaskId);
-                if (idx !== -1) {
-                    task.subtasks[idx] = { ...task.subtasks[idx], ...result.subtask };
+                if (task?.subtasks) {
+                    const idx = task.subtasks.findIndex(s => s.id == currentSubtaskId);
+                    if (idx !== -1) {
+                        task.subtasks[idx] = { ...task.subtasks[idx], ...result.subtask };
+                    }
+                    renderSubtasks(task.subtasks);
                 }
-                renderSubtasks(task.subtasks);
                 showSuccessNotification(result.message);
                 resetSubtaskForm();
                 loadStatistics(); // Refresh dashboard cards
@@ -2548,7 +2557,7 @@
                 <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded border border-gray-100 dark:border-gray-600">
                     <div class="flex items-center space-x-3">
                         <span class="font-bold text-blue-600 dark:text-blue-400">${log.time}h</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(log.created_at).toLocaleDateString()} by ${log.user_id == window.App.user.id ? 'You' : (log.user ? log.user.name : 'User')}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(log.created_at).toLocaleDateString()} by ${log.user_id == window.App.user.id ? 'You' : (log.user?.name || 'User')}</span>
                     </div>
                     <div class="flex items-center space-x-2">
                         ${(window.App.user.role === 'super_admin' || log.user_id == window.App.user.id) ? `
@@ -2645,9 +2654,9 @@
 
         function deleteTimeLog(id) {
             const subtask = findSubtask(currentSubtaskId);
-            if (!subtask) return;
+            if (!subtask?.time_logs) return showErrorNotification('Subtask data not found.');
             const log = subtask.time_logs.find(l => l.id == id);
-            if (!log) return;
+            if (!log) return showErrorNotification('Time log not found.');
 
             openConfirmationModal('time log', `${log.time} hours`, async () => {
                 try {
@@ -2659,7 +2668,7 @@
                     subtask.time_logs = subtask.time_logs.filter(l => l.id != id);
                     updateSubtaskDetailHeader(subtask);
                     renderTimeLogs(subtask.time_logs);
-                    renderSubtasks(findMainTask(currentMainTaskId).subtasks);
+                    renderSubtasks(findMainTask(currentMainTaskId)?.subtasks || []);
                     showSuccessNotification(result.message);
                     closeConfirmationModal();
                 } catch (error) {
@@ -2691,7 +2700,7 @@
                                 <i class="fas fa-user text-purple-600 dark:text-purple-400"></i>
                             </div>
                             <div>
-                                <p class="font-medium text-gray-800 dark:text-white">${c.user_id == window.App.user.id ? 'You' : (c.user ? c.user.name : 'Unknown User')}</p>
+                                <p class="font-medium text-gray-800 dark:text-white">${c.user_id == window.App.user.id ? 'You' : (c.user?.name || 'Unknown User')}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">${new Date(c.created_at).toLocaleString()}</p>
                             </div>
                         </div>
@@ -2712,8 +2721,10 @@
                 const url = window.App.routes.subtasks.destroy.replace(':id', subtaskId);
                 const result = await apiCall(url, 'DELETE');
                 const task = findMainTask(currentMainTaskId);
-                task.subtasks = task.subtasks.filter(s => s.id != subtaskId);
-                renderSubtasks(task.subtasks);
+                if (task) {
+                    task.subtasks = (task.subtasks || []).filter(s => s.id != subtaskId);
+                    renderSubtasks(task.subtasks);
+                }
                 showSuccessNotification(result.message);
                 if (currentSubtaskId == subtaskId) {
                     subtaskDetailView.classList.add('hidden');
@@ -2867,32 +2878,51 @@
         }
 
         // Data helpers
-        function findClient(id) { return window.App.clients.find(c => c.id == id); }
+        function findClient(id) { 
+            if (!id) return null;
+            return window.App.clients?.find(c => c.id == id) || null; 
+        }
+
         function findMainTask(id) {
-            for (let c of window.App.clients) {
-                if (c.main_tasks) {
-                    let t = c.main_tasks.find(mt => mt.id == id);
-                    if (t) return t;
-                }
+            if (!id) return null;
+            for (let c of (window.App.clients || [])) {
+                let t = c.main_tasks?.find(mt => mt.id == id);
+                if (t) return t;
             }
             return null;
         }
+
         function findSubtask(id) {
-            for (let c of window.App.clients) {
-                if (c.main_tasks) {
-                    for (let t of c.main_tasks) {
-                        if (t.subtasks) {
-                            let s = t.subtasks.find(st => st.id == id);
-                            if (s) return s;
-                        }
-                    }
+            if (!id) return null;
+            for (let c of (window.App.clients || [])) {
+                if (!c.main_tasks) continue;
+                for (let t of (c.main_tasks || [])) {
+                    let s = t.subtasks?.find(st => st.id == id);
+                    if (s) return s;
                 }
             }
             return null;
         }
+
         function findComment(id) {
+            if (!id) return null;
             const s = findSubtask(currentSubtaskId);
-            return s ? s.comments.find(c => c.id == id) : null;
+            return s?.comments?.find(c => c.id == id) || null;
+        }
+
+        function findUser(id) {
+            if (!id) return null;
+            return window.App.users?.find(u => u.id == id) || null;
+        }
+
+        function findDeveloperTask(id) {
+            if (!id) return null;
+            return (typeof developerTasks !== 'undefined' ? developerTasks : []).find(t => t.id == id) || null;
+        }
+
+        function findCategory(id) {
+            if (!id) return null;
+            return window.App.categories?.find(c => c.id == id) || null;
         }
 
         // Confirmation modal
@@ -3360,7 +3390,7 @@
 
                 // 3. Client Context
                 if (notif.client_id) {
-                    const client = window.App.clients.find(c => c.id == notif.client_id);
+                    const client = findClient(notif.client_id);
                     if (client) {
                         currentClientId = client.id;
                         if (typeof renderMainTasks === 'function') renderMainTasks(client.main_tasks || []);
@@ -3376,7 +3406,7 @@
 
                 // 4. Main Task Context
                 if (notif.main_task_id) {
-                    const client = window.App.clients.find(c => c.id == notif.client_id);
+                    const client = findClient(notif.client_id);
                     const task = client?.main_tasks?.find(t => t.id == notif.main_task_id);
                     if (task) {
                         currentMainTaskId = task.id;
@@ -3393,7 +3423,7 @@
 
                 // 5. Subtask / Detail Context
                 if (notif.sub_task_id) {
-                    const client = window.App.clients.find(c => c.id == notif.client_id);
+                    const client = findClient(notif.client_id);
                     const task = client?.main_tasks?.find(t => t.id == notif.main_task_id);
                     const subtask = task?.subtasks?.find(s => s.id == notif.sub_task_id);
                     
@@ -3662,7 +3692,7 @@
                 if (result.success) {
                     showSuccessNotification('Great job! Task marked as completed.');
                     // Update local state
-                    const task = developerTasks.find(t => t.id == taskId);
+                    const task = findDeveloperTask(taskId);
                     if (task) {
                         task.status = 'completed';
                         task.completed_at = new Date().toISOString();
@@ -3676,7 +3706,7 @@
         };
 
         window.openDevTaskComments = function(taskId) {
-            const task = developerTasks.find(t => t.id == taskId);
+            const task = findDeveloperTask(taskId);
             if (!task) return;
 
             const modal = document.getElementById('dev-task-comments-modal');
@@ -3696,7 +3726,7 @@
         };
 
         window.renderDevTaskComments = function(taskId) {
-            const task = developerTasks.find(t => t.id == taskId);
+            const task = findDeveloperTask(taskId);
             const container = document.getElementById('dev-task-comments-container');
             if (!container || !task) return;
 
@@ -3748,7 +3778,7 @@
                 const response = await apiCall(url, 'POST', { comment: input.value });
                 if (response.success) {
                     // Update local state
-                    const task = developerTasks.find(t => t.id == taskId);
+                    const task = findDeveloperTask(taskId);
                     if (task) {
                         if (!task.comments) task.comments = [];
                         task.comments.push(response.comment);
@@ -3999,8 +4029,8 @@
         }
 
         window.editTaskFromHistory = function(taskId) {
-            const task = developerTasks.find(t => t.id == taskId);
-            if (!task) return;
+            const task = findDeveloperTask(taskId);
+            if (!task) return showErrorNotification('Task data not found. Please refresh.');
 
             // Close the history modal first
             const historyModal = document.getElementById('user-task-history-modal');
