@@ -132,7 +132,7 @@
         let syncIntervalId = null;
         
         // Helper for API calls
-        async function apiCall(url, method = 'GET', data = null, attempts = 1) {
+        async function apiCall(url, method = 'GET', data = null) {
             const options = {
                 method,
                 headers: {
@@ -156,15 +156,6 @@
                 
                 return result;
             } catch (error) {
-                // Retry ONLY for network-level failures (max 3 attempts)
-                const isNetworkError = error instanceof TypeError || error.name === 'AbortError' || !window.navigator.onLine;
-                if (isNetworkError && attempts < 3) {
-                    console.warn(`Network failure. Retrying API call (${attempts}/3) to: ${url}`);
-                    // Minimal delay before retry
-                    await new Promise(res => setTimeout(res, 1000 * attempts));
-                    return apiCall(url, method, data, attempts + 1);
-                }
-
                 showErrorNotification(error.message);
                 throw error;
             }
@@ -720,52 +711,60 @@
         // Set up all event listeners
         function setupEventListeners() {
             // Theme toggle
-            if (themeToggle) themeToggle.onclick = toggleDarkMode;
+            if (themeToggle) themeToggle.addEventListener('click', toggleDarkMode);
             
             // User dropdown
-            if (userMenuButton) userMenuButton.onclick = toggleUserDropdown;
+            if (userMenuButton) userMenuButton.addEventListener('click', toggleUserDropdown);
             
             // Mobile menu toggle
-            if (mobileMenuToggle) mobileMenuToggle.onclick = toggleMobileMenu;
-            if (sidebarOverlay) sidebarOverlay.onclick = closeMobileMenu;
-            if (closeSidebarBtn) closeSidebarBtn.onclick = closeMobileMenu;
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+            }
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeMobileMenu);
+            }
+            if (closeSidebarBtn) {
+                closeSidebarBtn.addEventListener('click', closeMobileMenu);
+            }
             
             if (toggleSidebarBtn) {
-                toggleSidebarBtn.onclick = () => {
+                toggleSidebarBtn.addEventListener('click', () => {
                     sidebarCollapsed = !sidebarCollapsed;
                     localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
                     updateSidebarState();
-                };
+                });
             }
 
             if (userMenuButton && userDropdown) {
-                document.onclick = (e) => {
+                document.addEventListener('click', (e) => {
                     if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
                         userDropdown.classList.add('hidden');
                     }
-                };
+                });
             }
             
             // Client selection (Delegation)
             const clientsListContainer = document.getElementById('clients-list-container');
             if (clientsListContainer) {
-                clientsListContainer.onclick = (e) => {
+                clientsListContainer.addEventListener('click', (e) => {
                     const item = e.target.closest('.client-item');
                     if (item) selectClient(item);
-                };
+                });
             }
             
             // Client search
-            if (clientSearch) clientSearch.oninput = filterClients;
+            if (clientSearch) {
+                clientSearch.addEventListener('input', filterClients);
+            }
             
             // Add client buttons
-            if (addClientBtn) addClientBtn.onclick = () => openClientModal('add');
-            if (quickAddClientBtn) quickAddClientBtn.onclick = () => openClientModal('add');
-            if (addFirstClientBtn) addFirstClientBtn.onclick = () => openClientModal('add');
+            if (addClientBtn) addClientBtn.addEventListener('click', () => openClientModal('add'));
+            if (quickAddClientBtn) quickAddClientBtn.addEventListener('click', () => openClientModal('add'));
+            if (addFirstClientBtn) addFirstClientBtn.addEventListener('click', () => openClientModal('add'));
             
             // View all clients
             if (viewAllClientsBtn) {
-                viewAllClientsBtn.onclick = () => {
+                viewAllClientsBtn.addEventListener('click', () => {
                     if (clientSearch) {
                         clientSearch.value = '';
                         filterClients();
@@ -780,34 +779,34 @@
                         sidebar.classList.add('ring-2', 'ring-blue-500', 'ring-inset');
                         setTimeout(() => sidebar.classList.remove('ring-2', 'ring-blue-500', 'ring-inset'), 1000);
                     }
-                };
+                });
             }
             
             // Client modal
-            if (closeClientModal) closeClientModal.onclick = () => closeClientModalFunc();
-            if (cancelClientBtn) cancelClientBtn.onclick = () => closeClientModalFunc();
-            if (clientForm) clientForm.onsubmit = handleClientFormSubmit;
+            if (closeClientModal) closeClientModal.addEventListener('click', () => closeClientModalFunc());
+            if (cancelClientBtn) cancelClientBtn.addEventListener('click', () => closeClientModalFunc());
+            if (clientForm) clientForm.addEventListener('submit', handleClientFormSubmit);
             
             // Edit and delete client buttons
             if (editClientBtn) {
-                editClientBtn.onclick = () => {
+                editClientBtn.addEventListener('click', () => {
                     const client = findClient(currentClientId);
                     if (client) openClientModal('edit', client.id, client.name);
-                };
+                });
             }
             if (deleteClientBtn) {
-                deleteClientBtn.onclick = () => {
+                deleteClientBtn.addEventListener('click', () => {
                     const client = findClient(currentClientId);
                     if (client) openConfirmationModal('client', client.name, deleteCurrentClient);
-                };
+                });
             }
             
             // Confirmation modal
-            if (cancelConfirmationBtn) cancelConfirmationBtn.onclick = () => closeConfirmationModal();
+            if (cancelConfirmationBtn) cancelConfirmationBtn.addEventListener('click', () => closeConfirmationModal());
             
             // Main task buttons
             if (addMainTaskBtn) {
-                addMainTaskBtn.onclick = () => {
+                addMainTaskBtn.addEventListener('click', () => {
                     if (mainTaskForm) {
                         if (mainTaskForm.classList.contains('hidden')) {
                             openMainTaskForm('add');
@@ -815,16 +814,18 @@
                             resetMainTaskForm();
                         }
                     }
-                };
+                });
             }
-            if (cancelMainTaskBtn) cancelMainTaskBtn.onclick = resetMainTaskForm;
-            if (saveMainTaskBtn) saveMainTaskBtn.onclick = saveMainTask;
-            if (updateMainTaskBtn) updateMainTaskBtn.onclick = updateMainTask;
+            if (cancelMainTaskBtn) cancelMainTaskBtn.addEventListener('click', resetMainTaskForm);
+            if (saveMainTaskBtn) saveMainTaskBtn.addEventListener('click', saveMainTask);
+            if (updateMainTaskBtn) updateMainTaskBtn.addEventListener('click', updateMainTask);
+            
+            // Task status buttons logic removed
             
             // Main task list event delegation
             const mainTasksList = document.getElementById('main-tasks-list');
             if (mainTasksList) {
-                mainTasksList.onclick = (e) => {
+                mainTasksList.addEventListener('click', (e) => {
                     const item = e.target.closest('.main-task-item');
                     if (!item) return;
 
@@ -841,12 +842,12 @@
                     } else {
                         selectMainTask(item);
                     }
-                };
+                });
             }
             
             // Subtask buttons
             if (addSubtaskBtn) {
-                addSubtaskBtn.onclick = () => {
+                addSubtaskBtn.addEventListener('click', () => {
                     if (subtaskForm) {
                         if (subtaskForm.classList.contains('hidden')) {
                             openSubtaskForm('add');
@@ -854,26 +855,27 @@
                             resetSubtaskForm();
                         }
                     }
-                };
+                });
             }
             
             // Profile & Security listeners
-            if (profileBtn) profileBtn.onclick = openProfileModal;
-            if (closeProfileModal) closeProfileModal.onclick = closeProfileModalFunc;
-            const closeProfileSidebar = document.getElementById('close-profile-modal-sidebar');
-            if (closeProfileSidebar) closeProfileSidebar.onclick = closeProfileModalFunc;
-            if (cancelProfileBtn) cancelProfileBtn.onclick = closeProfileModalFunc;
-            if (profileForm) profileForm.onsubmit = handleProfileUpdate;
-            if (passwordForm) passwordForm.onsubmit = handlePasswordUpdate;
-            if (cancelSubtaskBtn) cancelSubtaskBtn.onclick = resetSubtaskForm;
-            if (saveSubtaskBtn) saveSubtaskBtn.onclick = saveSubtask;
-            if (updateSubtaskBtn) updateSubtaskBtn.onclick = updateSubtask;
-            if (changeMainTaskBtn) changeMainTaskBtn.onclick = () => resetMainTaskSelection();
+            if (profileBtn) profileBtn.addEventListener('click', openProfileModal);
+            if (closeProfileModal) closeProfileModal.addEventListener('click', closeProfileModalFunc);
+            if (document.getElementById('close-profile-modal-sidebar')) {
+                document.getElementById('close-profile-modal-sidebar').addEventListener('click', closeProfileModalFunc);
+            }
+            if (cancelProfileBtn) cancelProfileBtn.addEventListener('click', closeProfileModalFunc);
+            if (profileForm) profileForm.addEventListener('submit', handleProfileUpdate);
+            if (passwordForm) passwordForm.addEventListener('submit', handlePasswordUpdate);
+            if (cancelSubtaskBtn) cancelSubtaskBtn.addEventListener('click', resetSubtaskForm);
+            if (saveSubtaskBtn) saveSubtaskBtn.addEventListener('click', saveSubtask);
+            if (updateSubtaskBtn) updateSubtaskBtn.addEventListener('click', updateSubtask);
+            if (changeMainTaskBtn) changeMainTaskBtn.addEventListener('click', () => resetMainTaskSelection());
             
             // Subtasks list event delegation
             const subtasksContainer = document.getElementById('subtasks-container');
             if (subtasksContainer) {
-                subtasksContainer.onclick = (e) => {
+                subtasksContainer.addEventListener('click', (e) => {
                     const item = e.target.closest('.subtask-item');
                     if (!item) return;
 
@@ -895,13 +897,13 @@
             
             // Comment buttons
             if (addCommentBtn) addCommentBtn.addEventListener('click', () => openCommentForm('add'));
-            if (cancelCommentBtn) cancelCommentBtn.onclick = resetCommentForm;
-            if (saveCommentBtn) saveCommentBtn.onclick = saveComment;
+            if (cancelCommentBtn) cancelCommentBtn.addEventListener('click', resetCommentForm);
+            if (saveCommentBtn) saveCommentBtn.addEventListener('click', saveComment);
             
             // Comments list event delegation
             const commentsList = document.getElementById('comments-list');
             if (commentsList) {
-                commentsList.onclick = (e) => {
+                commentsList.addEventListener('click', (e) => {
                     const item = e.target.closest('.comment-item');
                     if (!item) return;
 
@@ -913,50 +915,54 @@
                         const commentId = item.getAttribute('data-comment-id');
                         openConfirmationModal('comment', 'this comment', () => deleteComment(commentId));
                     }
-                };
+                });
             }
 
             // Back to subtasks button
             const backToSubtasksBtnEl = document.getElementById('back-to-subtasks-btn');
             if (backToSubtasksBtnEl) {
-                backToSubtasksBtnEl.onclick = () => {
+                backToSubtasksBtnEl.addEventListener('click', () => {
                     if (subtaskDetailView) subtaskDetailView.classList.add('hidden');
                     if (subtasksList) subtasksList.classList.remove('hidden');
                     currentSubtaskId = null;
-                };
+                });
             }
 
             // Time Log Events
-            if (addTimeLogBtn) addTimeLogBtn.onclick = () => openTimeLogForm('add');
-            if (cancelTimeLogBtn) cancelTimeLogBtn.onclick = resetTimeLogForm;
-            if (saveTimeLogBtn) saveTimeLogBtn.onclick = saveTimeLog;
-            if (updateTimeLogBtn) updateTimeLogBtn.onclick = updateTimeLog;
+            if (addTimeLogBtn) addTimeLogBtn.addEventListener('click', () => openTimeLogForm('add'));
+            if (cancelTimeLogBtn) cancelTimeLogBtn.addEventListener('click', resetTimeLogForm);
+            if (saveTimeLogBtn) saveTimeLogBtn.addEventListener('click', saveTimeLog);
+            if (updateTimeLogBtn) updateTimeLogBtn.addEventListener('click', updateTimeLog);
+
+            // User Management (Dashboard Listeners)
 
             // New User Management Dashboard Listeners
             const userDashSearch = document.getElementById('user-dashboard-search');
             if (userDashSearch) {
-                userDashSearch.oninput = (e) => {
+                userDashSearch.addEventListener('input', (e) => {
                     userDashboardSearchTerm = e.target.value.toLowerCase();
                     applyUserDashboardFilters();
-                };
+                });
             }
+
+            // Button listeners removed for All Client Overview
 
             const manageUsersBtn = document.getElementById('sidebar-manage-users-btn');
             if (manageUsersBtn) {
-                manageUsersBtn.onclick = (e) => {
+                manageUsersBtn.addEventListener('click', (e) => {
                     e.preventDefault();
                     switchView('user-management');
-                };
+                });
             }
 
             const dashAddUserBtn = document.getElementById('dashboard-add-user-btn');
             if (dashAddUserBtn) {
-                dashAddUserBtn.onclick = () => openAdminUserModal('add');
+                dashAddUserBtn.addEventListener('click', () => openAdminUserModal('add'));
             }
 
             const dashUserForm = document.getElementById('dashboard-user-form');
             if (dashUserForm) {
-                dashUserForm.onsubmit = handleDashboardUserFormSubmit;
+                dashUserForm.addEventListener('submit', handleDashboardUserFormSubmit);
             }
 
             setupKeyboardShortcuts();
@@ -1563,7 +1569,7 @@
 
         async function resetUserPassword(userId) {
             // Find the confirmation button to show loading
-            const confirmBtn = document.getElementById('confirm-delete-btn');
+            const confirmBtn = document.getElementById('confirm-action-btn');
             const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
             
             if (confirmBtn) {
@@ -1647,7 +1653,7 @@
         }
 
         async function deleteUser(userId) {
-            const confirmBtn = document.getElementById('confirm-delete-btn');
+            const confirmBtn = document.getElementById('confirm-action-btn');
             const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
             
             if (confirmBtn) {
@@ -1974,7 +1980,7 @@
         async function deleteCurrentClient() {
             if (!currentClientId) return;
             
-            const confirmBtn = document.getElementById('confirm-delete-btn');
+            const confirmBtn = document.getElementById('confirm-action-btn');
             const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
             
             if (confirmBtn) {
@@ -2125,11 +2131,7 @@
             if (!title.trim()) return showErrorNotification('Please enter a task title');
             
             isSubmittingMainTask = true;
-            const originalBtnHtml = saveMainTaskBtn ? saveMainTaskBtn.innerHTML : '';
-            if (saveMainTaskBtn) {
-                saveMainTaskBtn.disabled = true;
-                saveMainTaskBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
-            }
+            if (saveMainTaskBtn) saveMainTaskBtn.disabled = true;
             if (updateMainTaskBtn) updateMainTaskBtn.disabled = true;
 
             try {
@@ -2158,10 +2160,7 @@
                 // Error handled by apiCall or global handler, but we must reset state
             } finally {
                 isSubmittingMainTask = false;
-                if (saveMainTaskBtn) {
-                    saveMainTaskBtn.disabled = false;
-                    saveMainTaskBtn.innerHTML = originalBtnHtml;
-                }
+                if (saveMainTaskBtn) saveMainTaskBtn.disabled = false;
                 if (updateMainTaskBtn) updateMainTaskBtn.disabled = false;
             }
         }
@@ -2174,12 +2173,8 @@
             if (!title.trim()) return showErrorNotification('Please enter a task title');
             
             isSubmittingMainTask = true;
-            const originalBtnHtml = updateMainTaskBtn ? updateMainTaskBtn.innerHTML : '';
             if (saveMainTaskBtn) saveMainTaskBtn.disabled = true;
-            if (updateMainTaskBtn) {
-                updateMainTaskBtn.disabled = true;
-                updateMainTaskBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
-            }
+            if (updateMainTaskBtn) updateMainTaskBtn.disabled = true;
 
             try {
                 const categorySelect = document.getElementById('main-task-category');
@@ -2211,10 +2206,7 @@
             } finally {
                 isSubmittingMainTask = false;
                 if (saveMainTaskBtn) saveMainTaskBtn.disabled = false;
-                if (updateMainTaskBtn) {
-                    updateMainTaskBtn.disabled = false;
-                    updateMainTaskBtn.innerHTML = originalBtnHtml;
-                }
+                if (updateMainTaskBtn) updateMainTaskBtn.disabled = false;
             }
         }
         
@@ -2342,13 +2334,6 @@
         }
         
         async function deleteMainTask(taskId) {
-            const confirmBtn = document.getElementById('confirm-delete-btn');
-            const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
-            if (confirmBtn) {
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
-            }
-
             try {
                 const url = window.App.routes.main_tasks.destroy.replace(':id', taskId);
                 const result = await apiCall(url, 'DELETE');
@@ -2359,13 +2344,7 @@
                 showSuccessNotification(result.message);
                 if (currentMainTaskId == taskId) resetMainTaskSelection();
                 closeConfirmationModal();
-            } catch (error) {
-            } finally {
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = originalHtml;
-                }
-            }
+            } catch (error) {}
         }
         
         // Subtask functionality
@@ -2417,11 +2396,7 @@
             if (!title.trim()) return showErrorNotification('Please enter a subtask title');
             
             isSubmittingSubtask = true;
-            const originalBtnHtml = saveSubtaskBtn ? saveSubtaskBtn.innerHTML : '';
-            if (saveSubtaskBtn) {
-                saveSubtaskBtn.disabled = true;
-                saveSubtaskBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
-            }
+            if (saveSubtaskBtn) saveSubtaskBtn.disabled = true;
             if (updateSubtaskBtn) updateSubtaskBtn.disabled = true;
             
             try {
@@ -2444,10 +2419,7 @@
                 console.error('Save subtask error:', error);
             } finally {
                 isSubmittingSubtask = false;
-                if (saveSubtaskBtn) {
-                    saveSubtaskBtn.disabled = false;
-                    saveSubtaskBtn.innerHTML = originalBtnHtml;
-                }
+                if (saveSubtaskBtn) saveSubtaskBtn.disabled = false;
                 if (updateSubtaskBtn) updateSubtaskBtn.disabled = false;
             }
         }
@@ -2461,12 +2433,8 @@
             if (!title.trim()) return showErrorNotification('Please enter a subtask title');
             
             isSubmittingSubtask = true;
-            const originalBtnHtml = updateSubtaskBtn ? updateSubtaskBtn.innerHTML : '';
             if (saveSubtaskBtn) saveSubtaskBtn.disabled = true;
-            if (updateSubtaskBtn) {
-                updateSubtaskBtn.disabled = true;
-                updateSubtaskBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
-            }
+            if (updateSubtaskBtn) updateSubtaskBtn.disabled = true;
             
             try {
                 const url = window.App.routes.subtasks.update.replace(':id', currentSubtaskId);
@@ -2491,10 +2459,7 @@
             } finally {
                 isSubmittingSubtask = false;
                 if (saveSubtaskBtn) saveSubtaskBtn.disabled = false;
-                if (updateSubtaskBtn) {
-                    updateSubtaskBtn.disabled = false;
-                    updateSubtaskBtn.innerHTML = originalBtnHtml;
-                }
+                if (updateSubtaskBtn) updateSubtaskBtn.disabled = false;
             }
         }
         
@@ -2731,13 +2696,6 @@
             if (!log) return showErrorNotification('Time log not found.');
 
             openConfirmationModal('time log', `${log.time} hours`, async () => {
-                const confirmBtn = document.getElementById('confirm-delete-btn');
-                const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
-                if (confirmBtn) {
-                    confirmBtn.disabled = true;
-                    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
-                }
-
                 try {
                     const url = window.App.routes.time_logs.destroy.replace(':id', id);
                     const result = await apiCall(url, 'DELETE');
@@ -2752,11 +2710,6 @@
                     closeConfirmationModal();
                 } catch (error) {
                     console.error('Delete time log error:', error);
-                } finally {
-                    if (confirmBtn) {
-                        confirmBtn.disabled = false;
-                        confirmBtn.innerHTML = originalHtml;
-                    }
                 }
             });
         }
@@ -2801,13 +2754,6 @@
         }
 
         async function deleteSubtask(subtaskId) {
-            const confirmBtn = document.getElementById('confirm-delete-btn');
-            const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
-            if (confirmBtn) {
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
-            }
-
             try {
                 const url = window.App.routes.subtasks.destroy.replace(':id', subtaskId);
                 const result = await apiCall(url, 'DELETE');
@@ -2822,13 +2768,7 @@
                     subtasksList.classList.remove('hidden');
                 }
                 closeConfirmationModal();
-            } catch (error) {
-            } finally {
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = originalHtml;
-                }
-            }
+            } catch (error) {}
         }
         
         function openCommentForm(mode, commentId = null, text = '') {
@@ -2858,11 +2798,6 @@
             if (!comment.trim()) return showErrorNotification('Please enter a comment');
             
             isSubmittingComment = true;
-            const originalBtnHtml = saveCommentBtn ? saveCommentBtn.innerHTML : '';
-            if (saveCommentBtn) {
-                saveCommentBtn.disabled = true;
-                saveCommentBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>' + (currentCommentId ? 'Updating...' : 'Saving...');
-            }
             
             try {
                 if (!currentCommentId) {
@@ -2890,10 +2825,6 @@
             } catch (error) {
             } finally {
                 isSubmittingComment = false;
-                if (saveCommentBtn) {
-                    saveCommentBtn.disabled = false;
-                    saveCommentBtn.innerHTML = originalBtnHtml;
-                }
             }
         }
         
@@ -2933,15 +2864,6 @@
             const name = document.getElementById('profile-name').value;
             const email = document.getElementById('profile-email').value;
 
-            const btn = e.target.querySelector('button[type="submit"]') || document.activeElement;
-            const originalBtnHtml = btn ? btn.innerHTML : '';
-            let btnDisabled = false;
-            if (btn && btn.tagName === 'BUTTON') {
-                btn.disabled = true;
-                btnDisabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
-            }
-
             try {
                 const result = await apiCall(window.App.routes.profile.update, 'PATCH', { name, email });
                 
@@ -2955,12 +2877,7 @@
                 window.App.user.email = email;
                 
                 showSuccessNotification(result.message);
-            } catch (error) {} finally {
-                if (btnDisabled) {
-                    btn.disabled = false;
-                    btn.innerHTML = originalBtnHtml;
-                }
-            }
+            } catch (error) {}
         }
 
         async function handlePasswordUpdate(e) {
@@ -2968,15 +2885,6 @@
             const current_password = document.getElementById('current-password').value;
             const password = document.getElementById('new-password').value;
             const password_confirmation = document.getElementById('new-password-confirmation').value;
-
-            const btn = e.target.querySelector('button[type="submit"]') || document.activeElement;
-            const originalBtnHtml = btn ? btn.innerHTML : '';
-            let btnDisabled = false;
-            if (btn && btn.tagName === 'BUTTON') {
-                btn.disabled = true;
-                btnDisabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
-            }
 
             try {
                 const result = await apiCall(window.App.routes.profile.password_update, 'PUT', { 
@@ -2987,22 +2895,10 @@
                 
                 showSuccessNotification(result.message);
                 passwordForm.reset();
-            } catch (error) {} finally {
-                if (btnDisabled) {
-                    btn.disabled = false;
-                    btn.innerHTML = originalBtnHtml;
-                }
-            }
+            } catch (error) {}
         }
         
         async function deleteComment(commentId) {
-            const confirmBtn = document.getElementById('confirm-delete-btn');
-            const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
-            if (confirmBtn) {
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
-            }
-
             try {
                 const url = window.App.routes.comments.destroy.replace(':id', commentId);
                 const result = await apiCall(url, 'DELETE');
@@ -3011,12 +2907,7 @@
                 renderComments(subtask.comments);
                 showSuccessNotification(result.message);
                 closeConfirmationModal();
-            } catch (error) {} finally {
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = originalHtml;
-                }
-            }
+            } catch (error) {}
         }
         
         function getInitials(name) {
@@ -4192,14 +4083,6 @@
             accountDeletionForm.onsubmit = async (e) => {
                 e.preventDefault();
                 const password = document.getElementById('password').value;
-                const btn = document.getElementById('delete-account-submit-btn') || e.target.querySelector('button[type="submit"]');
-                const originalBtnHtml = btn ? btn.innerHTML : '';
-                let btnDisabled = false;
-                if (btn && btn.tagName === 'BUTTON') {
-                    btn.disabled = true;
-                    btnDisabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
-                }
 
                 try {
                     const result = await apiCall(window.App.routes.profile.destroy, 'DELETE', { password });
@@ -4211,11 +4094,6 @@
                     }
                 } catch (error) {
                     // Handled by apiCall
-                } finally {
-                    if (btnDisabled) {
-                        btn.disabled = false;
-                        btn.innerHTML = originalBtnHtml;
-                    }
                 }
             };
         }
@@ -4223,13 +4101,6 @@
         window.deleteTaskFromHistory = function(taskId) {
             // FIX 3: Use the correct confirmation modal with proper callback
             openConfirmationModal('developer task', 'this task assignment', async () => {
-                const confirmBtn = document.getElementById('confirm-delete-btn');
-                const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
-                if (confirmBtn) {
-                    confirmBtn.disabled = true;
-                    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
-                }
-
                 try {
                     const url = window.App.routes.developer_tasks.destroy.replace(':id', taskId);
                     const result = await apiCall(url, 'DELETE');
@@ -4246,11 +4117,6 @@
                     showErrorNotification('Failed to delete task. Please try again.');
                     closeConfirmationModal();
                     console.error('Delete task failed:', error);
-                } finally {
-                    if (confirmBtn) {
-                        confirmBtn.disabled = false;
-                        confirmBtn.innerHTML = originalHtml;
-                    }
                 }
             });
         };
