@@ -128,24 +128,18 @@
                         </div>
                         
                         <form id="profile-form" class="space-y-6">
-                            <div class="space-y-2">
-                                <label for="profile-name" class="block text-sm font-bold text-gray-700 dark:text-gray-300">Display Name</label>
-                                <div class="relative group">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                                        <i class="fas fa-user text-sm"></i>
-                                    </div>
-                                    <input type="text" id="profile-name" class="w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium" value="{{ auth()->user()->name }}" required>
-                                </div>
+                            <div class="space-y-1">
+                                <label for="profile-name" class="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Full Name</label>
+                                <input type="text" id="profile-name" name="name" 
+                                    class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                    required placeholder="Your Name">
                             </div>
-                            
-                            <div class="space-y-2">
-                                <label for="profile-email" class="block text-sm font-bold text-gray-700 dark:text-gray-300">Email Address</label>
-                                <div class="relative group">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                                        <i class="fas fa-envelope text-sm"></i>
-                                    </div>
-                                    <input type="email" id="profile-email" class="w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium" value="{{ auth()->user()->email }}" required>
-                                </div>
+
+                            <div class="space-y-1">
+                                <label for="profile-email" class="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Email Address</label>
+                                <input type="email" id="profile-email" name="email" 
+                                    class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                    required placeholder="your@email.com">
                             </div>
                             
                             <div class="pt-4">
@@ -163,40 +157,35 @@
                             <p class="text-sm text-gray-500 dark:text-gray-400">Permanently delete your account and all associated data.</p>
                         </div>
                         
-                        <div class="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-2xl p-6 mb-8">
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center shrink-0">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-2">Warning: This action is irreversible</h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                        Once you delete your account, there is no going back. Please be certain. All your uploaded data, profile information, and resources will be permanently deleted.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <form method="post" action="{{ route('profile.destroy') }}" class="space-y-6">
-                            @csrf
-                            @method('delete')
-                            
-                            <div class="space-y-2">
-                                <label for="delete-password-input" class="block text-sm font-bold text-gray-700 dark:text-gray-300">Confirm Password</label>
-                                <div class="relative group">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-red-500 transition-colors">
-                                        <i class="fas fa-lock text-sm"></i>
+                        <form id="account-deletion-form" class="space-y-6">
+                            <div class="p-6 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/20">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-red-600"></i>
                                     </div>
-                                    <input type="password" id="delete-password-input" name="password" class="w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all text-sm font-medium" placeholder="Enter your password to confirm" required>
+                                    <div class="space-y-1">
+                                        <h4 class="text-sm font-black text-red-800 dark:text-red-400 uppercase tracking-tight">Warning</h4>
+                                        <p class="text-xs text-red-600 dark:text-red-400/80 leading-relaxed">
+                                            Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.
+                                        </p>
+                                    </div>
                                 </div>
-                                @if($errors->userDeletion->has('password'))
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $errors->userDeletion->first('password') }}</p>
-                                @endif
                             </div>
-                            
-                            <div class="pt-4">
-                                <button type="submit" class="w-full md:w-auto px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl shadow-lg shadow-red-500/20 transition-all font-bold text-sm transform active:scale-[0.98]">
+
+                            <div class="space-y-2">
+                                <label for="password" class="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Current Password</label>
+                                <input id="password" name="password" type="password" 
+                                    class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all" 
+                                    placeholder="Enter your password to confirm" required>
+                            </div>
+
+                            <div class="flex flex-col md:flex-row gap-3 pt-4">
+                                <button type="submit" class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2">
+                                    <i class="fas fa-user-times"></i>
                                     Permanently Delete Account
+                                </button>
+                                <button type="button" onclick="closeProfileModalFunc()" class="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-sm font-bold transition-all">
+                                    Cancel
                                 </button>
                             </div>
                         </form>

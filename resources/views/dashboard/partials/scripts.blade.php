@@ -115,7 +115,7 @@
         // Notifications state
         let notifications = window.App.notifications && Array.isArray(window.App.notifications) ? window.App.notifications : [];
         let lastNotificationCount = notifications.length;
-        let isSuperAdmin = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
+        let isSuperAdmin = window.App.isSuperAdmin;
         
         // User Dashboard State
         if (!window.App.users) window.App.users = [];
@@ -170,6 +170,10 @@
 
             // Initialize sidebar state
             updateSidebarState();
+            
+            // Re-render Client List (Sidebar) & Tasks from window.App state
+            renderClientsList();
+            if (typeof renderDeveloperTasks === 'function') renderDeveloperTasks();
             
             // Show initial state
             if (window.App.selectedClient) {
@@ -230,10 +234,10 @@
             
             heartbeatInterval = setInterval(async () => {
                 try {
-                    const response = await fetch('{{ route('dashboard.account.status') }}', {
+                    const response = await fetch(window.App.routes.user_status, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         }
                     });
                     
@@ -285,10 +289,10 @@
                 }
 
                 try {
-                    const response = await fetch('{{ route('dashboard.sync') }}', {
+                    const response = await fetch(window.App.routes.sync, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         }
                     });
                     
@@ -513,7 +517,7 @@
         // Load Statistics
         async function loadStatistics() {
             try {
-                const response = await apiCall('{{ route('dashboard.statistics') }}');
+                const response = await apiCall(window.App.routes.statistics);
                 if (response.success) {
                     // Update Titles based on user role
                     const titleEl = document.getElementById('stat-dashboard-title');
@@ -1230,7 +1234,7 @@
 
         async function loadUserDashboardData() {
             try {
-                const response = await apiCall('{{ route('admin.users.index') }}');
+                const response = await apiCall(window.App.routes.users.index);
                 const usersList = (response && response.users) ? response.users : (Array.isArray(response) ? response : []);
                 
                 if (typeof syncUsersUI === 'function') {
@@ -1460,14 +1464,15 @@
 
             try {
                 if (editingDashboardUserId) {
-                    const response = await apiCall(`/dashboard/users/${editingDashboardUserId}`, 'PUT', data);
+                    const url = window.App.routes.users.update.replace(':id', editingDashboardUserId);
+                    const response = await apiCall(url, 'PUT', data);
                     if (response.success) {
                         showSuccessNotification(response.message);
                         closeAdminUserModal();
                         await loadUserDashboardData();
                     }
                 } else {
-                    const response = await apiCall('/dashboard/users', 'POST', data);
+                    const response = await apiCall(window.App.routes.users.store, 'POST', data);
                     if (response.success) {
                         showSuccessNotification(response.message);
                         document.getElementById('db-generated-password').value = response.generated_password;
@@ -1536,7 +1541,7 @@
             }
 
             try {
-                const url = '{{ route('admin.users.reset-password', ['user' => ':id']) }}'.replace(':id', userId);
+                const url = window.App.routes.users.reset_password.replace(':id', userId);
                 const response = await apiCall(url, 'POST');
                 
                 if (response.success) {
@@ -1620,7 +1625,8 @@
             }
 
             try {
-                const response = await apiCall(`/dashboard/users/${userId}`, 'DELETE');
+                const url = window.App.routes.users.destroy.replace(':id', userId);
+                const response = await apiCall(url, 'DELETE');
                 if (response.success) {
                     showSuccessNotification(response.message);
                     closeConfirmationModal();
@@ -1904,14 +1910,14 @@
                 const payload = { name, status, user_ids: selectedUserIds };
                 
                 if (!editingClientId) {
-                    const result = await apiCall('{{ route('dashboard.clients.store') }}', 'POST', payload);
+                    const result = await apiCall(window.App.routes.clients.store, 'POST', payload);
                     if (result.client) {
                         window.App.clients.push(result.client);
                         showSuccessNotification(result.message);
                         renderClientsList();
                     }
                 } else {
-                    const url = '{{ route('dashboard.clients.update', ['client' => ':id']) }}'.replace(':id', editingClientId);
+                    const url = window.App.routes.clients.update.replace(':id', editingClientId);
                     const result = await apiCall(url, 'PUT', payload);
                     const index = window.App.clients.findIndex(c => c.id == editingClientId);
                     if (index !== -1) {
@@ -1946,7 +1952,7 @@
             }
 
             try {
-                const url = '{{ route('dashboard.clients.destroy', ['client' => ':id']) }}'.replace(':id', currentClientId);
+                const url = window.App.routes.clients.destroy.replace(':id', currentClientId);
                 const result = await apiCall(url, 'DELETE');
                 window.App.clients = window.App.clients.filter(c => c.id != currentClientId);
                 
@@ -2093,7 +2099,7 @@
                 const categorySelect = document.getElementById('main-task-category');
                 const category_id = categorySelect ? categorySelect.value : null;
 
-                const result = await apiCall('{{ route('main-task.store') }}', 'POST', {
+                const result = await apiCall(window.App.routes.main_tasks.store, 'POST', {
                     client_id: currentClientId,
                     title,
                     description,
@@ -2133,7 +2139,7 @@
                 const categorySelect = document.getElementById('main-task-category');
                 const category_id = categorySelect ? categorySelect.value : null;
 
-                const url = '{{ route('main-task.update', ['main_task' => ':id']) }}'.replace(':id', currentMainTaskId);
+                const url = window.App.routes.main_tasks.update.replace(':id', currentMainTaskId);
                 const result = await apiCall(url, 'PUT', {
                     title,
                     description,
@@ -2287,7 +2293,7 @@
         
         async function deleteMainTask(taskId) {
             try {
-                const url = '{{ route('main-task.destroy', ['main_task' => ':id']) }}'.replace(':id', taskId);
+                const url = window.App.routes.main_tasks.destroy.replace(':id', taskId);
                 const result = await apiCall(url, 'DELETE');
                 const client = findClient(currentClientId);
                 client.main_tasks = client.main_tasks.filter(t => t.id != taskId);
@@ -2352,7 +2358,7 @@
             if (updateSubtaskBtn) updateSubtaskBtn.disabled = true;
             
             try {
-                const result = await apiCall('{{ route('subtask.store') }}', 'POST', {
+                const result = await apiCall(window.App.routes.subtasks.store, 'POST', {
                     main_task_id: currentMainTaskId,
                     title,
                     description,
@@ -2387,7 +2393,7 @@
             if (updateSubtaskBtn) updateSubtaskBtn.disabled = true;
             
             try {
-                const url = '{{ route('subtask.update', ['subtask' => ':id']) }}'.replace(':id', currentSubtaskId);
+                const url = window.App.routes.subtasks.update.replace(':id', currentSubtaskId);
                 const result = await apiCall(url, 'PUT', {
                     title,
                     description,
@@ -2571,7 +2577,7 @@
             if (updateTimeLogBtn) updateTimeLogBtn.disabled = true;
             
             try {
-                const result = await apiCall('{{ route('dashboard.time-logs.store') }}', 'POST', {
+                const result = await apiCall(window.App.routes.time_logs.store, 'POST', {
                     sub_task_id: currentSubtaskId,
                     time: val
                 });
@@ -2608,7 +2614,7 @@
             if (updateTimeLogBtn) updateTimeLogBtn.disabled = true;
             
             try {
-                const url = '{{ route('dashboard.time-logs.update', ['time_log' => ':id']) }}'.replace(':id', editingTimeLogId);
+                const url = window.App.routes.time_logs.update.replace(':id', editingTimeLogId);
                 const result = await apiCall(url, 'PUT', {
                     sub_task_id: currentSubtaskId,
                     time: val
@@ -2645,7 +2651,7 @@
 
             openConfirmationModal('time log', `${log.time} hours`, async () => {
                 try {
-                    const url = '{{ route('dashboard.time-logs.destroy', ['time_log' => ':id']) }}'.replace(':id', id);
+                    const url = window.App.routes.time_logs.destroy.replace(':id', id);
                     const result = await apiCall(url, 'DELETE');
                     
                     subtask.total_time_logged = (parseFloat(subtask.total_time_logged) || 0) - parseFloat(log.time);
@@ -2703,7 +2709,7 @@
 
         async function deleteSubtask(subtaskId) {
             try {
-                const url = '{{ route('subtask.destroy', ['subtask' => ':id']) }}'.replace(':id', subtaskId);
+                const url = window.App.routes.subtasks.destroy.replace(':id', subtaskId);
                 const result = await apiCall(url, 'DELETE');
                 const task = findMainTask(currentMainTaskId);
                 task.subtasks = task.subtasks.filter(s => s.id != subtaskId);
@@ -2747,7 +2753,7 @@
             
             try {
                 if (!currentCommentId) {
-                    const result = await apiCall('{{ route('dashboard.comments.store') }}', 'POST', {
+                    const result = await apiCall(window.App.routes.comments.store, 'POST', {
                         sub_task_id: currentSubtaskId,
                         comment
                     });
@@ -2758,7 +2764,7 @@
                     showSuccessNotification(result.message);
                     loadStatistics();
                 } else {
-                    const url = '{{ route('dashboard.comments.update', ['comment' => ':id']) }}'.replace(':id', currentCommentId);
+                    const url = window.App.routes.comments.update.replace(':id', currentCommentId);
                     const result = await apiCall(url, 'PUT', { comment });
                     const subtask = findSubtask(currentSubtaskId);
                     const idx = subtask.comments.findIndex(c => c.id == currentCommentId);
@@ -2780,16 +2786,25 @@
             userDropdown.classList.add('hidden');
             document.body.classList.add('overflow-hidden');
             passwordForm.reset();
+            
+            // Dynamically populate fields from App state
+            if (document.getElementById('profile-name')) {
+                document.getElementById('profile-name').value = window.App.user.name;
+            }
+            if (document.getElementById('profile-email')) {
+                document.getElementById('profile-email').value = window.App.user.email;
+            }
+
             switchProfileTab('info');
         }
 
         // Auto-open if deletion has errors (server-side validation redirect)
-        @if($errors->userDeletion->isNotEmpty())
-            document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.App.hasUserDeletionErrors) {
                 openProfileModal();
                 switchProfileTab('delete');
-            });
-        @endif
+            }
+        });
 
         function closeProfileModalFunc() {
             profileModal.classList.add('hidden');
@@ -2802,7 +2817,7 @@
             const email = document.getElementById('profile-email').value;
 
             try {
-                const result = await apiCall('{{ route('profile.update') }}', 'PATCH', { name, email });
+                const result = await apiCall(window.App.routes.profile.update, 'PATCH', { name, email });
                 
                 document.getElementById('user-display-name').textContent = name;
                 document.getElementById('user-email-display').textContent = email;
@@ -2824,7 +2839,7 @@
             const password_confirmation = document.getElementById('new-password-confirmation').value;
 
             try {
-                const result = await apiCall('{{ route('password.update') }}', 'PUT', { 
+                const result = await apiCall(window.App.routes.profile.password_update, 'PUT', { 
                     current_password, 
                     password, 
                     password_confirmation 
@@ -2837,7 +2852,7 @@
         
         async function deleteComment(commentId) {
             try {
-                const url = '{{ route('dashboard.comments.destroy', ['comment' => ':id']) }}'.replace(':id', commentId);
+                const url = window.App.routes.comments.destroy.replace(':id', commentId);
                 const result = await apiCall(url, 'DELETE');
                 const subtask = findSubtask(currentSubtaskId);
                 subtask.comments = subtask.comments.filter(c => c.id != commentId);
@@ -3083,13 +3098,13 @@
                 if (targetLabel) targetLabel.textContent = 'Target Developer';
                 if (targetSelect) {
                     targetSelect.innerHTML = '<option value="">All Developers</option>' + 
-                        @json(\App\Models\User::all()).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+                        (window.App.users || []).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
                 }
             } else {
                 if (targetLabel) targetLabel.textContent = 'Target Client';
                 if (targetSelect) {
                     targetSelect.innerHTML = '<option value="">All Clients</option>' + 
-                        @json(\App\Models\Client::all()).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                        (window.App.clients || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
                 }
             }
         };
@@ -3122,7 +3137,7 @@
             if (endTime && endTime.value) params.append('end_date', endTime.value);
 
             try {
-                const response = await fetch(`/dashboard/reports/data?${params.toString()}`);
+                const response = await fetch(`${window.App.routes.reports}?${params.toString()}`);
                 const result = await response.json();
                 
                 if (result.success) {
@@ -3497,9 +3512,9 @@
 
         async function markNotificationsAsRead() {
             try {
-                const response = await fetch('{{ route('dashboard.notifications.mark-read') }}', {
+                const response = await fetch(window.App.routes.notifications.mark_read, {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
                 });
                 if (response.ok) {
                     notifications = [];
@@ -3642,7 +3657,8 @@
 
         window.markTaskComplete = async function(taskId) {
             try {
-                const result = await apiCall(`/dashboard/developer-tasks/${taskId}`, 'PATCH', { status: 'completed' });
+                const url = window.App.routes.developer_tasks.update_status.replace(':id', taskId);
+                const result = await apiCall(url, 'PATCH', { status: 'completed' });
                 if (result.success) {
                     showSuccessNotification('Great job! Task marked as completed.');
                     // Update local state
@@ -3728,7 +3744,8 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
-                const response = await apiCall(`/dashboard/developer-tasks/${taskId}/comments`, 'POST', { comment: input.value });
+                const url = window.App.routes.developer_tasks.comments.store.replace(':id', taskId);
+                const response = await apiCall(url, 'POST', { comment: input.value });
                 if (response.success) {
                     // Update local state
                     const task = developerTasks.find(t => t.id == taskId);
@@ -3860,13 +3877,14 @@
                 try {
                     let result;
                     if (taskId) {
-                        result = await apiCall(`/dashboard/developer-tasks/${taskId}`, 'PUT', data);
+                        const url = window.App.routes.developer_tasks.update.replace(':id', taskId);
+                        result = await apiCall(url, 'PUT', data);
                         if (result.success) {
                             const idx = developerTasks.findIndex(t => t.id == taskId);
                             if (idx !== -1) developerTasks[idx] = result.task;
                         }
                     } else {
-                        result = await apiCall('/dashboard/developer-tasks', 'POST', data);
+                        result = await apiCall(window.App.routes.developer_tasks.store, 'POST', data);
                         if (result.success) {
                             developerTasks.push(result.task);
                         }
@@ -3992,11 +4010,33 @@
             openAssignTaskModal(null, null, task);
         };
 
+        // Account Deletion Handler
+        const accountDeletionForm = document.getElementById('account-deletion-form');
+        if (accountDeletionForm) {
+            accountDeletionForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const password = document.getElementById('password').value;
+
+                try {
+                    const result = await apiCall(window.App.routes.profile.destroy, 'DELETE', { password });
+                    if (result.success) {
+                        showSuccessNotification('Account deleted successfully. Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 2000);
+                    }
+                } catch (error) {
+                    // Handled by apiCall
+                }
+            };
+        }
+
         window.deleteTaskFromHistory = function(taskId) {
             // FIX 3: Use the correct confirmation modal with proper callback
             openConfirmationModal('developer task', 'this task assignment', async () => {
                 try {
-                    const result = await apiCall(`/dashboard/developer-tasks/${taskId}`, 'DELETE');
+                    const url = window.App.routes.developer_tasks.destroy.replace(':id', taskId);
+                    const result = await apiCall(url, 'DELETE');
                     if (result.success) {
                         showSuccessNotification(result.message || 'Task deleted successfully.');
                         developerTasks = developerTasks.filter(t => t.id != taskId);

@@ -87,21 +87,7 @@
                     
                     <!-- Clients list -->
                     <div id="clients-list-container" class="space-y-1">
-                        @foreach($clients as $client)
-                        @php
-                            $initials = collect(explode(' ', $client->name))->map(fn($word) => strtoupper(substr($word, 0, 1)))->take(2)->implode('');
-                            $colors = ['from-indigo-500 to-indigo-600', 'from-emerald-500 to-emerald-600', 'from-amber-500 to-amber-600', 'from-rose-500 to-rose-600', 'from-blue-500 to-blue-600', 'from-purple-500 to-purple-600'];
-                            $color = $colors[$client->id % count($colors)];
-                        @endphp
-                        <button class="client-item group relative w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-900/50" data-client-id="{{ $client->id }}" title="{{ $client->name }}">
-                            <div class="w-8 h-8 bg-gradient-to-br {{ $color }} rounded-lg flex items-center justify-center text-white text-[10px] font-bold shadow-sm shadow-indigo-500/20">
-                                {{ $initials }}
-                            </div>
-                            <div class="sidebar-hide-content flex-1 min-w-0 text-left">
-                                <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $client->name }}</p>
-                            </div>
-                        </button>
-                        @endforeach
+                        <!-- Rendered dynamically by JS on init -->
                     </div>
                     
                     <!-- No clients message (hidden by default) -->

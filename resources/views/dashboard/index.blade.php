@@ -48,10 +48,68 @@
                 clients: @json($clients),
                 selectedClient: @json($selectedClient),
                 user: @json(auth()->user()),
+                isSuperAdmin: @json(auth()->user()->isAdmin()),
                 users: @json($users),
                 categories: @json($categories),
                 notifications: @json($notifications),
-                developerTasks: @json($developerTasks)
+                developerTasks: @json($developerTasks),
+                hasUserDeletionErrors: @json($errors->userDeletion->isNotEmpty()),
+                routes: {
+                    user_status: @json(route('dashboard.account.status')),
+                    sync: @json(route('dashboard.sync')),
+                    statistics: @json(route('dashboard.statistics')),
+                    clients: {
+                        store: @json(route('dashboard.clients.store')),
+                        update: @json(route('dashboard.clients.update', ['client' => ':id'])),
+                        destroy: @json(route('dashboard.clients.destroy', ['client' => ':id']))
+                    },
+                    users: {
+                        index: @json(route('admin.users.index')),
+                        store: @json(route('admin.users.store')),
+                        update: @json(route('admin.users.update', ['user' => ':id'])),
+                        destroy: @json(route('admin.users.destroy', ['user' => ':id'])),
+                        reset_password: @json(route('admin.users.reset-password', ['user' => ':id']))
+                    },
+                    main_tasks: {
+                        store: @json(route('main-task.store')),
+                        update: @json(route('main-task.update', ['main_task' => ':id'])),
+                        destroy: @json(route('main-task.destroy', ['main_task' => ':id']))
+                    },
+                    profile: {
+                        update: @json(route('profile.update')),
+                        password_update: @json(route('password.update')),
+                        destroy: @json(route('profile.destroy')),
+                    },
+                    subtasks: {
+                        store: @json(route('subtask.store')),
+                        update: @json(route('subtask.update', ['subtask' => ':id'])),
+                        destroy: @json(route('subtask.destroy', ['subtask' => ':id']))
+                    },
+                    time_logs: {
+                        store: @json(route('dashboard.time-logs.store')),
+                        update: @json(route('dashboard.time-logs.update', ['time_log' => ':id'])),
+                        destroy: @json(route('dashboard.time-logs.destroy', ['time_log' => ':id']))
+                    },
+                    comments: {
+                        store: @json(route('dashboard.comments.store')),
+                        update: @json(route('dashboard.comments.update', ['comment' => ':id'])),
+                        destroy: @json(route('dashboard.comments.destroy', ['comment' => ':id']))
+                    },
+                    reports: @json(route('dashboard.reports.data')),
+                    notifications: {
+                        mark_read: @json(route('dashboard.notifications.mark-read'))
+                    },
+                    developer_tasks: {
+                        index: @json(route('developer-tasks.index')),
+                        store: @json(route('developer-tasks.store')),
+                        update: @json(route('developer-tasks.update', ['developer_task' => ':id'])),
+                        update_status: @json(route('developer-tasks.update-status', ['developer_task' => ':id'])),
+                        destroy: @json(route('developer-tasks.destroy', ['developer_task' => ':id'])),
+                        comments: {
+                            store: @json(route('developer-tasks.comments.store', ['developer_task' => ':id']))
+                        }
+                    }
+                }
             };
         </script>
 
