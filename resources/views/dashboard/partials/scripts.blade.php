@@ -1450,6 +1450,13 @@
             };
 
             const saveBtn = document.getElementById('db-save-user-btn');
+            const updateBtn = document.getElementById('db-update-user-btn');
+            const activeBtn = editingDashboardUserId ? updateBtn : saveBtn;
+            if (!activeBtn) return;
+
+            const originalBtnHtml = activeBtn.innerHTML;
+            activeBtn.disabled = true;
+            activeBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${editingDashboardUserId ? 'Updating...' : 'Saving...'}`;
 
             try {
                 if (editingDashboardUserId) {
@@ -1460,20 +1467,20 @@
                         await loadUserDashboardData();
                     }
                 } else {
-                    saveBtn.disabled = true;
                     const response = await apiCall('/dashboard/users', 'POST', data);
                     if (response.success) {
                         showSuccessNotification(response.message);
                         document.getElementById('db-generated-password').value = response.generated_password;
                         document.getElementById('db-password-display').classList.remove('hidden');
-                        saveBtn.classList.add('hidden');
+                        activeBtn.classList.add('hidden');
                         await loadUserDashboardData();
                     }
                 }
             } catch (error) {
                 console.error('User action failed:', error);
             } finally {
-                if (saveBtn) saveBtn.disabled = false;
+                activeBtn.disabled = false;
+                activeBtn.innerHTML = originalBtnHtml;
             }
         }
 
@@ -1519,6 +1526,15 @@
         };
 
         async function resetUserPassword(userId) {
+            // Find the confirmation button to show loading
+            const confirmBtn = document.getElementById('confirm-action-btn');
+            const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
+            
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Resetting...';
+            }
+
             try {
                 const url = '{{ route('admin.users.reset-password', ['user' => ':id']) }}'.replace(':id', userId);
                 const response = await apiCall(url, 'POST');
@@ -1538,6 +1554,11 @@
                 }
             } catch (error) {
                 console.error('Password reset failed:', error);
+            } finally {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = originalHtml;
+                }
             }
         }
 
@@ -1590,6 +1611,14 @@
         }
 
         async function deleteUser(userId) {
+            const confirmBtn = document.getElementById('confirm-action-btn');
+            const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
+            
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
+            }
+
             try {
                 const response = await apiCall(`/dashboard/users/${userId}`, 'DELETE');
                 if (response.success) {
@@ -1599,6 +1628,11 @@
                 }
             } catch (error) {
                 console.error('Delete user failed:', error);
+            } finally {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = originalHtml;
+                }
             }
         }
 
@@ -1858,9 +1892,13 @@
             // Collect user assignments if present
             const selectedUserIds = Array.from(document.querySelectorAll('.user-assignment-checkbox:checked')).map(cb => cb.value);
             
+            const activeBtn = editingClientId ? updateClientBtn : saveClientBtn;
+            if (!activeBtn) return;
+
+            const originalBtnHtml = activeBtn.innerHTML;
             isSubmittingClient = true;
-            if (saveClientBtn) saveClientBtn.disabled = true;
-            if (updateClientBtn) updateClientBtn.disabled = true;
+            activeBtn.disabled = true;
+            activeBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${editingClientId ? 'Updating...' : 'Saving...'}`;
             
             try {
                 const payload = { name, status, user_ids: selectedUserIds };
@@ -1891,14 +1929,22 @@
                 console.error('Client form submit error:', error);
             } finally {
                 isSubmittingClient = false;
-                if (saveClientBtn) saveClientBtn.disabled = false;
-                if (updateClientBtn) updateClientBtn.disabled = false;
+                activeBtn.disabled = false;
+                activeBtn.innerHTML = originalBtnHtml;
             }
         }
 
         async function deleteCurrentClient() {
             if (!currentClientId) return;
             
+            const confirmBtn = document.getElementById('confirm-action-btn');
+            const originalHtml = confirmBtn ? confirmBtn.innerHTML : '';
+            
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
+            }
+
             try {
                 const url = '{{ route('dashboard.clients.destroy', ['client' => ':id']) }}'.replace(':id', currentClientId);
                 const result = await apiCall(url, 'DELETE');
@@ -1910,7 +1956,14 @@
                 currentClientId = null;
                 showClientSelectionPrompt();
                 closeConfirmationModal();
-            } catch (error) {}
+            } catch (error) {
+                console.error('Delete client failed:', error);
+            } finally {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = originalHtml;
+                }
+            }
         }
         
         const clientAvatarColors = [
