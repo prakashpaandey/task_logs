@@ -13,12 +13,16 @@ class TaskController extends Controller
     {
         $user = auth()->user();
         
-        $query = Client::with(['user', 'users', 'mainTasks.user', 'mainTasks.category', 'mainTasks.subtasks.user', 'mainTasks.subtasks.comments.user', 'mainTasks.subtasks.timeLogs.user']);
+        $query = Client::with(['user', 'users', 'mainTasks.user', 'mainTasks.category', 'mainTasks.assignedUsers', 'mainTasks.subtasks.user', 'mainTasks.subtasks.comments.user', 'mainTasks.subtasks.timeLogs.user']);
         
         if (!$user->isAdmin()) {
-            // Developers only see assigned clients
-            $query->whereHas('users', function($q) use ($user) {
-                $q->where('users.id', $user->id);
+            // Developers see assigned clients OR clients with main tasks assigned to them
+            $query->where(function($q) use ($user) {
+                $q->whereHas('users', function($inner) use ($user) {
+                    $inner->where('users.id', $user->id);
+                })->orWhereHas('mainTasks.assignedUsers', function($inner) use ($user) {
+                    $inner->where('users.id', $user->id);
+                });
             });
         }
 

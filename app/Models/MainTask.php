@@ -27,4 +27,9 @@ class MainTask extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function assignedUsers()
+    {
+        return $this->belongsToMany(User::class, 'main_task_user')->withTimestamps();
+    }
 }

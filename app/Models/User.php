@@ -70,4 +70,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(DeveloperTask::class, 'developer_task_user', 'user_id', 'developer_task_id')->withTimestamps();
     }
+
+    public function assignedMainTasks()
+    {
+        return $this->belongsToMany(MainTask::class, 'main_task_user')->withTimestamps();
+    }
 }

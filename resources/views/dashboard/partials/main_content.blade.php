@@ -411,6 +411,16 @@
                                     <textarea id="main-task-description" rows="3" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Describe the main task"></textarea>
                                 </div>
                                 
+                                @if(auth()->user()->isAdmin())
+                                <div class="mb-6">
+                                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Assign Developers</label>
+                                    <div id="main-task-assign-users" class="max-h-40 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg space-y-2 custom-scrollbar">
+                                        <!-- Populated via JS -->
+                                    </div>
+                                    <p class="mt-2 text-[10px] text-gray-500 dark:text-gray-400">Selected developers will see this task in their dashboard.</p>
+                                </div>
+                                @endif
+                                
                                 <div class="mb-6">
                                     <div class="flex items-center justify-between">
                                         <span id="main-task-id-display" class="text-xs text-gray-500 dark:text-gray-400">New Task</span>

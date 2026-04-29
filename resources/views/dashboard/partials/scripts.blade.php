@@ -1515,6 +1515,27 @@
             container.innerHTML = html || '<p class="text-xs text-gray-400 italic p-2 text-center">No developers available</p>';
         };
 
+        window.renderMainTaskAssignUsersList = function(selectedUserIds = []) {
+            const container = document.getElementById('main-task-assign-users');
+            if (!container || !window.App.users) return;
+
+            const html = window.App.users
+                .filter(user => user.role !== 'super_admin') // Only show developers
+                .map(user => {
+                    const isChecked = selectedUserIds.includes(user.id);
+                    return `
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input type="checkbox" name="main_task_user_ids[]" value="${user.id}" 
+                                ${isChecked ? 'checked' : ''}
+                                class="main-task-user-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">${user.name}</span>
+                        </label>
+                    `;
+                }).join('');
+
+            container.innerHTML = html || '<p class="text-xs text-gray-400 italic p-2 text-center">No developers available</p>';
+        };
+
         // Initial render on page load
         document.addEventListener('DOMContentLoaded', () => {
             if (window.App.user.role === 'super_admin') {
@@ -1745,6 +1766,17 @@
                                     <i class="fas fa-user-circle mr-1.5 text-[10px]"></i>
                                     <span>Created by: ${task.user_id == window.App.user.id ? 'You' : (task.user?.name || 'Unknown')}</span>
                                 </div>
+                                
+                                ${task.assigned_users && task.assigned_users.length > 0 ? `
+                                    <div class="mt-2 flex items-center gap-1.5">
+                                        <div class="flex -space-x-2">
+                                            ${task.assigned_users.map(u => {
+                                                const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                                                return `<div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 border-2 border-white dark:border-gray-800 flex items-center justify-center text-[8px] font-black text-blue-600 dark:text-blue-400" title="${u.name}">${initials}</div>`;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0 ml-2">
@@ -2030,6 +2062,9 @@
             setupCategoryDropdown();
 
             if (mode === 'add') {
+                if (window.App.user.role === 'super_admin') {
+                    renderMainTaskAssignUsersList();
+                }
                 mainTaskTitle.value = '';
                 mainTaskDescription.value = '';
                 if (document.getElementById('main-task-category')) document.getElementById('main-task-category').value = '';
@@ -2064,6 +2099,13 @@
                 updateMainTaskBtn.classList.remove('hidden');
                 document.getElementById('main-task-id-display').textContent = `Task ID: ${taskId}`;
                 currentMainTaskId = taskId;
+
+                // Pre-select assigned users
+                const task = findMainTask(taskId);
+                const assignedUserIds = task?.assigned_users ? task.assigned_users.map(u => u.id) : [];
+                if (window.App.user.role === 'super_admin') {
+                    renderMainTaskAssignUsersList(assignedUserIds);
+                }
             }
             mainTaskForm.classList.remove('hidden');
             addMainTaskBtn.innerHTML = '<i class="fas fa-eye-slash text-sm"></i><span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs md:text-sm font-medium pl-0 group-hover:pl-2">Hide</span>';
@@ -2100,12 +2142,15 @@
             try {
                 const categorySelect = document.getElementById('main-task-category');
                 const category_id = categorySelect ? categorySelect.value : null;
+                
+                const selectedUserIds = Array.from(document.querySelectorAll('.main-task-user-checkbox:checked')).map(cb => cb.value);
 
                 const result = await apiCall(window.App.routes.main_tasks.store, 'POST', {
                     client_id: currentClientId,
                     title,
                     description,
-                    category_id
+                    category_id,
+                    assigned_users: selectedUserIds
                 });
                 const client = findClient(currentClientId);
                 if (client) {
@@ -2142,12 +2187,15 @@
             try {
                 const categorySelect = document.getElementById('main-task-category');
                 const category_id = categorySelect ? categorySelect.value : null;
+                
+                const selectedUserIds = Array.from(document.querySelectorAll('.main-task-user-checkbox:checked')).map(cb => cb.value);
 
                 const url = window.App.routes.main_tasks.update.replace(':id', currentMainTaskId);
                 const result = await apiCall(url, 'PUT', {
                     title,
                     description,
-                    category_id
+                    category_id,
+                    assigned_users: selectedUserIds
                 });
                 const client = findClient(currentClientId);
                 if (client?.main_tasks) {

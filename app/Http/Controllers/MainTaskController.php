@@ -14,6 +14,8 @@ class MainTaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
+            'assigned_users' => 'nullable|array',
+            'assigned_users.*' => 'exists:users,id',
         ]);
 
         $user = auth()->user();
@@ -24,6 +26,10 @@ class MainTaskController extends Controller
         }
 
         $mainTask = MainTask::create($request->all() + ['user_id' => $user->id]);
+
+        if ($request->has('assigned_users') && $user->isAdmin()) {
+            $mainTask->assignedUsers()->sync($request->assigned_users);
+        }
 
         // Create notification for Super Admins if triggered by a developer
         if (!$user->isAdmin()) {
@@ -40,7 +46,7 @@ class MainTaskController extends Controller
         }
         
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Main Task created successfully.', 'mainTask' => $mainTask->load(['user', 'category'])]);
+            return response()->json(['success' => true, 'message' => 'Main Task created successfully.', 'mainTask' => $mainTask->load(['user', 'category', 'assignedUsers'])]);
         }
         return back()->with('success', 'Main Task created successfully.');
     }
@@ -52,11 +58,17 @@ class MainTaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
+            'assigned_users' => 'nullable|array',
+            'assigned_users.*' => 'exists:users,id',
         ]);
         $main_task->update($request->only('title', 'description', 'category_id'));
 
+        if ($request->has('assigned_users') && $user->isAdmin()) {
+            $main_task->assignedUsers()->sync($request->assigned_users);
+        }
+
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Main Task updated successfully.', 'mainTask' => $main_task->load(['user', 'category'])]);
+            return response()->json(['success' => true, 'message' => 'Main Task updated successfully.', 'mainTask' => $main_task->load(['user', 'category', 'assignedUsers'])]);
         }
         return back()->with('success', 'Main Task updated successfully.');
     }
@@ -79,9 +91,9 @@ class MainTaskController extends Controller
             return;
         }
 
-        // 1. Enforce Ownership: Non-admins can only edit/delete their own tasks
-        if ($model->user_id !== $user->id) {
-            abort(403, 'Unauthorized action. You can only edit or delete tasks you created.');
+        // 1. Enforce Ownership/Assignment: Non-admins can only edit/delete their own tasks or tasks they are assigned to
+        if ($model->user_id !== $user->id && !$model->assignedUsers()->where('users.id', $user->id)->exists()) {
+            abort(403, 'Unauthorized action. You can only edit or delete tasks you created or are assigned to.');
         }
 
         // 2. Client Assignment Check (Safety Layer)

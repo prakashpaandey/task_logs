@@ -20,8 +20,11 @@ class SubTaskController extends Controller
         $mainTask = \App\Models\MainTask::findOrFail($request->main_task_id);
 
         if (!$user->isAdmin()) {
-            if (!$user->clients()->where('clients.id', $mainTask->client_id)->exists()) {
-                abort(403, 'Unauthorized action. You are not assigned to this client.');
+            $isAssignedToClient = $user->clients()->where('clients.id', $mainTask->client_id)->exists();
+            $isAssignedToMainTask = $mainTask->assignedUsers()->where('users.id', $user->id)->exists();
+            
+            if (!$isAssignedToClient && !$isAssignedToMainTask) {
+                abort(403, 'Unauthorized action. You are not assigned to this client or task.');
             }
         }
 
@@ -89,8 +92,11 @@ class SubTaskController extends Controller
 
         // 2. Client Assignment Check (Safety Layer via Main Task)
         $mainTask = $model->mainTask;
-        if (!$user->clients()->where('clients.id', $mainTask->client_id)->exists()) {
-            abort(403, 'Unauthorized action. You are not assigned to this client.');
+        $isAssignedToClient = $user->clients()->where('clients.id', $mainTask->client_id)->exists();
+        $isAssignedToMainTask = $mainTask->assignedUsers()->where('users.id', $user->id)->exists();
+        
+        if (!$isAssignedToClient && !$isAssignedToMainTask) {
+            abort(403, 'Unauthorized action. You are not assigned to this client or task.');
         }
     }
 }
