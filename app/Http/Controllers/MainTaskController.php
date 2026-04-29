@@ -54,6 +54,7 @@ class MainTaskController extends Controller
     public function update(Request $request, MainTask $main_task)
     {
         $this->authorizeUser($main_task);
+        $user = auth()->user();
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
