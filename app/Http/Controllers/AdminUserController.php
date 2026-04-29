@@ -23,7 +23,7 @@ class AdminUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'role' => 'required|in:super_admin,developer',
+            'role' => 'required|string|max:50',
         ]);
 
         $generatedPassword = Str::random(12);
@@ -50,7 +50,7 @@ class AdminUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|in:super_admin,developer',
+            'role' => 'required|string|max:50',
             'status' => 'required|in:active,inactive',
         ]);
 

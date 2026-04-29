@@ -50,7 +50,7 @@ class User extends Authenticatable
     }
     public function isAdmin()
     {
-        return $this->role === 'super_admin';
+        return str_contains(strtolower($this->role), 'admin');
     }
 
     public function isActive()

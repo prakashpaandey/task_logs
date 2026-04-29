@@ -781,10 +781,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">System Role</label>
-                                    <select id="db-user-role" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all">
-                                        <option value="developer">Developer (Normal User)</option>
-                                        <option value="super_admin">Super Admin</option>
-                                    </select>
+                                    <input type="text" id="db-user-role" required class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all" placeholder="e.g. Developer, Super Admin">
                                 </div>
                                 <div id="db-user-status-container" class="hidden">
                                     <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Account Status</label>

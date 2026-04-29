@@ -1349,10 +1349,10 @@
                         </td>
                         <td class="px-6 py-4">
                             <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider
-                                ${user.role === 'super_admin' 
+                                ${(user.role || '').toLowerCase().includes('admin') 
                                     ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800' 
                                     : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800'}">
-                                ${user.role === 'super_admin' ? 'Super Admin' : 'Developer'}
+                                ${user.role || 'User'}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-center">
