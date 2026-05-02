@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\SubTaskComment;
+use App\Models\SubTaskCommentImage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CommentController extends Controller
 {
@@ -12,6 +14,7 @@ class CommentController extends Controller
         $request->validate([
             'sub_task_id' => 'required|exists:subtasks,id',
             'comment' => 'required|string',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
         ]);
 
         $user = auth()->user();
@@ -24,7 +27,22 @@ class CommentController extends Controller
             }
         }
 
-        $comment = SubTaskComment::create($request->all() + ['user_id' => $user->id]);
+        $comment = SubTaskComment::create([
+            'sub_task_id' => $request->sub_task_id,
+            'comment' => $request->comment,
+            'user_id' => $user->id
+        ]);
+
+        // Handle Image Uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('comment_images', 'public');
+                SubTaskCommentImage::create([
+                    'sub_task_comment_id' => $comment->id,
+                    'image_path' => $path
+                ]);
+            }
+        }
 
         // Create notification for Super Admins if triggered by a developer
         if (!$user->isAdmin()) {
@@ -42,7 +60,11 @@ class CommentController extends Controller
         }
 
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Comment added successfully.', 'comment' => $comment->load('user')]);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Comment added successfully.', 
+                'comment' => $comment->load(['user', 'images'])
+            ]);
         }
         return back()->with('success', 'Comment added successfully.');
     }
@@ -54,7 +76,7 @@ class CommentController extends Controller
         $comment->update($request->only('comment'));
 
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Comment updated successfully.', 'comment' => $comment->load('user')]);
+            return response()->json(['success' => true, 'message' => 'Comment updated successfully.', 'comment' => $comment->load(['user', 'images'])]);
         }
         return back()->with('success', 'Comment updated successfully.');
     }
@@ -62,6 +84,12 @@ class CommentController extends Controller
     public function destroy(SubTaskComment $comment)
     {
         $this->authorizeUser($comment);
+        
+        // Delete associated images from storage
+        foreach ($comment->images as $image) {
+            Storage::disk('public')->delete($image->image_path);
+        }
+        
         $comment->delete();
 
         if (request()->expectsJson()) {

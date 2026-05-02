@@ -572,7 +572,17 @@
                                         <!-- Comment Form -->
                                         <div id="comment-form" class="mb-6 hidden bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
                                             <div class="mb-4">
-                                                <textarea id="comment-text" rows="3" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter your comment"></textarea>
+                                                <textarea id="comment-text" rows="3" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm mb-3" placeholder="Enter your comment"></textarea>
+                                                
+                                                <!-- Multi-Image Upload Field -->
+                                                <div class="flex flex-col gap-2">
+                                                    <label class="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl cursor-pointer transition-all w-fit border border-gray-200 dark:border-gray-600">
+                                                        <i class="fas fa-image text-blue-500"></i>
+                                                        <span class="text-xs font-bold uppercase tracking-wider">Attach Images (Max 5)</span>
+                                                        <input type="file" id="comment-images" multiple accept="image/*" class="hidden" onchange="handleCommentImageSelect(this)">
+                                                    </label>
+                                                    <div id="comment-image-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                                                </div>
                                             </div>
                                             <div class="flex justify-end space-x-3">
                                                 <button id="save-comment-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">

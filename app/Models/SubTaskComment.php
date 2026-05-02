@@ -18,4 +18,9 @@ class SubTaskComment extends Model
     {
         return $this->belongsTo(Subtask::class, 'sub_task_id');
     }
+
+    public function images()
+    {
+        return $this->hasMany(SubTaskCommentImage::class, 'sub_task_comment_id');
+    }
 }

@@ -2740,28 +2740,41 @@
                 return;
             }
             
-            container.innerHTML = comments.map(c => `
-                <div class="comment-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg" data-comment-id="${c.id}">
+            container.innerHTML = comments.map(c => {
+                const imagesHtml = (c.images && c.images.length > 0) ? `
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        ${c.images.map(img => `
+                            <a href="/storage/${img.image_path}" target="_blank" class="relative group block w-20 h-20 md:w-24 md:h-24 overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+                                <img src="/storage/${img.image_path}" class="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Comment Image">
+                                <div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
+                            </a>
+                        `).join('')}
+                    </div>
+                ` : '';
+
+                return `
+                <div class="comment-item p-4 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800/40 shadow-sm" data-comment-id="${c.id}">
                     <div class="flex justify-between items-start">
                         <div class="flex items-center space-x-3">
                             <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
                                 <i class="fas fa-user text-purple-600 dark:text-purple-400"></i>
                             </div>
                             <div>
-                                <p class="font-medium text-gray-800 dark:text-white">${c.user_id == window.App.user.id ? 'You' : (c.user?.name || 'Unknown User')}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">${new Date(c.created_at).toLocaleString()}</p>
+                                <p class="font-bold text-sm text-gray-800 dark:text-white">${c.user_id == window.App.user.id ? 'You' : (c.user?.name || 'Unknown User')}</p>
+                                <p class="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-wider">${new Date(c.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
                             </div>
                         </div>
-                        <div class="flex space-x-2">
+                        <div class="flex space-x-1">
                             ${(window.App.user.role === 'super_admin' || c.user_id == window.App.user.id) ? `
-                                <button class="edit-comment-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"><i class="fas fa-edit"></i></button>
-                                <button class="delete-comment-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><i class="fas fa-trash-alt"></i></button>
+                                <button class="edit-comment-btn p-1.5 text-gray-400 hover:text-blue-500 transition-colors" title="Edit"><i class="fas fa-edit text-xs"></i></button>
+                                <button class="delete-comment-btn p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Delete"><i class="fas fa-trash-alt text-xs"></i></button>
                             ` : ''}
                         </div>
                     </div>
-                    <p class="mt-3 text-gray-700 dark:text-gray-200">${c.comment}</p>
+                    <div class="mt-3 text-sm text-gray-700 dark:text-gray-200 leading-relaxed break-words whitespace-pre-wrap">${c.comment}</div>
+                    ${imagesHtml}
                 </div>
-            `).join('');
+            `;}).join('');
         }
 
         async function deleteSubtask(subtaskId) {
@@ -2802,20 +2815,88 @@
         
         let isSubmittingComment = false;
         
+        let selectedCommentFiles = [];
+
+        window.handleCommentImageSelect = function(input) {
+            const preview = document.getElementById('comment-image-preview');
+            if (!preview) return;
+            
+            const files = Array.from(input.files);
+            if (files.length + selectedCommentFiles.length > 5) {
+                showErrorNotification('You can only attach up to 5 images.');
+                input.value = '';
+                return;
+            }
+
+            files.forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                
+                selectedCommentFiles.push(file);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 group';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-full object-cover">
+                        <button type="button" class="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" onclick="removeCommentImagePreview(this, ${selectedCommentFiles.length - 1})">
+                            <i class="fas fa-times text-[10px]"></i>
+                        </button>
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+            input.value = '';
+        };
+
+        window.removeCommentImagePreview = function(btn, index) {
+            selectedCommentFiles.splice(index, 1);
+            btn.parentElement.remove();
+            
+            // Re-map the indices if necessary (simplified by just clearing and re-rendering if it was complex, but for 5 files this is fine)
+            const previews = document.getElementById('comment-image-preview').children;
+            Array.from(previews).forEach((div, i) => {
+                const closeBtn = div.querySelector('button');
+                if (closeBtn) {
+                    closeBtn.setAttribute('onclick', `removeCommentImagePreview(this, ${i})`);
+                }
+            });
+        };
+
         async function saveComment() {
             if (isSubmittingComment) return;
             
             const comment = commentText.value;
-            if (!comment.trim()) return showErrorNotification('Please enter a comment');
+            if (!comment.trim() && selectedCommentFiles.length === 0) {
+                return showErrorNotification('Please enter a comment or attach an image.');
+            }
             
             isSubmittingComment = true;
+            const originalBtnHtml = saveCommentBtn.innerHTML;
+            saveCommentBtn.disabled = true;
+            saveCommentBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
             
             try {
+                const formData = new FormData();
+                formData.append('sub_task_id', currentSubtaskId);
+                formData.append('comment', comment);
+                selectedCommentFiles.forEach((file, i) => {
+                    formData.append(`images[${i}]`, file);
+                });
+
+                let result;
                 if (!currentCommentId) {
-                    const result = await apiCall(window.App.routes.comments.store, 'POST', {
-                        sub_task_id: currentSubtaskId,
-                        comment
+                    const response = await fetch(window.App.routes.comments.store, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
                     });
+                    result = await response.json();
+                    if (!response.ok) throw new Error(result.message || 'Failed to post comment');
+                    
                     const subtask = findSubtask(currentSubtaskId);
                     if (!subtask.comments) subtask.comments = [];
                     subtask.comments.push(result.comment);
@@ -2823,8 +2904,20 @@
                     showSuccessNotification(result.message);
                     loadStatistics();
                 } else {
-                    const url = window.App.routes.comments.update.replace(':id', currentCommentId);
-                    const result = await apiCall(url, 'PUT', { comment });
+                    // Update doesn't usually handle images in this simple flow, keeping it text-only or as needed
+                    // Laravel PUT with multipart can be tricky, using POST with _method spoofing if needed
+                    formData.append('_method', 'PUT');
+                    const response = await fetch(window.App.routes.comments.update.replace(':id', currentCommentId), {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    });
+                    result = await response.json();
+                    if (!response.ok) throw new Error(result.message || 'Failed to update comment');
+
                     const subtask = findSubtask(currentSubtaskId);
                     const idx = subtask.comments.findIndex(c => c.id == currentCommentId);
                     if (idx !== -1) subtask.comments[idx] = result.comment;
@@ -2832,10 +2925,17 @@
                     showSuccessNotification(result.message);
                     loadStatistics();
                 }
+                
+                selectedCommentFiles = [];
+                const preview = document.getElementById('comment-image-preview');
+                if (preview) preview.innerHTML = '';
                 resetCommentForm();
             } catch (error) {
+                showErrorNotification(error.message);
             } finally {
                 isSubmittingComment = false;
+                saveCommentBtn.disabled = false;
+                saveCommentBtn.innerHTML = originalBtnHtml;
             }
         }
         
