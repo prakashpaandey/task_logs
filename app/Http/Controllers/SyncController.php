@@ -23,16 +23,26 @@ class SyncController extends Controller
         $query = Client::with([
             'user', 
             'users', 
-            'mainTasks.user', 
-            'mainTasks.category', 
-            'mainTasks.subtasks.user', 
-            'mainTasks.subtasks.comments.user', 
-            'mainTasks.subtasks.timeLogs.user'
+            'mainTasks' => function($q) use ($user) {
+                if (!$user->isAdmin()) {
+                    $q->where(function($inner) use ($user) {
+                        $inner->where('user_id', $user->id)
+                              ->orWhereHas('assignedUsers', function($sq) use ($user) {
+                                  $sq->where('users.id', $user->id);
+                              });
+                    });
+                }
+                $q->with(['user', 'category', 'assignedUsers', 'subtasks.user', 'subtasks.comments.user', 'subtasks.timeLogs.user']);
+            }
         ]);
 
         if (!$user->isAdmin()) {
-            $query->whereHas('users', function($q) use ($user) {
-                $q->where('users.id', $user->id);
+            $query->where(function($q) use ($user) {
+                $q->whereHas('users', function($inner) use ($user) {
+                    $inner->where('users.id', $user->id);
+                })->orWhereHas('mainTasks.assignedUsers', function($inner) use ($user) {
+                    $inner->where('users.id', $user->id);
+                });
             });
         }
         $clients = $query->get();
