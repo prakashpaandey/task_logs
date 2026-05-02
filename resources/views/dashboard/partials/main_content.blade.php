@@ -569,26 +569,34 @@
                                             </button>
                                         </div>
                                         
-                                        <!-- Comment Form -->
-                                        <div id="comment-form" class="mb-6 hidden bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
-                                            <div class="mb-4">
-                                                <textarea id="comment-text" rows="3" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm mb-3" placeholder="Enter your comment"></textarea>
+                                        <!-- Modernized Comment Input Bar -->
+                                        <div id="comment-form" class="mb-6 hidden">
+                                            <div class="relative bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 overflow-hidden">
+                                                <!-- Image Preview Container (Inside the bar) -->
+                                                <div id="comment-image-preview" class="flex flex-wrap gap-2 px-4 pt-3 empty:hidden"></div>
                                                 
-                                                <!-- Multi-Image Upload Field -->
-                                                <div class="flex flex-col gap-2">
-                                                    <label class="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl cursor-pointer transition-all w-fit border border-gray-200 dark:border-gray-600">
-                                                        <i class="fas fa-image text-blue-500"></i>
-                                                        <span class="text-xs font-bold uppercase tracking-wider">Attach Images (Max 5)</span>
+                                                <div class="flex items-end p-2 gap-2">
+                                                    <!-- Attachment Button -->
+                                                    <label class="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-pointer transition-colors shrink-0">
+                                                        <i class="fas fa-plus text-sm"></i>
                                                         <input type="file" id="comment-images" multiple accept="image/*" class="hidden" onchange="handleCommentImageSelect(this)">
                                                     </label>
-                                                    <div id="comment-image-preview" class="flex flex-wrap gap-2 mt-2"></div>
+
+                                                    <!-- Textarea -->
+                                                    <textarea id="comment-text" rows="1" 
+                                                        class="w-full bg-transparent border-none focus:ring-0 text-sm py-2.5 px-2 max-h-32 resize-none dark:text-white" 
+                                                        placeholder="Ask anything or paste image (Ctrl+V)..."
+                                                        oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
+                                                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); document.getElementById('save-comment-btn').click(); }"></textarea>
+
+                                                    <!-- Submit Button -->
+                                                    <button id="save-comment-btn" class="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all shrink-0 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:shadow-none">
+                                                        <i class="fas fa-arrow-up text-sm"></i>
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <div class="flex justify-end space-x-3">
-                                                <button id="save-comment-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
-                                                    Post Comment
-                                                </button>
-                                                <button id="cancel-comment-btn" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
+                                            <div class="flex justify-end mt-2">
+                                                <button id="cancel-comment-btn" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                                                     Cancel
                                                 </button>
                                             </div>

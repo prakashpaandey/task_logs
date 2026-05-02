@@ -2822,9 +2822,37 @@
             if (!preview) return;
             
             const files = Array.from(input.files);
-            if (files.length + selectedCommentFiles.length > 5) {
+            processSelectedFiles(files);
+            input.value = '';
+        };
+
+        // Add Paste Event Listener to Textarea
+        document.addEventListener('DOMContentLoaded', () => {
+            const commentTextarea = document.getElementById('comment-text');
+            if (commentTextarea) {
+                commentTextarea.addEventListener('paste', function(e) {
+                    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                    const files = [];
+                    for (let index in items) {
+                        const item = items[index];
+                        if (item.kind === 'file' && item.type.startsWith('image/')) {
+                            const blob = item.getAsFile();
+                            files.push(blob);
+                        }
+                    }
+                    if (files.length > 0) {
+                        processSelectedFiles(files);
+                    }
+                });
+            }
+        });
+
+        function processSelectedFiles(files) {
+            const preview = document.getElementById('comment-image-preview');
+            if (!preview) return;
+
+            if (selectedCommentFiles.length + files.length > 5) {
                 showErrorNotification('You can only attach up to 5 images.');
-                input.value = '';
                 return;
             }
 
@@ -2835,25 +2863,24 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const div = document.createElement('div');
-                    div.className = 'relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 group';
+                    div.className = 'relative w-12 h-12 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 group shadow-sm';
                     div.innerHTML = `
                         <img src="${e.target.result}" class="w-full h-full object-cover">
-                        <button type="button" class="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" onclick="removeCommentImagePreview(this, ${selectedCommentFiles.length - 1})">
-                            <i class="fas fa-times text-[10px]"></i>
+                        <button type="button" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" onclick="removeCommentImagePreview(this, ${selectedCommentFiles.length - 1})">
+                            <i class="fas fa-times text-white text-[10px]"></i>
                         </button>
                     `;
                     preview.appendChild(div);
                 };
                 reader.readAsDataURL(file);
             });
-            input.value = '';
-        };
+        }
 
         window.removeCommentImagePreview = function(btn, index) {
             selectedCommentFiles.splice(index, 1);
             btn.parentElement.remove();
             
-            // Re-map the indices if necessary (simplified by just clearing and re-rendering if it was complex, but for 5 files this is fine)
+            // Re-map the indices
             const previews = document.getElementById('comment-image-preview').children;
             Array.from(previews).forEach((div, i) => {
                 const closeBtn = div.querySelector('button');
