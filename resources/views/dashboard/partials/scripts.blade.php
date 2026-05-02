@@ -4274,7 +4274,12 @@
                         showSuccessNotification(result.message || 'Task deleted successfully.');
                         developerTasks = developerTasks.filter(t => t.id != taskId);
                         closeConfirmationModal();
-                        renderUserTaskHistoryUI();
+                        
+                        // Update UI instantly for all views
+                        renderDeveloperTasks(); 
+                        if (typeof currentHistoryUserId !== 'undefined' && currentHistoryUserId) {
+                            renderUserTaskHistoryUI();
+                        }
                     } else {
                         showErrorNotification(result.message || 'Failed to delete task.');
                         closeConfirmationModal();
