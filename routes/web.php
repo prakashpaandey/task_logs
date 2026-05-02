@@ -81,4 +81,11 @@ Route::middleware('auth')->group(function () {
 });
 
 
+Route::get('/storage/{path}', function ($path) {
+    $path = str_replace('..', '', $path);
+    $fullPath = storage_path('app/public/' . $path);
+    if (!file_exists($fullPath)) abort(404);
+    return response()->file($fullPath);
+})->where('path', '.*');
+
 require __DIR__.'/auth.php';

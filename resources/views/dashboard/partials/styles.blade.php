@@ -222,4 +222,11 @@
             width: calc(100% - 80px);
         }
     }
+    #image-lightbox img {
+        transition: opacity 0.3s ease;
+        opacity: 0;
+    }
+    #image-lightbox img.loaded {
+        opacity: 1;
+    }
 </style>

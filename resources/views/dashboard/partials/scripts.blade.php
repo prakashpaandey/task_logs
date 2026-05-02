@@ -2744,10 +2744,10 @@
                 const imagesHtml = (c.images && c.images.length > 0) ? `
                     <div class="mt-4 flex flex-wrap gap-2">
                         ${c.images.map(img => `
-                            <a href="/storage/${img.image_path}" target="_blank" class="relative group block w-20 h-20 md:w-24 md:h-24 overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+                            <div onclick="openLightbox('/storage/${img.image_path}')" class="relative group block w-20 h-20 md:w-24 md:h-24 overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all cursor-zoom-in">
                                 <img src="/storage/${img.image_path}" class="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Comment Image">
                                 <div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
-                            </a>
+                            </div>
                         `).join('')}
                     </div>
                 ` : '';
@@ -3099,6 +3099,34 @@
             if (!id) return null;
             return window.App.categories?.find(c => c.id == id) || null;
         }
+
+        function openLightbox(src) {
+            const lightbox = document.getElementById('image-lightbox');
+            const img = document.getElementById('lightbox-img');
+            if (lightbox && img) {
+                img.classList.remove('loaded');
+                // Force a fresh load
+                const freshSrc = src + (src.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+                img.src = freshSrc;
+                
+                img.onload = function() {
+                    img.classList.add('loaded');
+                };
+
+                lightbox.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+        }
+        window.openLightbox = openLightbox;
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('image-lightbox');
+            if (lightbox) {
+                lightbox.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+        window.closeLightbox = closeLightbox;
 
         // Confirmation modal
         function openConfirmationModal(type, name, callback) {

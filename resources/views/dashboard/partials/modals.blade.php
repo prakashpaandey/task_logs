@@ -459,3 +459,15 @@
             </div>
         </div>
     </div>
+    <!-- Image Lightbox Modal -->
+    <div id="image-lightbox" class="fixed inset-0 z-[150] hidden flex items-center justify-center p-4 md:p-10">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeLightbox()"></div>
+        <div class="relative max-w-5xl w-full h-full flex flex-col items-center justify-center pointer-events-none">
+            <button onclick="closeLightbox()" class="absolute top-4 right-4 md:-top-10 md:-right-10 w-12 h-12 flex items-center justify-center text-white/50 hover:text-white transition-colors pointer-events-auto">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+            <div class="w-full h-full flex items-center justify-center">
+                <img id="lightbox-img" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl pointer-events-auto" alt="Full size image">
+            </div>
+        </div>
+    </div>
