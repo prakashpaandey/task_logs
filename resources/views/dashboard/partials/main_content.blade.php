@@ -213,30 +213,45 @@
                             @if(auth()->user()->isAdmin())
                             <div class="space-y-2">
                                 <label class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">Report Type</label>
-                                <select id="report-type-select" onchange="handleReportTypeChange()" class="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all">
-                                    <option value="user">Developer Report</option>
-                                    <option value="client">Client Report</option>
-                                </select>
+                                <div class="relative">
+                                    <select id="report-type-select" onchange="handleReportTypeChange()" class="w-full appearance-none bg-gray-50 dark:bg-gray-700 border-none rounded-2xl pl-4 pr-10 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer">
+                                        <option value="user">Developer Report</option>
+                                        <option value="client">Client Report</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                    </div>
+                                </div>
                             </div>
                             <div id="report-target-container" class="space-y-2">
                                 <label id="report-target-label" class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">Target Developer</label>
-                                <select id="report-target-select" class="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl px-4 py-4 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all">
-                                    <option value="">All Developers</option>
-                                    @foreach(\App\Models\User::all() as $u)
-                                        <option value="{{ $u->id }}">{{ $u->name }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="relative">
+                                    <select id="report-target-select" class="w-full appearance-none bg-gray-50 dark:bg-gray-700 border-none rounded-2xl pl-4 pr-10 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer">
+                                        <option value="">All Developers</option>
+                                        @foreach(\App\Models\User::all() as $u)
+                                            <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                    </div>
+                                </div>
                             </div>
                             @endif
 
                             <div class="space-y-2">
                                 <label class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">Time Period</label>
-                                <select id="report-period-select" onchange="handleReportPeriodChange()" class="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all">
-                                    <option value="today">Today</option>
-                                    <option value="week" selected>This Week</option>
-                                    <option value="month">This Month</option>
-                                    <option value="custom">Custom Range</option>
-                                </select>
+                                <div class="relative">
+                                    <select id="report-period-select" onchange="handleReportPeriodChange()" class="w-full appearance-none bg-gray-50 dark:bg-gray-700 border-none rounded-2xl pl-4 pr-10 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer">
+                                        <option value="today">Today</option>
+                                        <option value="week" selected>This Week</option>
+                                        <option value="month">This Month</option>
+                                        <option value="custom">Custom Range</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                    </div>
+                                </div>
                             </div>
 
                             <div id="report-custom-date-container" class="grid grid-cols-2 gap-3 hidden">
@@ -585,7 +600,7 @@
                                                     <!-- Textarea -->
                                                     <textarea id="comment-text" rows="1" 
                                                         class="w-full bg-transparent border-none focus:ring-0 text-sm py-2.5 px-2 max-h-32 resize-none dark:text-white" 
-                                                        placeholder="Ask anything or paste image (Ctrl+V)..."
+                                                        placeholder="Add Comments"
                                                         oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
                                                         onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); document.getElementById('save-comment-btn').click(); }"></textarea>
 
