@@ -35,6 +35,6 @@ class MainTask extends Model
 
     public function comments()
     {
-        return $this->hasMany(MainTaskComment::class)->latest();
+        return $this->hasMany(MainTaskComment::class)->oldest();
     }
 }

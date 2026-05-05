@@ -4382,7 +4382,7 @@
             updateMainTaskBulkDeleteUI();
         };
 
-        window.renderMainTaskChat = function(taskId) {
+        window.renderMainTaskChat = function(taskId, autoScroll = true) {
             const container = document.getElementById('main-task-chat-container');
             const task = findMainTask(taskId);
             if (!container || !task) return;
@@ -4448,8 +4448,9 @@
                 `;
             }).join('');
 
-            // Scroll to bottom
-            container.scrollTop = container.scrollHeight;
+            if (autoScroll) {
+                container.scrollTop = container.scrollHeight;
+            }
         };
 
         window.toggleMainTaskCommentSelection = function(commentId) {
@@ -4461,7 +4462,7 @@
             }
             updateMainTaskBulkDeleteUI();
             const taskId = document.getElementById('main-task-chat-id').value;
-            renderMainTaskChat(taskId);
+            renderMainTaskChat(taskId, false); // Don't scroll when selecting
         };
 
         function updateMainTaskBulkDeleteUI() {
