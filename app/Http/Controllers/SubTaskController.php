@@ -102,18 +102,26 @@ class SubTaskController extends Controller
             return;
         }
 
-        // 1. Enforce Ownership: Non-admins can only edit/delete their own subtasks
-        if ($model->user_id !== $user->id) {
-            abort(403, 'Unauthorized action. You can only edit or delete subtasks you created.');
-        }
-
-        // 2. Client Assignment Check (Safety Layer via Main Task)
+        // 1. Client/Task Assignment Check: Must be assigned to even see/touch the task
         $mainTask = $model->mainTask;
         $isAssignedToClient = $user->clients()->where('clients.id', $mainTask->client_id)->exists();
         $isAssignedToMainTask = $mainTask->assignedUsers()->where('users.id', $user->id)->exists();
         
         if (!$isAssignedToClient && !$isAssignedToMainTask) {
             abort(403, 'Unauthorized action. You are not assigned to this client or task.');
+        }
+
+        // 2. Action-Specific Authorization
+        $routeName = request()->route()->getName();
+        
+        // If toggling status, being assigned is sufficient (per user request)
+        if ($routeName === 'subtask.toggle-status') {
+            return;
+        }
+
+        // For editing or deleting, you must be the creator (ownership)
+        if ($model->user_id !== $user->id) {
+            abort(403, 'Unauthorized action. You can only edit or delete subtasks you created.');
         }
     }
 }
