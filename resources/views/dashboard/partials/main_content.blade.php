@@ -760,7 +760,6 @@
                             <button onclick="filterDevTasks('pending')" id="dev-task-filter-pending" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">In Progress</button>
                             <button onclick="filterDevTasks('completed')" id="dev-task-filter-completed" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Completed</button>
                         </div>
-                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="dev-tasks-container">
