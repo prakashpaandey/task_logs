@@ -1376,11 +1376,11 @@
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
                                  ${user.id !== window.App.user.id ? `
-                                    <button onclick="openAssignTaskModal(${user.id}, '${user.name.replace(/'/g, "\\'")}')" class="p-2 text-gray-400 hover:text-emerald-500 transition-colors" title="Assign Task">
+                                    <!-- <button onclick="openAssignTaskModal(${user.id}, '${user.name.replace(/'/g, "\\'")}')" class="p-2 text-gray-400 hover:text-emerald-500 transition-colors" title="Assign Task">
                                         <i class="fas fa-plus-circle text-xs"></i>
-                                    </button>
-                                    <button onclick="openUserTaskHistory(${user.id}, '${user.name.replace(/'/g, "\\'")}')" class="p-2 text-gray-400 hover:text-blue-500 transition-colors" title="Manage Tasks">
-                                        <i class="fas fa-tasks text-xs"></i>
+                                    </button> -->
+                                    <button onclick="openUserTaskHistory(${user.id}, '${user.name.replace(/'/g, "\\'")}')" class="p-2 text-gray-400 hover:text-blue-500 transition-colors" title="View History">
+                                        <i class="fas fa-history text-xs"></i>
                                     </button>
                                     <button onclick="confirmResetPassword(${user.id}, '${user.name}')" class="p-2 text-gray-400 hover:text-amber-500 transition-colors" title="Forgot Password">
                                         <i class="fas fa-user-lock text-xs"></i>
