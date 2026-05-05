@@ -1,8 +1,8 @@
             <!-- Mobile Sidebar Overlay -->
-            <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
+            <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-[60] hidden md:hidden"></div>
 
             <!-- Left Sidebar: Clients List -->
-            <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 md:w-64 lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-all duration-300 z-50 transform -translate-x-full md:translate-x-0 md:static md:z-auto">
+            <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 md:w-64 lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-all duration-300 z-[70] transform -translate-x-full md:translate-x-0 md:static md:z-auto">
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-6 md:hidden">
                         <h2 class="text-lg font-bold text-gray-800 dark:text-white">Navigation</h2>
