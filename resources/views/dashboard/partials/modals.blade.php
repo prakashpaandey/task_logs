@@ -46,28 +46,26 @@
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[110] hidden">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4">
-            <div class="p-4 md:p-6">
-                <div class="flex items-center justify-center mb-6">
-                    <div id="confirmation-icon-container" class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                        <i id="confirmation-icon" class="fas fa-exclamation-triangle text-3xl text-red-600 dark:text-red-400"></i>
+    <div id="confirmation-modal" class="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[200] hidden p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-[280px] overflow-hidden border border-gray-100 dark:border-gray-700 transform transition-all duration-300 scale-100">
+            <div class="p-5">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 bg-red-50 dark:bg-red-900/30 rounded-lg flex items-center justify-center shrink-0">
+                        <i id="confirmation-icon" class="fas fa-exclamation-triangle text-sm text-red-600 dark:text-red-400"></i>
                     </div>
+                    <h3 id="confirmation-title" class="text-sm font-bold text-gray-900 dark:text-white">Confirm Deletion</h3>
                 </div>
                 
-                <h3 id="confirmation-title" class="text-xl font-bold text-center text-gray-800 dark:text-white mb-4">Confirm Deletion</h3>
-                <p id="confirmation-message" class="text-gray-600 dark:text-gray-400 text-center mb-8">
-                    Are you sure you want to delete this item? This action cannot be undone.
+                <p id="confirmation-message" class="text-xs text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">
+                    Are you sure? This action cannot be undone.
                 </p>
                 
-                <div class="flex justify-center gap-3 w-full">
-                    <button id="cancel-confirmation-btn" class="flex-1 px-3 py-2.5 md:px-6 md:py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
-                        <i id="confirm-cancel-icon" class="fas fa-times mr-2"></i>
-                        <span id="confirm-cancel-text">Cancel</span>
+                <div class="flex gap-2">
+                    <button id="cancel-confirmation-btn" class="flex-1 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-lg font-bold transition-all text-[10px] uppercase tracking-wider flex items-center justify-center">
+                        Cancel
                     </button>
-                    <button id="confirm-delete-btn" class="flex-1 px-3 py-2.5 md:px-6 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
-                        <i id="confirm-action-icon" class="fas fa-trash-alt mr-2"></i>
-                        <span id="confirm-action-text">Delete</span>
+                    <button id="confirm-delete-btn" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold shadow-md shadow-red-500/10 transition-all text-[10px] uppercase tracking-wider flex items-center justify-center">
+                        Delete
                     </button>
                 </div>
             </div>

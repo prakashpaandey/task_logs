@@ -56,4 +56,42 @@ class MainTaskCommentController extends Controller
             'comment' => $comment->load('user')
         ]);
     }
+    public function update(Request $request, MainTaskComment $comment)
+    {
+        $this->authorizeComment($comment);
+
+        $request->validate([
+            'comment' => 'required|string',
+        ]);
+
+        $comment->update([
+            'comment' => $request->comment,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message updated successfully.',
+            'comment' => $comment->load('user')
+        ]);
+    }
+
+    public function destroy(MainTaskComment $comment)
+    {
+        $this->authorizeComment($comment);
+
+        $comment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message deleted successfully.'
+        ]);
+    }
+
+    private function authorizeComment(MainTaskComment $comment)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && $comment->user_id !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
 }

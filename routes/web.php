@@ -37,6 +37,8 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         'destroy' => 'main-task.destroy',
     ]);
     Route::post('main-tasks/{main_task}/comments', [\App\Http\Controllers\MainTaskCommentController::class, 'store'])->name('main-task.comments.store');
+    Route::put('main-tasks/comments/{comment}', [\App\Http\Controllers\MainTaskCommentController::class, 'update'])->name('main-task.comments.update');
+    Route::delete('main-tasks/comments/{comment}', [\App\Http\Controllers\MainTaskCommentController::class, 'destroy'])->name('main-task.comments.destroy');
     Route::resource('subtasks', SubTaskController::class)->only(['store', 'update', 'destroy'])->names([
         'store' => 'subtask.store',
         'update' => 'subtask.update',

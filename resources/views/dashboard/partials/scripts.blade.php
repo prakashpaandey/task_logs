@@ -4437,6 +4437,192 @@
         };
 
 
+        // MAIN TASK CHAT (Real-time discussion)
+        window.openMainTaskChat = function(taskId) {
+            const task = findMainTask(taskId);
+            if (!task) return showErrorNotification('Task not found.');
+
+            document.getElementById('main-task-chat-id').value = taskId;
+            document.getElementById('main-task-chat-title').textContent = task.title;
+            
+            renderMainTaskChat(taskId);
+            
+            const modal = document.getElementById('main-task-chat-modal');
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            
+            // Focus input
+            setTimeout(() => document.getElementById('main-task-chat-input').focus(), 100);
+        };
+
+        window.closeMainTaskChat = function() {
+            document.getElementById('main-task-chat-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            document.getElementById('main-task-chat-form').reset();
+        };
+
+        window.renderMainTaskChat = function(taskId) {
+            const container = document.getElementById('main-task-chat-container');
+            const task = findMainTask(taskId);
+            if (!container || !task) return;
+
+            const comments = task.comments || [];
+            if (comments.length === 0) {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col items-center justify-center text-center p-8">
+                        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-comments text-2xl text-gray-400"></i>
+                        </div>
+                        <h4 class="text-gray-900 dark:text-white font-bold">No messages yet</h4>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 max-w-[200px] mt-1">Be the first to start the discussion about this task.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = comments.map(comment => {
+                const isMe = comment.user_id == window.App.user.id;
+                const isAdmin = window.App.isSuperAdmin;
+                const canManage = isMe || isAdmin;
+                const userName = comment.user?.name || 'Unknown User';
+                const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+                
+                return `
+                    <div class="flex ${isMe ? 'justify-end' : 'justify-start'} group mb-4">
+                        <div class="flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-start max-w-[85%] gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
+                                ${userInitials}
+                            </div>
+                            <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">${isMe ? 'You' : userName}</span>
+                                    <span class="text-[9px] text-gray-400">${new Date(comment.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                </div>
+                                <div class="relative group/msg">
+                                    <div id="mt-comment-text-${comment.id}" class="px-4 py-2 rounded-2xl text-sm ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm'}">
+                                        ${comment.comment}
+                                    </div>
+                                    ${canManage ? `
+                                        <div class="absolute ${isMe ? '-left-12' : '-right-12'} top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+                                            <button onclick="editMainTaskComment(${comment.id})" class="w-5 h-5 flex items-center justify-center rounded-md bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-blue-500 transition-colors" title="Edit">
+                                                <i class="fas fa-edit text-[10px]"></i>
+                                            </button>
+                                            <button onclick="deleteMainTaskComment(${comment.id})" class="w-5 h-5 flex items-center justify-center rounded-md bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-red-500 transition-colors" title="Delete">
+                                                <i class="fas fa-trash text-[10px]"></i>
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        };
+
+        window.submitMainTaskChat = async function(e) {
+            e.preventDefault();
+            const taskId = document.getElementById('main-task-chat-id').value;
+            const input = document.getElementById('main-task-chat-input');
+            const comment = input.value.trim();
+
+            if (!comment || !taskId) return;
+
+            const submitBtn = document.getElementById('main-task-chat-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const url = window.App.routes.main_tasks.comments.store.replace(':id', taskId);
+                const result = await apiCall(url, 'POST', { comment });
+                
+                if (result.success) {
+                    input.value = '';
+                    // Update local data instantly
+                    const task = findMainTask(taskId);
+                    if (task) {
+                        if (!task.comments) task.comments = [];
+                        task.comments.push(result.comment);
+                        renderMainTaskChat(taskId);
+                    }
+                }
+            } catch (error) {
+                console.error('Chat submission failed:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        };
+
+        window.editMainTaskComment = function(commentId) {
+            const textEl = document.getElementById(`mt-comment-text-${commentId}`);
+            if (!textEl || textEl.querySelector('textarea')) return;
+
+            const originalText = textEl.textContent.trim();
+            textEl.innerHTML = `
+                <div class="flex flex-col gap-2 min-w-[200px]">
+                    <textarea class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-indigo-500 outline-none" rows="2">${originalText}</textarea>
+                    <div class="flex justify-end gap-2">
+                        <button onclick="renderMainTaskChat(document.getElementById('main-task-chat-id').value)" class="text-[10px] font-bold text-gray-400 hover:text-gray-600">Cancel</button>
+                        <button onclick="saveMainTaskComment(${commentId})" class="text-[10px] font-bold text-indigo-500 hover:text-indigo-700">Save</button>
+                    </div>
+                </div>
+            `;
+            textEl.querySelector('textarea').focus();
+        };
+
+        window.saveMainTaskComment = async function(commentId) {
+            const textEl = document.getElementById(`mt-comment-text-${commentId}`);
+            const textarea = textEl.querySelector('textarea');
+            const comment = textarea.value.trim();
+
+            if (!comment) return;
+
+            try {
+                const url = window.App.routes.main_tasks.comments.update.replace(':id', commentId);
+                const result = await apiCall(url, 'PUT', { comment });
+                
+                if (result.success) {
+                    showSuccessNotification('Message updated.');
+                    // Update local data
+                    const taskId = document.getElementById('main-task-chat-id').value;
+                    const task = findMainTask(taskId);
+                    if (task && task.comments) {
+                        const idx = task.comments.findIndex(c => c.id == commentId);
+                        if (idx !== -1) task.comments[idx].comment = comment;
+                    }
+                    renderMainTaskChat(taskId);
+                }
+            } catch (error) {
+                console.error('Update comment failed:', error);
+            }
+        };
+
+        window.deleteMainTaskComment = function(commentId) {
+            openConfirmationModal('message', 'this message', async () => {
+                try {
+                    const url = window.App.routes.main_tasks.comments.destroy.replace(':id', commentId);
+                    const result = await apiCall(url, 'DELETE');
+                    
+                    if (result.success) {
+                        showSuccessNotification('Message deleted.');
+                        const taskId = document.getElementById('main-task-chat-id').value;
+                        const task = findMainTask(taskId);
+                        if (task && task.comments) {
+                            task.comments = task.comments.filter(c => c.id != commentId);
+                        }
+                        closeConfirmationModal();
+                        renderMainTaskChat(taskId);
+                    }
+                } catch (error) {
+                    console.error('Delete comment failed:', error);
+                }
+            });
+        };
+
         // Initialize task management view — reads from window.App.clients (no extra load needed)
         (function initTaskManagementView() {
             if (window.App && window.App.clients && window.App.clients.length > 0) {
