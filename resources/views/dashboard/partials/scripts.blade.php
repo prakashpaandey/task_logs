@@ -352,6 +352,8 @@
                     // Only re-render if count has changed to prevent flickering
                     if (window._lastMainTaskChatCounts[activeChatTaskId] !== commentCount) {
                         renderMainTaskChat(activeChatTaskId);
+                        // Also refresh the dashboard cards to update the comment badge
+                        if (typeof renderClientMainTasks === 'function') renderClientMainTasks();
                         window._lastMainTaskChatCounts[activeChatTaskId] = commentCount;
                     }
                 }
@@ -1226,94 +1228,6 @@
             if (mainContent) mainContent.scrollTop = 0;
         }
 
-        window.openMainTaskChat = function(taskId) {
-            const task = findMainTask(taskId);
-            if (!task) return;
-
-            const modal = document.getElementById('main-task-chat-modal');
-            const title = document.getElementById('main-task-chat-title');
-            const taskIdInput = document.getElementById('main-task-chat-id');
-            
-            if (title) title.textContent = `Discussion: ${task.title}`;
-            if (taskIdInput) taskIdInput.value = taskId;
-            
-            renderMainTaskChat(taskId);
-            if (modal) modal.classList.remove('hidden');
-        };
-
-        window.closeMainTaskChat = function() {
-            const modal = document.getElementById('main-task-chat-modal');
-            if (modal) modal.classList.add('hidden');
-        };
-
-        window.renderMainTaskChat = function(taskId) {
-            const task = findMainTask(taskId);
-            const container = document.getElementById('main-task-chat-container');
-            if (!container || !task) return;
-
-            const comments = task.comments || [];
-            if (comments.length === 0) {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-center py-10 opacity-40">
-                        <i class="fas fa-comments text-4xl mb-4 text-gray-400"></i>
-                        <p class="text-sm font-medium text-gray-500">No messages yet.<br>Start the conversation below.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = [...comments].reverse().map(c => {
-                const isMe = c.user_id == window.App.user.id;
-                const date = new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const userName = c.user ? c.user.name : 'Unknown User';
-                
-                return `
-                    <div class="flex ${isMe ? 'justify-end' : 'justify-start'} animate-fadeIn">
-                        <div class="max-w-[80%] ${isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm shadow-lg shadow-indigo-600/10' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm shadow-sm'} p-4">
-                            ${!isMe ? `<p class="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 mb-1">${userName}</p>` : ''}
-                            <p class="text-sm leading-relaxed">${c.comment}</p>
-                            <p class="text-[9px] mt-2 opacity-60 font-medium text-right">${date}</p>
-                        </div>
-                    </div>
-                `;
-            }).join(''); 
-
-            container.scrollTop = container.scrollHeight;
-        };
-
-        window.submitMainTaskChat = async function(event) {
-            event.preventDefault();
-            const input = document.getElementById('main-task-chat-input');
-            const taskId = document.getElementById('main-task-chat-id').value;
-            const btn = document.getElementById('main-task-chat-submit-btn');
-
-            if (!input.value.trim() || !taskId) return;
-
-            const originalBtnHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-            try {
-                const url = window.App.routes.main_tasks.comments.store.replace(':id', taskId);
-                const response = await apiCall(url, 'POST', { comment: input.value });
-                if (response.success) {
-                    const task = findMainTask(taskId);
-                    if (task) {
-                        if (!task.comments) task.comments = [];
-                        task.comments.unshift(response.comment); // Add to beginning (latest)
-                        renderMainTaskChat(taskId);
-                        renderClientMainTasks(); // Update count on cards
-                    }
-                    input.value = '';
-                }
-            } catch (error) {
-                console.error('Failed to post comment:', error);
-                showErrorNotification('Failed to send message.');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalBtnHtml;
-            }
-        };
 
         window.navigateToTask = function(clientId, taskId) {
             // 1. Switch to client view
@@ -4583,6 +4497,7 @@
                         updateMainTaskBulkDeleteUI();
                         closeConfirmationModal();
                         renderMainTaskChat(taskId);
+                        renderClientMainTasks(); // Refresh badges on dashboard
                     }
                 } catch (error) {
                     console.error('Bulk delete failed:', error);
@@ -4614,6 +4529,7 @@
                         if (!task.comments) task.comments = [];
                         task.comments.push(result.comment);
                         renderMainTaskChat(taskId);
+                        renderClientMainTasks(); // Refresh badges on dashboard
                     }
                 }
             } catch (error) {
@@ -4683,6 +4599,7 @@
                         }
                         closeConfirmationModal();
                         renderMainTaskChat(taskId);
+                        renderClientMainTasks(); // Refresh badges on dashboard
                     }
                 } catch (error) {
                     console.error('Delete comment failed:', error);
