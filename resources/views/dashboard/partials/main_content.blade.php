@@ -757,7 +757,7 @@
                         </div>
                         <div class="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 relative z-30">
                             <button onclick="filterDevTasks('all')" id="dev-task-filter-all" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm">All</button>
-                            <button onclick="filterDevTasks('pending')" id="dev-task-filter-pending" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">In Progress</button>
+                            <button onclick="filterDevTasks('pending')" id="dev-task-filter-pending" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Pending</button>
                             <button onclick="filterDevTasks('completed')" id="dev-task-filter-completed" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Completed</button>
                         </div>
                     </div>

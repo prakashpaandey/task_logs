@@ -3865,7 +3865,7 @@
                     `).join('');
 
                     return `
-                        <div onclick="navigateToTask(${task.client_id}, ${task.id})" class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group cursor-pointer">
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
@@ -3878,7 +3878,7 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'}">
-                                        ${isCompleted ? 'Completed' : 'In Progress'}
+                                        ${isCompleted ? 'Completed' : 'Pending'}
                                     </span>
                                 </div>
                             </div>
@@ -3905,7 +3905,7 @@
                                         <i class="fas fa-comment-dots text-xs"></i>
                                         ${(task.comments || []).length > 0 ? `<span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">${task.comments.length}</span>` : ''}
                                     </button>
-                                    <button class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                    <button onclick="navigateToTask(${task.client_id}, ${task.id})" class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                         <i class="fas fa-arrow-right text-xs"></i>
                                     </button>
                                 </div>
