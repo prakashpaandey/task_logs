@@ -87,6 +87,30 @@ class MainTaskCommentController extends Controller
         ]);
     }
 
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:main_task_comments,id',
+        ]);
+
+        $user = auth()->user();
+        $comments = MainTaskComment::whereIn('id', $request->ids)->get();
+
+        foreach ($comments as $comment) {
+            if (!$user->isAdmin() && $comment->user_id !== $user->id) {
+                abort(403, 'Unauthorized action for comment ID: ' . $comment->id);
+            }
+        }
+
+        MainTaskComment::whereIn('id', $request->ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Messages deleted successfully.'
+        ]);
+    }
+
     private function authorizeComment(MainTaskComment $comment)
     {
         $user = auth()->user();

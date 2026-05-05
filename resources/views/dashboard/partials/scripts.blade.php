@@ -4438,9 +4438,14 @@
 
 
         // MAIN TASK CHAT (Real-time discussion)
+        let selectedMainTaskCommentIds = [];
+
         window.openMainTaskChat = function(taskId) {
             const task = findMainTask(taskId);
             if (!task) return showErrorNotification('Task not found.');
+
+            selectedMainTaskCommentIds = [];
+            updateMainTaskBulkDeleteUI();
 
             document.getElementById('main-task-chat-id').value = taskId;
             document.getElementById('main-task-chat-title').textContent = task.title;
@@ -4459,6 +4464,8 @@
             document.getElementById('main-task-chat-modal').classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
             document.getElementById('main-task-chat-form').reset();
+            selectedMainTaskCommentIds = [];
+            updateMainTaskBulkDeleteUI();
         };
 
         window.renderMainTaskChat = function(taskId) {
@@ -4486,6 +4493,7 @@
                 const canManage = isMe || isAdmin;
                 const userName = comment.user?.name || 'Unknown User';
                 const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+                const isSelected = selectedMainTaskCommentIds.includes(comment.id);
                 
                 return `
                     <div class="flex ${isMe ? 'justify-end' : 'justify-start'} group mb-4">
@@ -4498,12 +4506,19 @@
                                     <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">${isMe ? 'You' : userName}</span>
                                     <span class="text-[9px] text-gray-400">${new Date(comment.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                                 </div>
-                                <div class="relative group/msg">
-                                    <div id="mt-comment-text-${comment.id}" class="px-4 py-2 rounded-2xl text-sm ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm'}">
+                                <div class="relative group/msg flex items-center gap-3 ${isMe ? 'flex-row' : 'flex-row-reverse'}">
+                                    ${canManage ? `
+                                        <div class="mt-comment-checkbox w-5 h-5 rounded-md border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center cursor-pointer transition-all ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white' : 'hover:border-indigo-400 opacity-0 group-hover:opacity-100'}" 
+                                             onclick="toggleMainTaskCommentSelection(${comment.id})">
+                                            ${isSelected ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                                        </div>
+                                    ` : ''}
+                                    <div id="mt-comment-text-${comment.id}" 
+                                         class="px-4 py-2 rounded-2xl text-sm transition-all ${isSelected ? 'ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-gray-900' : ''} ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm'}">
                                         ${comment.comment}
                                     </div>
                                     ${canManage ? `
-                                        <div class="absolute ${isMe ? '-left-12' : '-right-12'} top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+                                        <div class="flex items-center gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
                                             <button onclick="editMainTaskComment(${comment.id})" class="w-5 h-5 flex items-center justify-center rounded-md bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-blue-500 transition-colors" title="Edit">
                                                 <i class="fas fa-edit text-[10px]"></i>
                                             </button>
@@ -4521,6 +4536,58 @@
 
             // Scroll to bottom
             container.scrollTop = container.scrollHeight;
+        };
+
+        window.toggleMainTaskCommentSelection = function(commentId) {
+            const idx = selectedMainTaskCommentIds.indexOf(commentId);
+            if (idx === -1) {
+                selectedMainTaskCommentIds.push(commentId);
+            } else {
+                selectedMainTaskCommentIds.splice(idx, 1);
+            }
+            updateMainTaskBulkDeleteUI();
+            const taskId = document.getElementById('main-task-chat-id').value;
+            renderMainTaskChat(taskId);
+        };
+
+        function updateMainTaskBulkDeleteUI() {
+            const btn = document.getElementById('main-task-bulk-delete-btn');
+            const countEl = document.getElementById('mt-selected-count');
+            if (!btn || !countEl) return;
+
+            const count = selectedMainTaskCommentIds.length;
+            countEl.textContent = count;
+            
+            if (count > 0) {
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+
+        window.deleteSelectedMainTaskComments = function() {
+            if (selectedMainTaskCommentIds.length === 0) return;
+
+            openConfirmationModal('messages', `${selectedMainTaskCommentIds.length} selected messages`, async () => {
+                try {
+                    const result = await apiCall(window.App.routes.main_tasks.comments.bulk_delete, 'DELETE', { ids: selectedMainTaskCommentIds });
+                    
+                    if (result.success) {
+                        showSuccessNotification(result.message);
+                        const taskId = document.getElementById('main-task-chat-id').value;
+                        const task = findMainTask(taskId);
+                        if (task && task.comments) {
+                            task.comments = task.comments.filter(c => !selectedMainTaskCommentIds.includes(c.id));
+                        }
+                        selectedMainTaskCommentIds = [];
+                        updateMainTaskBulkDeleteUI();
+                        closeConfirmationModal();
+                        renderMainTaskChat(taskId);
+                    }
+                } catch (error) {
+                    console.error('Bulk delete failed:', error);
+                }
+            });
         };
 
         window.submitMainTaskChat = async function(e) {

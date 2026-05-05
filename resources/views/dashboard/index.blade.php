@@ -77,6 +77,7 @@
                         comments: {
                             store: @json(route('main-task.comments.store', ['main_task' => ':id'])),
                             update: @json(route('main-task.comments.update', ['comment' => ':id'])),
+                            bulk_delete: @json(route('main-task.comments.bulk-delete')),
                             destroy: @json(route('main-task.comments.destroy', ['comment' => ':id']))
                         }
                     },

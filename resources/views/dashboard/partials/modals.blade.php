@@ -482,9 +482,15 @@
                         <p class="text-xs text-gray-500 dark:text-gray-400">Team chat about this assignment</p>
                     </div>
                 </div>
-                <button onclick="closeMainTaskChat()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="main-task-bulk-delete-btn" onclick="deleteSelectedMainTaskComments()" class="hidden h-10 px-4 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 transition-all text-xs font-bold gap-2">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Delete <span id="mt-selected-count">0</span></span>
+                    </button>
+                    <button onclick="closeMainTaskChat()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
 
             <div id="main-task-chat-container" class="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar bg-gray-50/30 dark:bg-gray-900/10 flex flex-col">
