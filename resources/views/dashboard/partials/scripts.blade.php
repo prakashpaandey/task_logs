@@ -326,6 +326,11 @@
                 // Re-render Client List (Sidebar)
                 if (typeof renderClientsList === 'function') renderClientsList();
 
+                // Re-render Task Management view (now reads from clients data)
+                if (document.getElementById('dev-tasks-container')) {
+                    renderClientMainTasks();
+                }
+
                 // If user was newly assigned their first client, show a success toast
                 if (wasEmpty && isNowPopulated) {
                     showSuccessNotification('You have been assigned to new clients! Check your sidebar.');
@@ -3760,19 +3765,37 @@
         devTaskFilter = 'all'; // Already declared globally at top, just resetting here if needed
         // Removed duplicate declarations to prevent SyntaxError
 
-        function renderDeveloperTasks() {
+        function renderClientMainTasks() {
             try {
                 const container = document.getElementById('dev-tasks-container');
                 const emptyState = document.getElementById('dev-tasks-empty');
                 if (!container) return;
 
-                if (!developerTasks || !Array.isArray(developerTasks)) {
-                    developerTasks = [];
-                }
+                // Gather all main tasks from all clients that have assigned users
+                // Note: Laravel serializes assignedUsers() relation as 'assigned_users'
+                let allMainTasks = [];
+                (window.App.clients || []).forEach(client => {
+                    (client.main_tasks || []).forEach(task => {
+                        const users = task.assigned_users || [];
+                        if (isSuperAdmin) {
+                            if (users.length > 0) {
+                                allMainTasks.push(Object.assign({}, task, { client_name: client.name, client_id: client.id }));
+                            }
+                        } else {
+                            if (users.some(u => u.id == window.App.user.id)) {
+                                allMainTasks.push(Object.assign({}, task, { client_name: client.name, client_id: client.id }));
+                            }
+                        }
+                    });
+                });
 
-                const filtered = developerTasks.filter(t => {
+                const filtered = allMainTasks.filter(t => {
                     if (devTaskFilter === 'all') return true;
-                    return t.status === devTaskFilter;
+                    const subtasks = t.subtasks || [];
+                    const isCompleted = subtasks.length > 0 && subtasks.every(s => s.status === 'completed');
+                    if (devTaskFilter === 'completed') return isCompleted;
+                    if (devTaskFilter === 'pending') return !isCompleted;
+                    return true;
                 });
 
                 if (filtered.length === 0) {
@@ -3782,96 +3805,65 @@
                 }
 
                 if (emptyState) emptyState.classList.add('hidden');
-                container.innerHTML = filtered.map(task => {
-                    const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline';
-                    const priorityClass = {
-                        'low': 'bg-gray-100 text-gray-600 dark:bg-gray-700/50 dark:text-gray-400',
-                        'medium': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-                        'high': 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
-                    }[task.priority];
 
-                    // Multi-User Avatar Stack
-                    const developers = task.developers || [];
-                    const devAvatars = developers.map(d => `
-                        <div class="w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[8px] font-black text-indigo-600 dark:text-indigo-400 group/avatar relative" title="${d.name}">
-                            ${d.name.substring(0,2).toUpperCase()}
-                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover/avatar:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                                ${d.name}
-                            </div>
+                container.innerHTML = filtered.map(task => {
+                    const subtasks = task.subtasks || [];
+                    const totalSubs = subtasks.length;
+                    const completedSubs = subtasks.filter(s => s.status === 'completed').length;
+                    const isCompleted = totalSubs > 0 && completedSubs === totalSubs;
+                    const progressPct = totalSubs > 0 ? Math.round((completedSubs / totalSubs) * 100) : 0;
+                    const assignees = task.assigned_users || [];
+
+                    const userAvatars = assignees.slice(0, 5).map(u => `
+                        <div class="w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[8px] font-black text-indigo-600 dark:text-indigo-400 group/avatar relative" title="${u.name}">
+                            ${u.name.substring(0,2).toUpperCase()}
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover/avatar:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">${u.name}</div>
                         </div>
                     `).join('');
-
-                    const isAssigned = developers.some(d => d.id == window.App.user.id);
-                    // Only assigned developers can see/click "Mark Done"
-                    // Admins should not mark as done unless they are assignees themselves
-                    const showMarkDone = isAssigned && task.status === 'pending';
 
                     return `
                         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group">
                             <div class="flex justify-between items-start mb-4">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${priorityClass}">
-                                    ${task.priority} Priority
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                    ${task.client_name}
                                 </span>
-                                <div class="flex items-center gap-2">
-                                    ${task.status === 'completed' 
-                                        ? '<span class="flex items-center gap-1.5 text-xs font-bold text-emerald-500"><i class="fas fa-check-circle"></i> Completed</span>'
-                                        : '<span class="flex items-center gap-1.5 text-xs font-bold text-amber-500"><i class="fas fa-clock"></i> Pending</span>'}
-                                </div>
+                                <span class="flex items-center gap-1.5 text-xs font-bold ${isCompleted ? 'text-emerald-500' : 'text-amber-500'}">
+                                    <i class="fas ${isCompleted ? 'fa-check-circle' : 'fa-clock'}"></i>
+                                    ${isCompleted ? 'Completed' : totalSubs > 0 ? 'In Progress' : 'Pending'}
+                                </span>
                             </div>
 
-                            <div class="flex justify-between items-start gap-4 mb-2">
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">${task.title}</h3>
-                                ${isSuperAdmin ? `
-                                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onclick="openAssignTaskModal(null, null, ${JSON.stringify(task).replace(/"/g, '&quot;')})" class="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors"><i class="fas fa-edit text-xs"></i></button>
-                                        <button onclick="deleteTaskFromHistory(${task.id})" class="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt text-xs"></i></button>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-2">${task.title}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 italic">"${task.description || 'No description provided.'}"</p>
+
+                            ${totalSubs > 0 ? `
+                                <div class="mb-4">
+                                    <div class="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                                        <span>Progress</span>
+                                        <span>${completedSubs}/${totalSubs} subtasks</span>
                                     </div>
-                                ` : ''}
-                            </div>
+                                    <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${progressPct}%"></div>
+                                    </div>
+                                </div>
+                            ` : '<p class="text-[10px] text-gray-400 italic mb-4">No subtasks yet</p>'}
 
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-3 italic">"${task.description || 'No description provided.'}"</p>
-                            
-                            <div class="flex items-center gap-3 mb-6">
+                            <div class="flex items-center gap-3 pt-4 border-t border-gray-50 dark:border-gray-700/50">
                                 <div class="flex -space-x-2 overflow-hidden">
-                                    ${devAvatars}
+                                    ${userAvatars}
                                 </div>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${developers.length} Assignee(s)</span>
-                            </div>
-
-                            <div class="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-gray-700/50">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex items-center gap-2 text-xs text-gray-400">
-                                        <i class="fas fa-calendar-alt"></i>
-                                        <span>${deadline}</span>
-                                    </div>
-                                    <button onclick="openDevTaskComments(${task.id})" class="relative z-50 cursor-pointer flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
-                                        <i class="fas fa-comment-dots"></i>
-                                        <span>${task.comments ? task.comments.length : 0} Chat</span>
-                                    </button>
-                                </div>
-                                ${showMarkDone ? `
-                                    <button 
-                                        onclick="markTaskComplete(${task.id})" 
-                                        class="relative z-50 cursor-pointer px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg">
-                                        Mark Done
-                                    </button>
-                                ` : (task.status === 'completed' ? `
-                                    <div class="text-[10px] text-gray-400 italic">
-                                        Done: ${new Date(task.completed_at).toLocaleDateString()}
-                                    </div>
-                                ` : `
-                                    <div class="text-[10px] text-amber-500 font-bold uppercase tracking-widest">
-                                        In Progress
-                                    </div>
-                                `)}
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${assignees.length} Assignee(s)</span>
                             </div>
                         </div>
                     `;
                 }).join('');
             } catch (renderError) {
-                console.error('Error rendering dev tasks:', renderError);
+                console.error('Error rendering client main tasks:', renderError);
             }
         }
+
+        // Keep alias for compatibility
+        function renderDeveloperTasks() { renderClientMainTasks(); }
 
         window.filterDevTasks = function(filter) {
             devTaskFilter = filter;
@@ -4174,17 +4166,29 @@
             const container = document.getElementById('history-tasks-container');
             const emptyState = document.getElementById('history-empty-state');
             const totalCountEl = document.getElementById('history-total-count');
-            
             if (!container) return;
 
-            // Check if user is in the developers array
-            const userTasks = developerTasks.filter(t => (t.developers || []).some(d => d.id == currentHistoryUserId));
-            const filtered = userTasks.filter(t => {
-                if (historyTaskFilter === 'all') return true;
-                return t.status === historyTaskFilter;
+            // Gather all main tasks assigned to this user across all clients
+            // Note: Laravel serializes assignedUsers() as 'assigned_users'
+            let userMainTasks = [];
+            (window.App.clients || []).forEach(client => {
+                (client.main_tasks || []).forEach(task => {
+                    if ((task.assigned_users || []).some(u => u.id == currentHistoryUserId)) {
+                        userMainTasks.push(Object.assign({}, task, { client_name: client.name }));
+                    }
+                });
             });
 
-            if (totalCountEl) totalCountEl.textContent = userTasks.length;
+            const filtered = userMainTasks.filter(t => {
+                if (historyTaskFilter === 'all') return true;
+                const subtasks = t.subtasks || [];
+                const isCompleted = subtasks.length > 0 && subtasks.every(s => s.status === 'completed');
+                if (historyTaskFilter === 'completed') return isCompleted;
+                if (historyTaskFilter === 'pending') return !isCompleted;
+                return true;
+            });
+
+            if (totalCountEl) totalCountEl.textContent = userMainTasks.length;
 
             if (filtered.length === 0) {
                 container.innerHTML = '';
@@ -4194,37 +4198,35 @@
 
             if (emptyState) emptyState.classList.add('hidden');
             container.innerHTML = filtered.map(task => {
-                const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline';
-                const isCompleted = task.status === 'completed';
+                const subtasks = task.subtasks || [];
+                const totalSubs = subtasks.length;
+                const completedSubs = subtasks.filter(s => s.status === 'completed').length;
+                const isCompleted = totalSubs > 0 && completedSubs === totalSubs;
+
                 return `
-                    <div class="bg-gray-50 dark:bg-gray-900/40 rounded-2xl p-5 border border-gray-100 dark:border-gray-800/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-3 mb-1">
-                                <h4 class="font-bold text-gray-900 dark:text-white">${task.title}</h4>
-                                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}">
-                                    ${task.status}
-                                </span>
+                    <div class="bg-gray-50 dark:bg-gray-900/40 rounded-2xl p-5 border border-gray-100 dark:border-gray-800/60 shadow-sm">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                    <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">${task.client_name}</span>
+                                    <h4 class="font-bold text-gray-900 dark:text-white">${task.title}</h4>
+                                    <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}">
+                                        ${isCompleted ? 'Completed' : 'In Progress'}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 italic">"${task.description || 'No description'}"</p>
+                                <div class="flex items-center gap-4 mt-2">
+                                    <span class="text-[10px] text-gray-400 font-medium">Subtasks: <span class="font-bold">${completedSubs}/${totalSubs} done</span></span>
+                                </div>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 italic">"${task.description || 'No description'}"</p>
-                            <div class="flex items-center gap-4 mt-2">
-                                <span class="text-[10px] text-gray-400 font-medium tracking-tight">Priority: <span class="font-bold italic">${task.priority}</span></span>
-                                <span class="text-[10px] text-gray-400 font-medium">Deadline: ${deadline}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="openDevTaskComments(${task.id})" class="relative z-50 cursor-pointer p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="View Discussion">
-                                <i class="fas fa-comment-dots text-xs"></i>
-                            </button>
-                            ${!isCompleted ? `
-                                <button onclick="editTaskFromHistory(${task.id})" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Task">
-                                    <i class="fas fa-edit text-xs"></i>
-                                </button>
-                            ` : `
-                                <span class="text-[10px] text-gray-400 font-bold uppercase mr-2">${new Date(task.completed_at).toLocaleDateString()}</span>
-                            `}
-                            <button onclick="deleteTaskFromHistory(${task.id})" class="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Delete Task">
-                                <i class="fas fa-trash-alt text-xs"></i>
-                            </button>
+                            ${totalSubs > 0 ? `
+                                <div class="w-full md:w-24">
+                                    <div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-indigo-500 rounded-full" style="width: ${Math.round((completedSubs/totalSubs)*100)}%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400 text-right mt-1">${Math.round((completedSubs/totalSubs)*100)}%</p>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -4293,14 +4295,12 @@
         };
 
 
-        // Initialize developer views from server-provided initial data
-        // (window.App.developerTasks is already populated by the controller)
-        // The main handleSyncPulse handles real-time updates every 15 seconds
-        (function initDeveloperView() {
-            if (developerTasks && developerTasks.length > 0) {
-                renderDeveloperTasks();
+        // Initialize task management view — reads from window.App.clients (no extra load needed)
+        (function initTaskManagementView() {
+            if (window.App && window.App.clients && window.App.clients.length > 0) {
+                renderClientMainTasks();
             }
         })();
 
-        window.renderDeveloperTasks = renderDeveloperTasks;
+        window.renderDeveloperTasks = renderClientMainTasks;
     </script>

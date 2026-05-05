@@ -744,7 +744,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Developer Assigned Tasks Dashboard -->
+                <!-- Client Main Tasks Dashboard -->
                 <div id="assigned-tasks-dashboard" class="h-full flex flex-col p-4 md:p-8 animate-fadeIn hidden">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
                         <div>
@@ -752,20 +752,14 @@
                                 {{ auth()->user()->isAdmin() ? 'Task Management' : 'My Assigned Tasks' }}
                             </h2>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                {{ auth()->user()->isAdmin() ? 'Oversee and track shared tasks across all developers.' : 'Focus on your direct responsibilities and track your progress.' }}
+                                {{ auth()->user()->isAdmin() ? 'Overview of all main tasks assigned to developers across clients.' : 'Main tasks assigned to you across all clients.' }}
                             </p>
                         </div>
-                        <div class="flex items-center gap-2 md:gap-4">
-                            @if(auth()->user()->isAdmin())
-                            <button onclick="openAssignTaskModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 flex items-center whitespace-nowrap text-xs">
-                                <i class="fas fa-plus-circle mr-2"></i> Assign Task
-                            </button>
-                            @endif
-                            <div class="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 relative z-50">
-                                <button onclick="filterDevTasks('all')" id="dev-task-filter-all" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm">All</button>
-                                <button onclick="filterDevTasks('pending')" id="dev-task-filter-pending" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Pending</button>
-                                <button onclick="filterDevTasks('completed')" id="dev-task-filter-completed" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Completed</button>
-                            </div>
+                        <div class="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 relative z-50">
+                            <button onclick="filterDevTasks('all')" id="dev-task-filter-all" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm">All</button>
+                            <button onclick="filterDevTasks('pending')" id="dev-task-filter-pending" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">In Progress</button>
+                            <button onclick="filterDevTasks('completed')" id="dev-task-filter-completed" class="cursor-pointer relative dev-task-filter px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 transition-all hover:text-gray-700 dark:hover:text-gray-200">Completed</button>
+                        </div>
                         </div>
                     </div>
 
