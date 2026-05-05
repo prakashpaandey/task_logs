@@ -41,6 +41,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         'update' => 'subtask.update',
         'destroy' => 'subtask.destroy',
     ]);
+    Route::patch('subtasks/{subtask}/toggle-status', [SubTaskController::class, 'toggleStatus'])->name('subtask.toggle-status');
     Route::resource('comments', CommentController::class)->only(['store', 'update', 'destroy'])->names([
         'store' => 'dashboard.comments.store',
         'update' => 'dashboard.comments.update',

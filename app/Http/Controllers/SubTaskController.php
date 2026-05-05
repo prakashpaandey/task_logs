@@ -58,13 +58,30 @@ class SubTaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'work_date' => 'required|date',
+            'status' => 'nullable|string|in:pending,completed',
         ]);
-        $subtask->update($request->only('title', 'description', 'work_date'));
+        $subtask->update($request->only('title', 'description', 'work_date', 'status'));
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Subtask updated successfully.', 'subtask' => $subtask->load('user')]);
         }
         return back()->with('success', 'Subtask updated successfully.');
+    }
+
+    public function toggleStatus(Subtask $subtask)
+    {
+        $this->authorizeUser($subtask);
+        $subtask->status = $subtask->status === 'completed' ? 'pending' : 'completed';
+        $subtask->save();
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true, 
+                'message' => 'Subtask status updated.', 
+                'subtask' => $subtask->load('user')
+            ]);
+        }
+        return back()->with('success', 'Subtask status updated.');
     }
 
     public function destroy(Subtask $subtask)

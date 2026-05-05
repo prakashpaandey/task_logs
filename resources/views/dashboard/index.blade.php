@@ -83,7 +83,8 @@
                     subtasks: {
                         store: @json(route('subtask.store')),
                         update: @json(route('subtask.update', ['subtask' => ':id'])),
-                        destroy: @json(route('subtask.destroy', ['subtask' => ':id']))
+                        destroy: @json(route('subtask.destroy', ['subtask' => ':id'])),
+                        toggle_status: @json(route('subtask.toggle-status', ['subtask' => ':id']))
                     },
                     time_logs: {
                         store: @json(route('dashboard.time-logs.store')),

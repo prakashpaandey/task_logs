@@ -1237,6 +1237,28 @@
             if (mainContent) mainContent.scrollTop = 0;
         }
 
+        window.navigateToTask = function(clientId, taskId) {
+            // 1. Switch to client view
+            switchView('client');
+            
+            // 2. Select the client in sidebar
+            const clientItem = document.querySelector(`.client-item[data-client-id="${clientId}"]`);
+            if (clientItem) {
+                selectClient(clientItem);
+                
+                // 3. Select the task (wait for rendering)
+                const checkAndSelectTask = (attempts = 0) => {
+                    const taskItem = document.querySelector(`.main-task-item[data-task-id="${taskId}"]`);
+                    if (taskItem) {
+                        selectMainTask(taskItem);
+                    } else if (attempts < 10) {
+                        setTimeout(() => checkAndSelectTask(attempts + 1), 100);
+                    }
+                };
+                checkAndSelectTask();
+            }
+        };
+
         async function loadUserDashboardData() {
             try {
                 const response = await apiCall(window.App.routes.users.index);
@@ -2298,11 +2320,16 @@
                     data-subtask-id="${s.id}">
                     <div class="flex items-start justify-between">
                         <div class="flex items-start space-x-3">
-                            <div class="w-10 h-10 ${isActive ? 'bg-blue-600 text-white' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'} rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors">
-                                <i class="fas fa-pencil-alt"></i>
+                            <div class="flex items-center gap-3">
+                                <div onclick="event.stopPropagation(); toggleSubtaskStatus(${s.id})" class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer transition-all ${s.status === 'completed' ? 'bg-emerald-500 border-emerald-500 text-white' : 'hover:border-blue-500'}">
+                                    ${s.status === 'completed' ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                                </div>
+                                <div class="w-10 h-10 ${isActive ? 'bg-blue-600 text-white' : (s.status === 'completed' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400')} rounded-lg flex items-center justify-center shrink-0 transition-colors">
+                                    <i class="fas ${s.status === 'completed' ? 'fa-check-double' : 'fa-pencil-alt'}"></i>
+                                </div>
                             </div>
                             <div>
-                                <h5 class="font-bold ${isActive ? 'text-blue-800 dark:text-white' : 'text-gray-800 dark:text-white'}">${s.title}</h5>
+                                <h5 class="font-bold ${s.status === 'completed' ? 'text-gray-400 dark:text-gray-500 line-through' : (isActive ? 'text-blue-800 dark:text-white' : 'text-gray-800 dark:text-white')}">${s.title}</h5>
                                 <div class="flex flex-wrap items-center text-sm gap-x-3 gap-y-1 mt-0.5 ${isActive ? 'text-blue-600/80 dark:text-blue-300' : 'text-gray-600 dark:text-gray-200'}">
                                     <div class="flex items-center font-bold"><i class="fas fa-clock mr-1.5"></i><span>${s.total_time_logged || 0}h total</span></div>
                                     <div class="flex items-center"><i class="fas fa-calendar-alt mr-1.5 opacity-60"></i><span>${s.work_date}</span></div>
@@ -2437,6 +2464,32 @@
                 isSubmittingSubtask = false;
                 if (saveSubtaskBtn) saveSubtaskBtn.disabled = false;
                 if (updateSubtaskBtn) updateSubtaskBtn.disabled = false;
+            }
+        }
+        
+        async function toggleSubtaskStatus(subtaskId) {
+            try {
+                const url = window.App.routes.subtasks.toggle_status.replace(':id', subtaskId);
+                const result = await apiCall(url, 'PATCH');
+                
+                // Update local state
+                const task = findMainTask(currentMainTaskId);
+                if (task?.subtasks) {
+                    const idx = task.subtasks.findIndex(s => s.id == subtaskId);
+                    if (idx !== -1) {
+                        task.subtasks[idx].status = result.subtask.status;
+                        renderSubtasks(task.subtasks);
+                    }
+                }
+                
+                // Re-render Client List & Main Task Boards for real-time progress update
+                renderClientMainTasks();
+                renderClientsList();
+                
+                showSuccessNotification(result.message);
+                loadStatistics();
+            } catch (error) {
+                console.error('Toggle subtask status error:', error);
             }
         }
         
@@ -3822,37 +3875,46 @@
                     `).join('');
 
                     return `
-                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                                    ${task.client_name}
-                                </span>
-                                <span class="flex items-center gap-1.5 text-xs font-bold ${isCompleted ? 'text-emerald-500' : 'text-amber-500'}">
-                                    <i class="fas ${isCompleted ? 'fa-check-circle' : 'fa-clock'}"></i>
-                                    ${isCompleted ? 'Completed' : totalSubs > 0 ? 'In Progress' : 'Pending'}
-                                </span>
+                        <div onclick="navigateToTask(${task.client_id}, ${task.id})" class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group cursor-pointer">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                                        ${task.client_name.substring(0,2).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none mb-1">${task.client_name}</p>
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">${task.title}</h4>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'}">
+                                        ${isCompleted ? 'Completed' : 'In Progress'}
+                                    </span>
+                                </div>
                             </div>
 
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-2">${task.title}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 italic">"${task.description || 'No description provided.'}"</p>
-
-                            ${totalSubs > 0 ? `
-                                <div class="mb-4">
-                                    <div class="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
-                                        <span>Progress</span>
-                                        <span>${completedSubs}/${totalSubs} subtasks</span>
-                                    </div>
-                                    <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${progressPct}%"></div>
-                                    </div>
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">
+                                    <span>Progress</span>
+                                    <span>${progressPct}%</span>
                                 </div>
-                            ` : '<p class="text-[10px] text-gray-400 italic mb-4">No subtasks yet</p>'}
+                                <div class="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-500 ${isCompleted ? 'bg-emerald-500' : 'bg-blue-500'}" style="width: ${progressPct}%"></div>
+                                </div>
+                            </div>
 
-                            <div class="flex items-center gap-3 pt-4 border-t border-gray-50 dark:border-gray-700/50">
-                                <div class="flex -space-x-2 overflow-hidden">
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-gray-700/50">
+                                <div class="flex -space-x-2">
                                     ${userAvatars}
                                 </div>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${assignees.length} Assignee(s)</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                                        <i class="fas fa-list-check mr-1"></i> ${completedSubs}/${totalSubs} Subs
+                                    </span>
+                                    <button class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                        <i class="fas fa-arrow-right text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subtask extends Model
 {
-    protected $fillable = ['main_task_id', 'title', 'description', 'work_date', 'time_logged', 'user_id'];
+    protected $fillable = ['main_task_id', 'title', 'description', 'work_date', 'time_logged', 'user_id', 'status'];
 
     public function user()
     {
