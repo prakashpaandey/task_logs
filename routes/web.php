@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         'update' => 'main-task.update',
         'destroy' => 'main-task.destroy',
     ]);
+    Route::post('main-tasks/{main_task}/comments', [\App\Http\Controllers\MainTaskCommentController::class, 'store'])->name('main-task.comments.store');
     Route::resource('subtasks', SubTaskController::class)->only(['store', 'update', 'destroy'])->names([
         'store' => 'subtask.store',
         'update' => 'subtask.update',

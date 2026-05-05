@@ -32,4 +32,9 @@ class MainTask extends Model
     {
         return $this->belongsToMany(User::class, 'main_task_user')->withTimestamps();
     }
+
+    public function comments()
+    {
+        return $this->hasMany(MainTaskComment::class)->latest();
+    }
 }

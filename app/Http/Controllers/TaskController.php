@@ -22,7 +22,7 @@ class TaskController extends Controller
                           });
                 });
             }
-            $q->with(['user', 'category', 'assignedUsers', 'subtasks.user', 'subtasks.comments.user', 'subtasks.comments.images', 'subtasks.timeLogs.user']);
+            $q->with(['user', 'category', 'assignedUsers', 'subtasks.user', 'subtasks.comments.user', 'subtasks.comments.images', 'subtasks.timeLogs.user', 'comments.user']);
         }]);
         
         if (!$user->isAdmin()) {

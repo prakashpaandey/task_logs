@@ -73,7 +73,10 @@
                     main_tasks: {
                         store: @json(route('main-task.store')),
                         update: @json(route('main-task.update', ['main_task' => ':id'])),
-                        destroy: @json(route('main-task.destroy', ['main_task' => ':id']))
+                        destroy: @json(route('main-task.destroy', ['main_task' => ':id'])),
+                        comments: {
+                            store: @json(route('main-task.comments.store', ['main_task' => ':id']))
+                        }
                     },
                     profile: {
                         update: @json(route('profile.update')),

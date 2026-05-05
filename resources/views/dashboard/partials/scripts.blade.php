@@ -315,13 +315,15 @@
             }
 
             // 2. Update Global App State
-            const oldClientsJson = JSON.stringify(window.App.clients);
-            const newClientsJson = JSON.stringify(data.clients);
+            const oldClientsJson = JSON.stringify(window.App.clients || []);
+            const newClientsJson = JSON.stringify(data.clients || []);
+            const clientsChanged = oldClientsJson !== newClientsJson;
 
-            if (oldClientsJson !== newClientsJson) {
-                const wasEmpty = !window.App.clients || window.App.clients.length === 0;
-                window.App.clients = data.clients;
-                const isNowPopulated = window.App.clients && window.App.clients.length > 0;
+            // Always update global state to ensure findMainTask() returns fresh data for chat checks
+            window.App.clients = data.clients;
+
+            if (clientsChanged) {
+                const wasEmpty = oldClientsJson === '[]' && (data.clients && data.clients.length > 0);
                 
                 // Re-render Client List (Sidebar)
                 if (typeof renderClientsList === 'function') renderClientsList();
@@ -332,111 +334,98 @@
                 }
 
                 // If user was newly assigned their first client, show a success toast
-                if (wasEmpty && isNowPopulated) {
+                if (wasEmpty) {
                     showSuccessNotification('You have been assigned to new clients! Check your sidebar.');
                 }
+            }
 
-               // If we are currently viewing a client, refresh the active view
-                if (currentClientId) {
-                    const updatedClient = findClient(currentClientId);
-                    if (updatedClient) {
-                        // Refresh Main Tasks list if we are in the client view
-                        if (!document.getElementById('client-content').classList.contains('hidden')) {
+            // MAIN TASK CHAT: Refresh open discussion modal (Checked every pulse for real-time responsiveness)
+            const mainTaskChatModal = document.getElementById('main-task-chat-modal');
+            if (mainTaskChatModal && !mainTaskChatModal.classList.contains('hidden')) {
+                const activeChatTaskId = document.getElementById('main-task-chat-id').value;
+                if (activeChatTaskId) {
+                    const currentTask = findMainTask(activeChatTaskId);
+                    const commentCount = currentTask?.comments ? currentTask.comments.length : 0;
+                    
+                    if (!window._lastMainTaskChatCounts) window._lastMainTaskChatCounts = {};
+                    
+                    // Only re-render if count has changed to prevent flickering
+                    if (window._lastMainTaskChatCounts[activeChatTaskId] !== commentCount) {
+                        renderMainTaskChat(activeChatTaskId);
+                        window._lastMainTaskChatCounts[activeChatTaskId] = commentCount;
+                    }
+                }
+            }
+
+            // ACTIVE VIEW REFRESH (Client/Task/Subtask)
+            if (currentClientId) {
+                const updatedClient = findClient(currentClientId);
+                if (updatedClient) {
+                    if (!document.getElementById('client-content').classList.contains('hidden')) {
+                        if (clientsChanged) {
                             renderMainTasks(updatedClient.main_tasks || []);
-                            
-                            // Refresh breadcrumb text in case client was renamed
                             updateBreadcrumb();
-
-                            // If a main task is selected, refresh its subtasks
-                            if (currentMainTaskId) {
-                                const updatedTask = findMainTask(currentMainTaskId);
-                                if (updatedTask) {
-                                    renderSubtasks(updatedTask.subtasks || []);
-                                    
-                                    // If a subtask is selected, refresh its details/comments
-                                    if (currentSubtaskId) {
-                                        const updatedSubtask = findSubtask(currentSubtaskId);
-                                        if (updatedSubtask) {
-                                            updateSubtaskDetailHeader(updatedSubtask);
+                        }
+                        
+                        if (currentMainTaskId) {
+                            const updatedTask = findMainTask(currentMainTaskId);
+                            if (updatedTask) {
+                                if (clientsChanged) renderSubtasks(updatedTask.subtasks || []);
+                                
+                                if (currentSubtaskId) {
+                                    const updatedSubtask = findSubtask(currentSubtaskId);
+                                    if (updatedSubtask) {
+                                        updateSubtaskDetailHeader(updatedSubtask);
+                                        // Only re-render comments/logs if they actually changed
+                                        const subCheck = (updatedSubtask.comments?.length || 0) + (updatedSubtask.time_logs?.length || 0);
+                                        if (window._lastSubDetailsCheck !== `${currentSubtaskId}_${subCheck}`) {
                                             renderComments(updatedSubtask.comments || []);
                                             renderTimeLogs(updatedSubtask.time_logs || []);
-                                            
-                                            // Update details description if shown
-                                            const subtaskDescEl = document.getElementById('detail-subtask-description');
-                                            if (subtaskDescEl && updatedSubtask.description) {
-                                                subtaskDescEl.textContent = updatedSubtask.description;
-                                            }
-                                        } else {
-                                            // Subtask was deleted externally
-                                            resetSubtaskForm();
-                                            showErrorNotification('The subtask you were viewing was deleted by another user.');
+                                            window._lastSubDetailsCheck = `${currentSubtaskId}_${subCheck}`;
                                         }
+                                    } else {
+                                        resetSubtaskForm();
+                                        showErrorNotification('The subtask you were viewing was deleted.');
                                     }
-                                } else {
-                                    // Main task was deleted externally
-                                    resetMainTaskSelection();
-                                    showErrorNotification('The task you were viewing was deleted by another user.');
                                 }
+                            } else {
+                                resetMainTaskSelection();
+                                showErrorNotification('The task you were viewing was deleted.');
                             }
                         }
-                    } else {
-                        // Client was likely deleted by another admin
-                        if (typeof showClientSelectionPrompt === 'function') showClientSelectionPrompt();
-                        showErrorNotification('The client you were viewing is no longer available.', 'warning');
                     }
-                    
-                    // Dynamic Cleanup: Handle entities that might have been deleted externally
-                    handleDeletedEntities(data.clients);
+                } else {
+                    if (typeof showClientSelectionPrompt === 'function') showClientSelectionPrompt();
                 }
             }
 
-            // 3. Update Sync for Developers (Users)
+            // 4. Update Sync for Developers (Users)
             if (data.users && Array.isArray(data.users)) {
-                const oldUsersJson = JSON.stringify(window.App.users || []);
-                const newUsersJson = JSON.stringify(data.users);
-                
-                if (oldUsersJson !== newUsersJson) {
-                    if (typeof syncUsersUI === 'function') {
-                        syncUsersUI(data.users);
-                    }
+                if (JSON.stringify(window.App.users || []) !== JSON.stringify(data.users)) {
+                    if (typeof syncUsersUI === 'function') syncUsersUI(data.users);
                 }
             }
 
-            // 4. Process Notifications (ALL users - admins and developers)
-            if (data.notifications) {
-                processNotifications(data.notifications);
-            }
+            // 5. Process Notifications
+            if (data.notifications) processNotifications(data.notifications);
 
-            // 5. Process Developer Tasks (real-time sync for all users)
+            // 6. Process Developer Tasks (real-time sync)
             if (data.developer_tasks) {
-                const oldJson = JSON.stringify(developerTasks || []);
-                const newJson = JSON.stringify(data.developer_tasks);
-                if (oldJson !== newJson) {
-                    console.log('Sync: Developer tasks list updated.');
+                const oldDevJson = JSON.stringify(developerTasks || []);
+                const newDevJson = JSON.stringify(data.developer_tasks);
+                if (oldDevJson !== newDevJson) {
                     developerTasks = data.developer_tasks;
-                    
-                    // Re-render instantly if the container exists
-                    if (document.getElementById('dev-tasks-container')) {
-                        renderDeveloperTasks();
-                    }
-                    
-                    // Also update history modal if it is open
-                    if (typeof currentHistoryUserId !== 'undefined' && currentHistoryUserId) {
-                        renderUserTaskHistoryUI();
-                    }
+                    if (document.getElementById('dev-tasks-container')) renderDeveloperTasks();
+                    if (typeof currentHistoryUserId !== 'undefined' && currentHistoryUserId) renderUserTaskHistoryUI();
 
-                    // REAL-TIME CHAT: Refresh open discussion modal
+                    // DEV TASK CHAT REFRESH
                     const devChatModal = document.getElementById('dev-task-comments-modal');
                     if (devChatModal && !devChatModal.classList.contains('hidden')) {
                         const activeTaskId = document.getElementById('dev-task-comment-task-id').value;
                         if (activeTaskId) {
                             const currentTask = findDeveloperTask(activeTaskId);
                             const commentCount = currentTask?.comments ? currentTask.comments.length : 0;
-                            
-                            // Initialize comment tracker if needed
                             if (!window._lastCommentCounts) window._lastCommentCounts = {};
-                            
-                            // Only re-render if count has changed to prevent flickering
                             if (window._lastCommentCounts[activeTaskId] !== commentCount) {
                                 renderDevTaskComments(activeTaskId);
                                 window._lastCommentCounts[activeTaskId] = commentCount;
@@ -1236,6 +1225,95 @@
             const mainContent = document.getElementById('main-content');
             if (mainContent) mainContent.scrollTop = 0;
         }
+
+        window.openMainTaskChat = function(taskId) {
+            const task = findMainTask(taskId);
+            if (!task) return;
+
+            const modal = document.getElementById('main-task-chat-modal');
+            const title = document.getElementById('main-task-chat-title');
+            const taskIdInput = document.getElementById('main-task-chat-id');
+            
+            if (title) title.textContent = `Discussion: ${task.title}`;
+            if (taskIdInput) taskIdInput.value = taskId;
+            
+            renderMainTaskChat(taskId);
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeMainTaskChat = function() {
+            const modal = document.getElementById('main-task-chat-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.renderMainTaskChat = function(taskId) {
+            const task = findMainTask(taskId);
+            const container = document.getElementById('main-task-chat-container');
+            if (!container || !task) return;
+
+            const comments = task.comments || [];
+            if (comments.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-center py-10 opacity-40">
+                        <i class="fas fa-comments text-4xl mb-4 text-gray-400"></i>
+                        <p class="text-sm font-medium text-gray-500">No messages yet.<br>Start the conversation below.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = [...comments].reverse().map(c => {
+                const isMe = c.user_id == window.App.user.id;
+                const date = new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const userName = c.user ? c.user.name : 'Unknown User';
+                
+                return `
+                    <div class="flex ${isMe ? 'justify-end' : 'justify-start'} animate-fadeIn">
+                        <div class="max-w-[80%] ${isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm shadow-lg shadow-indigo-600/10' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm shadow-sm'} p-4">
+                            ${!isMe ? `<p class="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 mb-1">${userName}</p>` : ''}
+                            <p class="text-sm leading-relaxed">${c.comment}</p>
+                            <p class="text-[9px] mt-2 opacity-60 font-medium text-right">${date}</p>
+                        </div>
+                    </div>
+                `;
+            }).join(''); 
+
+            container.scrollTop = container.scrollHeight;
+        };
+
+        window.submitMainTaskChat = async function(event) {
+            event.preventDefault();
+            const input = document.getElementById('main-task-chat-input');
+            const taskId = document.getElementById('main-task-chat-id').value;
+            const btn = document.getElementById('main-task-chat-submit-btn');
+
+            if (!input.value.trim() || !taskId) return;
+
+            const originalBtnHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const url = window.App.routes.main_tasks.comments.store.replace(':id', taskId);
+                const response = await apiCall(url, 'POST', { comment: input.value });
+                if (response.success) {
+                    const task = findMainTask(taskId);
+                    if (task) {
+                        if (!task.comments) task.comments = [];
+                        task.comments.unshift(response.comment); // Add to beginning (latest)
+                        renderMainTaskChat(taskId);
+                        renderClientMainTasks(); // Update count on cards
+                    }
+                    input.value = '';
+                }
+            } catch (error) {
+                console.error('Failed to post comment:', error);
+                showErrorNotification('Failed to send message.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
+        };
 
         window.navigateToTask = function(clientId, taskId) {
             // 1. Switch to client view
@@ -3909,6 +3987,10 @@
                                     <span class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
                                         <i class="fas fa-list-check mr-1"></i> ${completedSubs}/${totalSubs} Subs
                                     </span>
+                                    <button onclick="event.stopPropagation(); openMainTaskChat(${task.id})" class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all relative">
+                                        <i class="fas fa-comment-dots text-xs"></i>
+                                        ${(task.comments || []).length > 0 ? `<span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">${task.comments.length}</span>` : ''}
+                                    </button>
                                     <button class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                         <i class="fas fa-arrow-right text-xs"></i>
                                     </button>
@@ -3996,7 +4078,7 @@
                 return;
             }
 
-            container.innerHTML = comments.map(c => {
+            container.innerHTML = [...comments].reverse().map(c => {
                 const isMe = c.user_id == window.App.user.id;
                 const date = new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 const userName = c.user ? c.user.name : 'Unknown User';
