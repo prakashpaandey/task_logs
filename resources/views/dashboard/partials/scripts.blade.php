@@ -2320,13 +2320,8 @@
                     data-subtask-id="${s.id}">
                     <div class="flex items-start justify-between">
                         <div class="flex items-start space-x-3">
-                            <div class="flex items-center gap-3">
-                                <div onclick="event.stopPropagation(); toggleSubtaskStatus(${s.id})" class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer transition-all ${s.status === 'completed' ? 'bg-emerald-500 border-emerald-500 text-white' : 'hover:border-blue-500'}">
-                                    ${s.status === 'completed' ? '<i class="fas fa-check text-[10px]"></i>' : ''}
-                                </div>
-                                <div class="w-10 h-10 ${isActive ? 'bg-blue-600 text-white' : (s.status === 'completed' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400')} rounded-lg flex items-center justify-center shrink-0 transition-colors">
-                                    <i class="fas ${s.status === 'completed' ? 'fa-check-double' : 'fa-pencil-alt'}"></i>
-                                </div>
+                            <div class="w-10 h-10 ${isActive ? 'bg-blue-600 text-white' : (s.status === 'completed' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400')} rounded-lg flex items-center justify-center shrink-0 transition-colors">
+                                <i class="fas ${s.status === 'completed' ? 'fa-check' : 'fa-pencil-alt'}"></i>
                             </div>
                             <div>
                                 <h5 class="font-bold ${s.status === 'completed' ? 'text-gray-400 dark:text-gray-500 line-through' : (isActive ? 'text-blue-800 dark:text-white' : 'text-gray-800 dark:text-white')}">${s.title}</h5>
@@ -2341,6 +2336,9 @@
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0 ml-2">
+                            <button onclick="event.stopPropagation(); toggleSubtaskStatus(${s.id})" class="p-1 transition-colors ${s.status === 'completed' ? 'text-emerald-500 hover:text-emerald-700' : 'text-gray-300 dark:text-gray-600 hover:text-blue-500'}" title="${s.status === 'completed' ? 'Mark as Pending' : 'Mark as Done'}">
+                                <i class="fas fa-check text-sm"></i>
+                            </button>
                             ${(window.App.user.role === 'super_admin' || s.user_id == window.App.user.id) ? `
                                 <button class="edit-subtask-btn ${isActive ? 'text-blue-700 hover:text-blue-900' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'} p-1"><i class="fas fa-edit"></i></button>
                                 <button class="delete-subtask-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"><i class="fas fa-trash-alt"></i></button>
